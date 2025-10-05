@@ -1,6 +1,14 @@
 // Product Management Functions
 
 let editingProductId = null;
+// Prepare modal for adding new product
+function prepareAddProduct() {
+    editingProductId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('productId').value = '';
+}
+
 
 // Display all products
 function displayProducts() {
@@ -244,3 +252,4 @@ function searchProducts() {
         productsList.innerHTML += card;
     });
 }
+
