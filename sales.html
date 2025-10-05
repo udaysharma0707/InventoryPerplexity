@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sales — Tile Inventory</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+  <!-- App stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <meta name="description" content="Sales / Transactions — Tile Inventory" />
+  <style>
+    .table-fixed { table-layout: fixed; }
+    .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .top-actions { gap: 0.5rem; display:flex; align-items:center; }
+    pre.sale-items { background:#f8f9fa; padding:8px; border-radius:6px; font-size:0.9rem; }
+  </style>
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="products.html">
+        <img src="images/logo.png" alt="logo" style="width:40px; height:auto; margin-right:8px;">
+        <div>
+          <strong>Tile Inventory</strong><br>
+          <small class="text-muted">Sales</small>
+        </div>
+      </a>
+
+      <div class="ms-auto d-flex align-items-center">
+        <div id="sessionBadge" class="me-3 small text-muted">Checking session...</div>
+        <div class="top-actions">
+          <button id="btnRefresh" class="btn btn-outline-secondary btn-sm me-1">Refresh</button>
+          <button id="btnExport" class="btn btn-outline-primary btn-sm me-1">Export CSV</button>
+          <button id="btnCreate" class="btn btn-primary btn-sm me-2">Create Sale</button>
+          <button id="btnLogout" class="btn btn-link btn-sm text-danger">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Sales Transactions</h5>
+          <div class="text-muted small">List of recent sales</div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="salesTable" class="table table-hover table-fixed">
+            <thead class="table-light">
+              <tr>
+                <th style="width:36px;">#</th>
+                <th style="width:170px;">Date / Time</th>
+                <th>Items</th>
+                <th style="width:120px;">Total</th>
+                <th style="width:140px;">Customer</th>
+                <th style="width:120px;">Payment</th>
+                <th style="width:120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- injected by inline renderer or js/sales.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="noSalesNotice" class="text-center text-muted py-4" style="display:none;">
+          No sales recorded yet. Click <strong>Create Sale</strong> to add a transaction.
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- Core libs -->
+  <script src="js/utils.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/auth.js" defer></script>
+
+  <!-- Page script (lightweight renderer while js/sales.js is not present) -->
+  <script>
+    // Helper: convert sales items to short text
+    function itemsSummary(items) {
+      if (!Array.isArray(items) || items.length === 0) return '';
+      return items.map(it => `${it.productName || it.productId} x ${it.quantity} ${it.unitType || ''} @ ${it.unitPrice}`).join(' | ');
+    }
+
+    // Export JSON->CSV for sales
+    function salesToCSV(sales) {
+      if (!Array.isArray(sales)) return '';
+      const rows = [];
+      // header
+      rows.push(['Transaction ID','DateTime','Items (productName x qty unit @ price)','TotalAmount','CustomerName','CustomerPhone','PaymentMethod','PaymentStatus','Notes']);
+      sales.forEach(s => {
+        const itemsText = (s.items || []).map(it => `${it.productName || it.productId} x ${it.quantity} ${it.unitType || ''} @ ${it.unitPrice}`).join(' ; ');
+        rows.push([
+          s.id || '',
+          s.dateTime || '',
+          itemsText,
+          s.totalAmount != null ? s.totalAmount : '',
+          s.customerName || '',
+          s.customerPhone || '',
+          s.paymentMethod || '',
+          s.paymentStatus || '',
+          s.notes || ''
+        ]);
+      });
+      // convert rows to CSV string (simple)
+      return rows.map(r => r.map(cell => {
+        if (cell == null) return '';
+        const str = String(cell).replace(/"/g, '""');
+        return `"${str}"`;
+      }).join(',')).join('\n');
+    }
+
+    // download helper
+    function downloadBlob(filename, content, mime='text/csv') {
+      const blob = new Blob([content], { type: mime + ';charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // Render sales list into table
+    async function renderSales() {
+      try {
+        const sales = await window.tiaStorage.getAllSales();
+        const tbody = document.querySelector('#salesTable tbody');
+        const noSales = document.getElementById('noSalesNotice');
+        tbody.innerHTML = '';
+        if (!sales || sales.length === 0) {
+          noSales.style.display = 'block';
+          return;
+        } else {
+          noSales.style.display = 'none';
+        }
+
+        // recent first
+        const ordered = sales.slice().sort((a,b) => new Date(b.dateTime || b.createdAt || 0) - new Date(a.dateTime || a.createdAt || 0));
+        ordered.forEach((s, i) => {
+          const tr = document.createElement('tr');
+          const idx = el('td', { html: i+1 });
+          const dateCell = el('td', { html: (new Date(s.dateTime || s.createdAt || Date.now())).toLocaleString() });
+          const itemsCell = document.createElement('td');
+          itemsCell.innerHTML = `<div class="small">${itemsSummary(s.items)}</div>`;
+          const totalCell = el('td', { html: (window.tiaUtils ? window.tiaUtils.formatCurrency(s.totalAmount || 0) : (s.totalAmount || 0)) });
+          const customerCell = el('td', { html: `${s.customerName || ''}<br><small class="text-muted">${s.customerPhone || ''}</small>` });
+          const payCell = el('td', { html: `${s.paymentMethod || ''}<br><small class="text-${(s.paymentStatus||'').toLowerCase()==='paid'?'success':'warning'}">${s.paymentStatus || ''}</small>` });
+
+          const actionsCell = el('td');
+          const viewBtn = el('button', { class: 'btn btn-sm btn-outline-secondary', text: 'View' });
+          viewBtn.addEventListener('click', () => showSaleDetails(s));
+          actionsCell.appendChild(viewBtn);
+
+          tr.appendChild(idx);
+          tr.appendChild(dateCell);
+          tr.appendChild(itemsCell);
+          tr.appendChild(totalCell);
+          tr.appendChild(customerCell);
+          tr.appendChild(payCell);
+          tr.appendChild(actionsCell);
+
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error('Failed to load sales', e);
+      }
+    }
+
+    // tiny helper el builder (used above)
+    function el(tag, attrs = {}) {
+      const node = document.createElement(tag);
+      for (const k in attrs) {
+        if (k === 'class') node.className = attrs[k];
+        else if (k === 'html') node.innerHTML = attrs[k];
+        else if (k === 'text') node.textContent = attrs[k];
+        else node.setAttribute(k, attrs[k]);
+      }
+      return node;
+    }
+
+    // Show sale details in modal-like alert (simple)
+    function showSaleDetails(sale) {
+      const lines = [];
+      lines.push(`Transaction: ${sale.id || ''}`);
+      lines.push(`Date: ${new Date(sale.dateTime || sale.createdAt || Date.now()).toLocaleString()}`);
+      lines.push('Items:');
+      (sale.items || []).forEach(it => {
+        lines.push(` - ${it.productName || it.productId} | ${it.quantity} ${it.unitType || ''} @ ${it.unitPrice} => ${it.totalAmount || (it.quantity * (it.unitPrice || 0))}`);
+      });
+      lines.push(`Total: ${(window.tiaUtils ? window.tiaUtils.formatCurrency(sale.totalAmount || 0) : sale.totalAmount || 0)}`);
+      lines.push(`Customer: ${sale.customerName || ''} (${sale.customerPhone || ''})`);
+      lines.push(`Payment: ${sale.paymentMethod || ''} — ${sale.paymentStatus || ''}`);
+      lines.push('');
+      lines.push(sale.notes || '');
+      alert(lines.join('\n'));
+    }
+
+    // Auth and UI wiring
+    document.addEventListener('DOMContentLoaded', () => {
+      // auth guard
+      const session = window.tiaAuth?.getSession ? window.tiaAuth.getSession() : null;
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      document.getElementById('sessionBadge').textContent = `Signed in as ${session.username} (${session.role})`;
+
+      document.getElementById('btnLogout').addEventListener('click', () => {
+        if (confirm('Log out?')) window.tiaAuth.logout();
+      });
+
+      document.getElementById('btnCreate').addEventListener('click', () => {
+        window.location.href = 'create-sale.html';
+      });
+
+      document.getElementById('btnRefresh').addEventListener('click', () => {
+        renderSales();
+      });
+
+      document.getElementById('btnExport').addEventListener('click', async () => {
+        try {
+          const sales = await window.tiaStorage.getAllSales();
+          const csv = salesToCSV(sales || []);
+          const filename = `sales-export-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`;
+          downloadBlob(filename, csv, 'text/csv');
+        } catch (e) {
+          console.error('Export failed', e);
+          alert('Export failed: ' + (e.message || e));
+        }
+      });
+
+      // auto-render
+      renderSales();
+
+      // subscribe to DB changes if available
+      if (window.tiaStorage && typeof window.tiaStorage.onChange === 'function') {
+        window.tiaStorage.onChange(() => {
+          // slight debounce
+          setTimeout(renderSales, 100);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

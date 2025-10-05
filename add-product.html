@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Product — Tile Inventory</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+  <!-- App stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <meta name="description" content="Add Product — Tile Inventory" />
+  <style>
+    .form-card { max-width: 900px; margin: 0 auto; }
+    .img-preview { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(0,0,0,0.06); }
+    .small-note { font-size: 0.85rem; color: #6c757d; }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="products.html">
+        <img src="images/logo.png" alt="logo" style="width:36px; height:auto; margin-right:8px;">
+        Tile Inventory
+      </a>
+      <div class="ms-auto">
+        <button id="btnCancel" class="btn btn-outline-secondary btn-sm">Cancel</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="card form-card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Add New Product</h5>
+
+        <form id="addProductForm" novalidate>
+          <div class="grid-2">
+            <div>
+              <label class="form-label">Product Name <span class="text-danger">*</span></label>
+              <input id="p_name" name="name" class="form-control" required placeholder="e.g., Glossy Tile 300x300">
+              <div class="invalid-feedback">Product name required.</div>
+            </div>
+
+            <div>
+              <label class="form-label">SKU / Code</label>
+              <input id="p_sku" name="sku" class="form-control" placeholder="e.g., T-300-GLOSS">
+            </div>
+
+            <div>
+              <label class="form-label">Category <span class="text-danger">*</span></label>
+              <select id="p_category" class="form-select" required>
+                <option value="">Select category</option>
+                <option>Tiles</option>
+                <option>Sanitaryware</option>
+                <option>Accessories</option>
+                <option>Other</option>
+              </select>
+              <div class="invalid-feedback">Please select a category.</div>
+            </div>
+
+            <div>
+              <label class="form-label">Brand</label>
+              <input id="p_brand" class="form-control" placeholder="Brand name">
+            </div>
+
+            <div>
+              <label class="form-label">Size / Model</label>
+              <input id="p_size" class="form-control" placeholder="e.g., 300x300 or Model XYZ">
+            </div>
+
+            <div>
+              <label class="form-label">Unit Type</label>
+              <select id="p_unitType" class="form-select">
+                <option value="Box">Box</option>
+                <option value="Piece">Piece</option>
+                <option value="SFT">SFT</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label">Pieces per Box</label>
+              <input id="p_piecesPerBox" type="number" min="0" step="1" class="form-control" placeholder="e.g., 10">
+              <div class="small-note">Required for conversions between boxes & pieces.</div>
+            </div>
+
+            <div>
+              <label class="form-label">Square Feet per Box</label>
+              <input id="p_sftPerBox" type="number" min="0" step="0.001" class="form-control" placeholder="e.g., 20">
+              <div class="small-note">Used to calculate boxes required for SFT sales.</div>
+            </div>
+
+            <div>
+              <label class="form-label">Cost Price</label>
+              <input id="p_costPrice" type="number" min="0" step="0.01" class="form-control" placeholder="Cost per unit/box">
+            </div>
+
+            <div>
+              <label class="form-label">Selling Price (per unit)</label>
+              <input id="p_sellingPrice" type="number" min="0" step="0.01" class="form-control" placeholder="Retail price per selected unit">
+            </div>
+
+            <div>
+              <label class="form-label">Current Stock — Boxes</label>
+              <input id="p_stockBoxes" type="number" min="0" step="0.001" class="form-control" value="0">
+            </div>
+
+            <div>
+              <label class="form-label">Current Stock — Pieces</label>
+              <input id="p_stockPieces" type="number" min="0" step="0.001" class="form-control" value="0">
+            </div>
+
+            <div>
+              <label class="form-label">Current Stock — SFT</label>
+              <input id="p_stockSft" type="number" min="0" step="0.001" class="form-control" value="0">
+            </div>
+
+            <div>
+              <label class="form-label">Minimum Stock Level</label>
+              <input id="p_minStock" type="number" min="0" step="1" class="form-control" value="0">
+              <div class="small-note">When stock ≤ min level an alert will be created (single number interpreted per unit context).</div>
+            </div>
+
+            <div>
+              <label class="form-label">Supplier Name</label>
+              <input id="p_supplierName" class="form-control" placeholder="Supplier">
+            </div>
+
+            <div>
+              <label class="form-label">Supplier Contact</label>
+              <input id="p_supplierContact" class="form-control" placeholder="Phone / email">
+            </div>
+
+            <div>
+              <label class="form-label">Location / Warehouse</label>
+              <input id="p_location" class="form-control" placeholder="Showroom / Warehouse A">
+            </div>
+
+            <div class="d-flex align-items-start gap-2" style="grid-column: 1 / -1;">
+              <div>
+                <label class="form-label">Product Image</label>
+                <input id="p_image" type="file" accept="image/*" class="form-control">
+                <div class="small-note mt-1">Image will be converted to a preview and saved as data URL (demo only).</div>
+              </div>
+              <div>
+                <label class="form-label">&nbsp;</label>
+                <div>
+                  <img id="imgPreview" src="images/products/placeholder.png" alt="preview" class="img-preview">
+                </div>
+              </div>
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+              <label class="form-label">Notes</label>
+              <textarea id="p_notes" class="form-control" rows="3" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+
+          <div class="mt-3 d-flex gap-2">
+            <button id="btnSave" class="btn btn-primary">Save Product</button>
+            <button id="btnSaveAddAnother" type="button" class="btn btn-outline-primary">Save & Add Another</button>
+            <button id="btnCancel2" type="button" class="btn btn-link text-muted">Cancel</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- Core libs (must exist) -->
+  <script src="js/utils.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/auth.js" defer></script>
+
+  <script>
+    // Page behavior: ties into tiaStorage, tiaUtils, tiaAuth
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auth guard
+      const sess = window.tiaAuth?.getSession ? window.tiaAuth.getSession() : null;
+      if (!sess) {
+        // redirect to login if not authed (dev bypass available)
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Element refs
+      const form = document.getElementById('addProductForm');
+      const imgInput = document.getElementById('p_image');
+      const imgPreview = document.getElementById('imgPreview');
+      const btnCancel = document.getElementById('btnCancel');
+      const btnCancel2 = document.getElementById('btnCancel2');
+      const btnSaveAddAnother = document.getElementById('btnSaveAddAnother');
+
+      // image handling: read file into dataURL for demo storage
+      let imageDataUrl = '';
+      if (imgInput) {
+        imgInput.addEventListener('change', (ev) => {
+          const file = ev.target.files && ev.target.files[0];
+          if (!file) {
+            imageDataUrl = '';
+            imgPreview.src = 'images/products/placeholder.png';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imageDataUrl = e.target.result;
+            imgPreview.src = imageDataUrl;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Cancel handlers
+      [btnCancel, btnCancel2].forEach(btn => {
+        if (!btn) return;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (confirm('Discard changes and return to products?')) {
+            window.location.href = 'products.html';
+          }
+        });
+      });
+
+      // Helper: gather form data and validate
+      function gatherFormData() {
+        const name = document.getElementById('p_name').value.trim();
+        const sku = document.getElementById('p_sku').value.trim();
+        const category = document.getElementById('p_category').value || '';
+        const brand = document.getElementById('p_brand').value.trim();
+        const size = document.getElementById('p_size').value.trim();
+        const unitType = document.getElementById('p_unitType').value || 'Box';
+        const piecesPerBox = Number(document.getElementById('p_piecesPerBox').value) || 0;
+        const sftPerBox = Number(document.getElementById('p_sftPerBox').value) || 0;
+        const costPrice = Number(document.getElementById('p_costPrice').value) || 0;
+        const sellingPrice = Number(document.getElementById('p_sellingPrice').value) || 0;
+        const stockBoxes = Number(document.getElementById('p_stockBoxes').value) || 0;
+        const stockPieces = Number(document.getElementById('p_stockPieces').value) || 0;
+        const stockSft = Number(document.getElementById('p_stockSft').value) || 0;
+        const minStock = Number(document.getElementById('p_minStock').value) || 0;
+        const supplierName = document.getElementById('p_supplierName').value.trim();
+        const supplierContact = document.getElementById('p_supplierContact').value.trim();
+        const location = document.getElementById('p_location').value.trim();
+        const notes = document.getElementById('p_notes').value.trim();
+
+        return {
+          name, sku, category, brand, size, unitType, piecesPerBox, sftPerBox,
+          costPrice, sellingPricePerUnit: sellingPrice,
+          currentStock: { boxes: stockBoxes, pieces: stockPieces, sft: stockSft },
+          minStock, supplierName, supplierContact, location,
+          imageUrl: imageDataUrl || '',
+          notes,
+          dateAdded: new Date().toISOString()
+        };
+      }
+
+      // Save handler
+      async function handleSave(e, addAnother = false) {
+        if (e && e.preventDefault) e.preventDefault();
+
+        // trigger HTML5 validation
+        form.classList.add('was-validated');
+        if (!form.checkValidity()) {
+          return;
+        }
+
+        const product = gatherFormData();
+
+        try {
+          // Add product via storage API
+          const added = await window.tiaStorage.addProduct(product);
+          // Notify and redirect (or reset for another)
+          if (addAnother) {
+            alert('Product saved. You can add another.');
+            // Reset form (but keep category, brand maybe)
+            form.reset();
+            imgPreview.src = 'images/products/placeholder.png';
+            // Clear imageDataUrl
+            imageDataUrl = '';
+            form.classList.remove('was-validated');
+            // Ensure storage events propagate to product list
+          } else {
+            // go back to products list
+            window.location.href = 'products.html';
+          }
+        } catch (err) {
+          console.error('Failed to save product', err);
+          alert('Failed to save product: ' + (err.message || err));
+        }
+      }
+
+      // Bind save buttons
+      form.addEventListener('submit', (e) => handleSave(e, false));
+      document.getElementById('btnSave').addEventListener('click', (e) => {
+        // form.submit will call the same handler tied to submit
+      });
+      btnSaveAddAnother.addEventListener('click', (e) => handleSave(e, true));
+
+      // Pre-fill some defaults (optional)
+      document.getElementById('p_stockBoxes').value = 0;
+      document.getElementById('p_stockPieces').value = 0;
+      document.getElementById('p_stockSft').value = 0;
+
+      // Allow keyboard submit from anywhere
+      form.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' && (ev.target.tagName !== 'TEXTAREA')) {
+          // let submit happen
+        }
+      });
+    });
+  </script>
+</body>
+</html>
