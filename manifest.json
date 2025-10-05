@@ -1,0 +1,51 @@
+{
+  "name": "Tile & Sanitaryware Inventory",
+  "short_name": "Tile Inventory",
+  "description": "Simple inventory management app for tile and sanitaryware shops",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192?text=TI",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512?text=TI",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Add Product",
+      "short_name": "Add",
+      "description": "Quickly add a new product",
+      "url": "/?action=add",
+      "icons": [
+        {
+          "src": "https://via.placeholder.com/96x96?text=+",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Record Sale",
+      "short_name": "Sale",
+      "description": "Record a new sale",
+      "url": "/?action=sale",
+      "icons": [
+        {
+          "src": "https://via.placeholder.com/96x96?text=$",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
