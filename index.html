@@ -16,118 +16,77 @@
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-/* Toast Notification Styles */
-.toast-container {
-    position: fixed;
-    top: 70px;
-    right: 20px;
-    z-index: 9999;
-}
-
-.toast {
-    min-width: 250px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 16px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    animation: slideIn 0.3s ease-out;
-}
-
-.toast-success {
-    border-left: 4px solid #28a745;
-}
-
-.toast-warning {
-    border-left: 4px solid #ffc107;
-}
-
-.toast-error {
-    border-left: 4px solid #dc3545;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-
         
+        /* Product Cards */
         .product-card {
             transition: transform 0.2s, box-shadow 0.2s;
             height: 100%;
             border: 1px solid #dee2e6;
         }
+        
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
+        
         .product-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
             background-color: #e9ecef;
         }
+        
         .stock-badge {
             font-size: 1rem;
             padding: 0.5rem 1rem;
         }
+        
         .stock-good {
             background-color: #28a745;
             color: white;
         }
+        
         .stock-low {
             background-color: #ffc107;
             color: black;
         }
+        
         .stock-out {
             background-color: #dc3545;
             color: white;
         }
+        
         .card-actions {
             display: flex;
             gap: 0.5rem;
         }
+        
         .btn-action {
             flex: 1;
         }
+        
         .btn-lg {
             padding: 1rem 2rem;
             font-size: 1.2rem;
         }
+        
         .empty-state {
             text-align: center;
             padding: 3rem;
             color: #6c757d;
         }
+        
         .empty-state i {
             font-size: 4rem;
             margin-bottom: 1rem;
         }
+        
         @media (max-width: 768px) {
             .btn-lg {
                 padding: 0.75rem 1.5rem;
                 font-size: 1rem;
             }
+            
             .product-image {
                 height: 150px;
             }
@@ -342,7 +301,7 @@
                     <form id="salesForm">
                         <div class="mb-3">
                             <label class="form-label">Select Product *</label>
-                            <select class="form-select" id="saleProduct" onchange="updateSalePrice()" required>
+                            <select class="form-select" id="saleProduct" onchange="updateSalePriceInstant()" required>
                                 <option value="">Choose product...</option>
                             </select>
                         </div>
@@ -350,7 +309,7 @@
                         <div class="mb-3">
                             <label class="form-label">Quantity *</label>
                             <input type="number" class="form-control" id="saleQuantity" 
-                                   onkeyup="updateSalePrice()" required min="1">
+                                   oninput="updateSalePriceInstant()" required min="1">
                         </div>
 
                         <div class="mb-3">
@@ -359,7 +318,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <h4>Total Amount: <span class="text-success" id="saleTotal">₹0</span></h4>
+                            <label class="form-label">Total Amount (Editable)</label>
+                            <input type="number" class="form-control" id="saleTotal" step="0.01" 
+                                   placeholder="0.00" oninput="markTotalAsEdited()">
+                            <small class="text-muted">Auto-calculated, but you can edit if needed</small>
                         </div>
                     </form>
                 </div>
@@ -379,842 +341,623 @@
     
     <!-- ALL JavaScript Code Here -->
     <script>
-    // ========== GOOGLE SHEETS API FUNCTIONS ==========
-
-// **PASTE YOUR WEB APP URL HERE**
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfBwn8BRffSh20VCTr1ANbEi8HFwgQXB_62I9Ct1s3ROCuA6xlHOzlF3fMZoxL7Aur/exec';
-
-// Get products from Google Sheets
-async function getProducts() {
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`);
-        const data = await response.json();
-        return data.products || [];
-    } catch (error) {
-        console.error('Error getting products:', error);
-        alert('❌ Error loading products. Check console.');
-        return [];
-    }
-}
-
-// Save product to Google Sheets
-async function saveProductToSheet(product) {
-    try {
-        const action = product.id ? 'updateProduct' : 'addProduct';
+        // ========== GOOGLE SHEETS API CONFIGURATION ==========
         
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=${action}`, {
-            method: 'POST',
-            body: JSON.stringify(product)
-        });
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfBwn8BRffSh20VCTr1ANbEi8HFwgQXB62I9Ct1s3ROCuA6xlHOzlF3fMZoxL7Aur/exec';
         
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error saving product:', error);
-        alert('❌ Error saving product. Check console.');
-        return {error: true};
-    }
-}
-
-async function deleteProduct(id) {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
-    // Show instant feedback
-    showToast('✅ Product deleted! Syncing...', 'success');
-    
-    // Remove from display immediately (Optimistic UI)
-    await displayProducts();
-    await updateSummary();
-    await loadProductsForSale();
-    
-    // Delete from Google Sheets in background
-    deleteProductFromSheet(id).then(result => {
-        if (result.error) {
-            showToast('⚠️ Warning: Failed to delete from Google Sheets.', 'warning');
-            // Reload data to show correct state
-            displayProducts();
-        } else {
-            showToast('✅ Deleted from Google Sheets!', 'success');
+        // ========== PERMANENT LOCAL CACHE (NEVER EXPIRES AUTOMATICALLY) ==========
+        
+        let cachedProducts = [];
+        let cachedSales = [];
+        let isInitialLoad = true;
+        let totalEdited = false; // Track if user manually edited total
+        
+        // Save cache to localStorage for persistence
+        function saveCache() {
+            try {
+                localStorage.setItem('cachedProducts', JSON.stringify(cachedProducts));
+                localStorage.setItem('cachedSales', JSON.stringify(cachedSales));
+                localStorage.setItem('cacheTime', Date.now().toString());
+            } catch (e) {
+                console.warn('Failed to save cache to localStorage:', e);
+            }
         }
-    });
-}
-
-
-// Get sales from Google Sheets
-async function getSales() {
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales`);
-        const data = await response.json();
-        return data.sales || [];
-    } catch (error) {
-        console.error('Error getting sales:', error);
-        return [];
-    }
-}
-
-// Save sale to Google Sheets
-async function saveSaleToSheet(sale) {
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-            method: 'POST',
-            body: JSON.stringify(sale)
-        });
         
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error saving sale:', error);
-        return {error: true};
-    }
-}
-
-// Generate unique ID (not needed anymore, server generates it)
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-
+        // Load cache from localStorage on page load
+        function loadCache() {
+            try {
+                const products = localStorage.getItem('cachedProducts');
+                const sales = localStorage.getItem('cachedSales');
+                
+                if (products) cachedProducts = JSON.parse(products);
+                if (sales) cachedSales = JSON.parse(sales);
+                
+                console.log('✅ Loaded cache from localStorage:', cachedProducts.length, 'products,', cachedSales.length, 'sales');
+            } catch (e) {
+                console.warn('Failed to load cache from localStorage:', e);
+            }
+        }
+        
+        // ========== GOOGLE SHEETS API FUNCTIONS (FIRE AND FORGET) ==========
+        
+        // Sync products from Google Sheets in background
+        function syncProductsFromSheet() {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.products && data.products.length > 0) {
+                        cachedProducts = data.products;
+                        saveCache();
+                        console.log('✅ Synced', cachedProducts.length, 'products from Google Sheets');
+                        
+                        // Update display if not initial load
+                        if (!isInitialLoad) {
+                            displayProductsFromCache();
+                            updateSummaryFromCache();
+                        }
+                    }
+                })
+                .catch(error => console.error('Background sync error:', error));
+        }
+        
+        // Sync sales from Google Sheets in background
+        function syncSalesFromSheet() {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=getSales`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.sales) {
+                        cachedSales = data.sales;
+                        saveCache();
+                        console.log('✅ Synced', cachedSales.length, 'sales from Google Sheets');
+                        
+                        if (!isInitialLoad) {
+                            displaySalesFromCache();
+                            updateSummaryFromCache();
+                        }
+                    }
+                })
+                .catch(error => console.error('Background sales sync error:', error));
+        }
+        
+        // Save product to Google Sheets (fire and forget)
+        function saveProductToSheet(product) {
+            const action = product.id && cachedProducts.some(p => p.id === product.id) ? 'updateProduct' : 'addProduct';
+            
+            fetch(`${GOOGLE_SCRIPT_URL}?action=${action}`, {
+                method: 'POST',
+                body: JSON.stringify(product)
+            }).then(() => console.log('✅ Product saved to Google Sheets')).catch(e => console.error('Save error:', e));
+        }
+        
+        // Delete product from Google Sheets (fire and forget)
+        function deleteProductFromSheet(id) {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
+                method: 'POST',
+                body: JSON.stringify({id: id})
+            }).then(() => console.log('✅ Product deleted from Google Sheets')).catch(e => console.error('Delete error:', e));
+        }
+        
+        // Save sale to Google Sheets (fire and forget)
+        function saveSaleToSheet(sale) {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
+                method: 'POST',
+                body: JSON.stringify(sale)
+            }).then(() => console.log('✅ Sale saved to Google Sheets')).catch(e => console.error('Sale save error:', e));
+        }
+        
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        // ========== DISPLAY FUNCTIONS (INSTANT FROM CACHE) ==========
+        
+        function displayProductsFromCache() {
+            const productsList = document.getElementById('productsList');
+            
+            if (cachedProducts.length === 0) {
+                productsList.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h4>No Products Yet</h4>
+                            <p>Click "Add Product" to add your first item</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            productsList.innerHTML = '';
+            
+            cachedProducts.forEach(product => {
+                const stockClass = product.stock > product.minStock ? 'stock-good' : 
+                                  product.stock > 0 ? 'stock-low' : 'stock-out';
+                
+                const stockText = product.stock > product.minStock ? 'In Stock' : 
+                                 product.stock > 0 ? 'Low Stock' : 'Out of Stock';
+                
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
+                
+                const card = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card product-card">
+                            <img src="${imageUrl}" class="product-image" alt="${product.name}" 
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge stock-badge ${stockClass}">${stockText}</span>
+                                    <h5 class="mb-0">Stock: ${product.stock}</h5>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                productsList.innerHTML += card;
+            });
+        }
+        
+        function displaySalesFromCache() {
+            const salesList = document.getElementById('salesList');
+            
+            if (cachedSales.length === 0) {
+                salesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No sales recorded yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            salesList.innerHTML = '';
+            
+            const recentSales = cachedSales.slice(0, 10);
+            
+            recentSales.forEach(sale => {
+                const date = new Date(sale.date);
+                const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
+                                     date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+                
+                const row = `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${sale.productName}</td>
+                        <td>${sale.quantity}</td>
+                        <td>${sale.unitType}</td>
+                        <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
+                    </tr>
+                `;
+                
+                salesList.innerHTML += row;
+            });
+        }
+        
+        // INSTANT SUMMARY UPDATE (FROM CACHE)
+        function updateSummaryFromCache() {
+            // Total products
+            document.getElementById('totalProducts').textContent = cachedProducts.length;
+            
+            // Sales today
+            const today = new Date().toDateString();
+            const todaySales = cachedSales.filter(sale => {
+                const saleDate = new Date(sale.date).toDateString();
+                return saleDate === today;
+            });
+            
+            const totalSalesToday = todaySales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount), 0);
+            document.getElementById('salesToday').textContent = '₹' + totalSalesToday.toFixed(2);
+            
+            // Low stock items
+            const lowStockItems = cachedProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
+            document.getElementById('lowStock').textContent = lowStockItems.length;
+        }
+        
+        // INSTANT PRODUCT DROPDOWN UPDATE
+        function loadProductsForSaleFromCache() {
+            const select = document.getElementById('saleProduct');
+            select.innerHTML = '<option value="">Choose product...</option>';
+            
+            cachedProducts.forEach(product => {
+                if (product.stock > 0) {
+                    select.innerHTML += `
+                        <option value="${product.id}">
+                            ${product.name} (Stock: ${product.stock} ${product.unitType})
+                        </option>
+                    `;
+                }
+            });
+        }
+        
         // ========== PRODUCT FUNCTIONS ==========
         
         let editingProductId = null;
-async function displayProducts() {
-    const products = await getProducts();
-    const productsList = document.getElementById('productsList');
-    
-    if (products.length === 0) {
-        productsList.innerHTML = `
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    <h4>No Products Yet</h4>
-                    <p>Click "Add Product" to add your first item</p>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    productsList.innerHTML = '';
-    
-    products.forEach(product => {
-        const stockClass = product.stock > product.minStock ? 'stock-good' : 
-                          product.stock > 0 ? 'stock-low' : 'stock-out';
         
-        const stockText = product.stock > product.minStock ? 'In Stock' : 
-                         product.stock > 0 ? 'Low Stock' : 'Out of Stock';
+        function showAddProduct() {
+            editingProductId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Product';
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            modal.show();
+        }
         
-        const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
+        function editProduct(id) {
+            const product = cachedProducts.find(p => p.id === id);
+            
+            if (!product) {
+                alert('❌ Product not found!');
+                return;
+            }
+            
+            editingProductId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('category').value = product.category;
+            document.getElementById('brand').value = product.brand || '';
+            document.getElementById('size').value = product.size || '';
+            document.getElementById('unitType').value = product.unitType;
+            document.getElementById('piecesPerBox').value = product.piecesPerBox || 1;
+            document.getElementById('sftPerBox').value = product.sftPerBox || '';
+            document.getElementById('price').value = product.price;
+            document.getElementById('stock').value = product.stock;
+            document.getElementById('minStock').value = product.minStock;
+            document.getElementById('imageUrl').value = product.imageUrl || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            modal.show();
+        }
         
-        const card = `
-            <div class="col-md-6 col-lg-4 mb-3">
-                <div class="card product-card">
-                    <img src="${imageUrl}" class="product-image" alt="${product.name}" 
-                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
-                    <div class="card-body">
-                        <h5 class="card-title">${product.name}</h5>
-                        <p class="card-text text-muted mb-2">
-                            <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge stock-badge ${stockClass}">${stockText}</span>
-                            <h5 class="mb-0">Stock: ${product.stock}</h5>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
+        function saveProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const category = document.getElementById('category').value;
+            const brand = document.getElementById('brand').value.trim();
+            const size = document.getElementById('size').value.trim();
+            const unitType = document.getElementById('unitType').value;
+            const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value) || 1;
+            const sftPerBox = parseFloat(document.getElementById('sftPerBox').value) || 0;
+            const price = parseFloat(document.getElementById('price').value);
+            const stock = parseInt(document.getElementById('stock').value);
+            const minStock = parseInt(document.getElementById('minStock').value) || 5;
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            
+            if (!name || !category || !price || stock < 0) {
+                alert('❌ Please fill all required fields!');
+                return;
+            }
+            
+            const product = {
+                id: editingProductId || generateId(),
+                name, category, brand, size, unitType,
+                piecesPerBox, sftPerBox, price, stock, minStock, imageUrl
+            };
+            
+            // Update cache INSTANTLY
+            const index = cachedProducts.findIndex(p => p.id === product.id);
+            if (index !== -1) {
+                cachedProducts[index] = product;
+            } else {
+                cachedProducts.push(product);
+            }
+            
+            saveCache();
+            
+            // Close modal IMMEDIATELY
+            const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+            modal.hide();
+            
+            // Update display INSTANTLY
+            displayProductsFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Send to Google Sheets in background (fire and forget)
+            saveProductToSheet(product);
+            
+            // Show success after 1 second
+            setTimeout(() => {
+                alert('✅ Product saved successfully!');
+            }, 1000);
+        }
+        
+        function deleteProduct(id) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            
+            // Remove from cache INSTANTLY
+            cachedProducts = cachedProducts.filter(p => p.id !== id);
+            saveCache();
+            
+            // Update display INSTANTLY
+            displayProductsFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Delete from Google Sheets in background
+            deleteProductFromSheet(id);
+            
+            setTimeout(() => {
+                alert('✅ Product deleted successfully!');
+            }, 1000);
+        }
+        
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = cachedProducts.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) ||
+                (p.brand && p.brand.toLowerCase().includes(searchTerm)) ||
+                p.category.toLowerCase().includes(searchTerm)
+            );
+            
+            const productsList = document.getElementById('productsList');
+            
+            if (filtered.length === 0) {
+                productsList.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="bi bi-search"></i>
+                            <h4>No Results Found</h4>
+                            <p>Try different search terms</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
-        
-        productsList.innerHTML += card;
-    });
-}
-
-function showAddProduct() {
-    try {
-        // Find the add product button
-        const addBtn = event.target.closest('button');
-        if (addBtn) {
-            addBtn.disabled = true;
-            addBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Opening...';
-        }
-        
-        // Reset form and state
-        editingProductId = null;
-        document.getElementById('modalTitle').textContent = 'Add New Product';
-        document.getElementById('productForm').reset();
-        document.getElementById('productId').value = '';
-        
-        // Open modal immediately
-        const modal = new bootstrap.Modal(document.getElementById('productModal'));
-        modal.show();
-        
-        // Restore button after 500ms
-        setTimeout(() => {
-            if (addBtn) {
-                addBtn.disabled = false;
-                addBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Product';
+                `;
+                return;
             }
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error opening add product modal:', error);
-        setTimeout(() => {
-            const addBtn = document.querySelector('.btn-success');
-            if (addBtn) {
-                addBtn.disabled = false;
-                addBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Product';
-            }
-        }, 500);
-    }
-}
-
-
-      async function editProduct(id) {
-    try {
-        // Find the edit button
-        const editBtn = event.target.closest('button');
-        if (editBtn) {
-            editBtn.disabled = true;
-            editBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
-        }
-        
-        const products = await getProducts();
-        const product = products.find(p => p.id === id);
-        
-        if (!product) {
-            alert('❌ Product not found!');
-            if (editBtn) {
-                editBtn.disabled = false;
-                editBtn.innerHTML = '<i class="bi bi-pencil"></i> Edit';
-            }
-            return;
-        }
-        
-        editingProductId = id;
-        document.getElementById('modalTitle').textContent = 'Edit Product';
-        document.getElementById('productId').value = product.id;
-        document.getElementById('productName').value = product.name;
-        document.getElementById('category').value = product.category;
-        document.getElementById('brand').value = product.brand || '';
-        document.getElementById('size').value = product.size || '';
-        document.getElementById('unitType').value = product.unitType;
-        document.getElementById('piecesPerBox').value = product.piecesPerBox || 1;
-        document.getElementById('sftPerBox').value = product.sftPerBox || '';
-        document.getElementById('price').value = product.price;
-        document.getElementById('stock').value = product.stock;
-        document.getElementById('minStock').value = product.minStock;
-        document.getElementById('imageUrl').value = product.imageUrl || '';
-        
-        // Open modal
-        const modal = new bootstrap.Modal(document.getElementById('productModal'));
-        modal.show();
-        
-        // Restore button after modal opens
-        setTimeout(() => {
-            if (editBtn) {
-                editBtn.disabled = false;
-                editBtn.innerHTML = '<i class="bi bi-pencil"></i> Edit';
-            }
-        }, 500);
-        
-    } catch (error) {
-        console.error('Edit error:', error);
-        alert('❌ Error loading product data');
-    }
-}
-
-async function saveProduct() {
-    const name = document.getElementById('productName').value.trim();
-    const category = document.getElementById('category').value;
-    const brand = document.getElementById('brand').value.trim();
-    const size = document.getElementById('size').value.trim();
-    const unitType = document.getElementById('unitType').value;
-    const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value) || 1;
-    const sftPerBox = parseFloat(document.getElementById('sftPerBox').value) || 0;
-    const price = parseFloat(document.getElementById('price').value);
-    const stock = parseInt(document.getElementById('stock').value);
-    const minStock = parseInt(document.getElementById('minStock').value) || 5;
-    const imageUrl = document.getElementById('imageUrl').value.trim();
-    
-    if (!name || !category || !price || stock < 0) {
-        alert('❌ Please fill all required fields!');
-        return;
-    }
-    
-    const product = {
-        id: editingProductId || generateId(),
-        name, category, brand, size, unitType,
-        piecesPerBox, sftPerBox, price, stock, minStock, imageUrl
-    };
-    
-    try {
-        // Get the save button
-        const saveBtn = document.querySelector('#productModal .btn-primary');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-        }
-        
-        // FIRE AND FORGET: Send to Google Sheets in background (don't wait)
-        saveProductToSheet(product); // No await - fire and forget!
-        
-        // Close modal IMMEDIATELY
-        const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
-        modal.hide();
-        
-        // Update display from local cache immediately
-        displayProducts();
-        updateSummary();
-        loadProductsForSale();
-        
-        // Restore button and show success after 1.5 seconds
-        setTimeout(() => {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Product';
-            }
-            alert('✅ Product saved successfully!');
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Error saving product:', error);
-        
-        // Restore button even on error
-        setTimeout(() => {
-            const saveBtn = document.querySelector('#productModal .btn-primary');
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Product';
-            }
-            alert('❌ Error: ' + (error.message || 'Failed to save product'));
-        }, 1000);
-    }
-}
-
-
-async function deleteProduct(id) {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
-    try {
-        // Find the delete button that was clicked
-        const deleteBtn = event.target.closest('button');
-        if (deleteBtn) {
-            deleteBtn.disabled = true;
-            deleteBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Deleting...';
-        }
-        
-        // FIRE AND FORGET: Delete from Google Sheets in background
-        deleteProductFromSheet(id); // No await - fire and forget!
-        
-        // Update display IMMEDIATELY
-        displayProducts();
-        updateSummary();
-        loadProductsForSale();
-        
-        // Show success after 1.5 seconds
-        setTimeout(() => {
-            alert('✅ Product deleted successfully!');
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Delete error:', error);
-        
-        setTimeout(() => {
-            alert('❌ Error: ' + (error.message || 'Failed to delete product'));
-            // Reload data to show correct state
-            displayProducts();
-        }, 1000);
-    }
-}
-
-
-
-        async function searchProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const products = await getProducts();
-    
-    const filtered = products.filter(p => 
-        p.name.toLowerCase().includes(searchTerm) ||
-        (p.brand && p.brand.toLowerCase().includes(searchTerm)) ||
-        p.category.toLowerCase().includes(searchTerm)
-    );
-    
-    const productsList = document.getElementById('productsList');
-    
-    if (filtered.length === 0) {
-        productsList.innerHTML = `
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-search"></i>
-                    <h4>No Results Found</h4>
-                    <p>Try different search terms</p>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    productsList.innerHTML = '';
-    
-    filtered.forEach(product => {
-        const stockClass = product.stock > product.minStock ? 'stock-good' : 
-                          product.stock > 0 ? 'stock-low' : 'stock-out';
-        
-        const stockText = product.stock > product.minStock ? 'In Stock' : 
-                         product.stock > 0 ? 'Low Stock' : 'Out of Stock';
-        
-        const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
-        
-        const card = `
-            <div class="col-md-6 col-lg-4 mb-3">
-                <div class="card product-card">
-                    <img src="${imageUrl}" class="product-image" alt="${product.name}"
-                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
-                    <div class="card-body">
-                        <h5 class="card-title">${product.name}</h5>
-                        <p class="card-text text-muted mb-2">
-                            <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge stock-badge ${stockClass}">${stockText}</span>
-                            <h5 class="mb-0">Stock: ${product.stock}</h5>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
+            
+            productsList.innerHTML = '';
+            
+            filtered.forEach(product => {
+                const stockClass = product.stock > product.minStock ? 'stock-good' : 
+                                  product.stock > 0 ? 'stock-low' : 'stock-out';
+                
+                const stockText = product.stock > product.minStock ? 'In Stock' : 
+                                 product.stock > 0 ? 'Low Stock' : 'Out of Stock';
+                
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
+                
+                const card = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card product-card">
+                            <img src="${imageUrl}" class="product-image" alt="${product.name}"
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge stock-badge ${stockClass}">${stockText}</span>
+                                    <h5 class="mb-0">Stock: ${product.stock}</h5>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
+                `;
+                
+                productsList.innerHTML += card;
+            });
+        }
         
-        productsList.innerHTML += card;
-    });
-}
-
-
         // ========== SALES FUNCTIONS ==========
         
-      async function loadProductsForSale() {
-    const products = await getProducts();
-    const select = document.getElementById('saleProduct');
-    
-    select.innerHTML = '<option value="">Choose product...</option>';
-    
-    products.forEach(product => {
-        if (product.stock > 0) {
-            select.innerHTML += `
-                <option value="${product.id}">
-                    ${product.name} (Stock: ${product.stock} ${product.unitType})
-                </option>
-            `;
-        }
-    });
-}
-
-      async function showSalesSection() {
-    try {
-        // Find the record sale button
-        const saleBtn = event.target.closest('button');
-        if (saleBtn) {
-            saleBtn.disabled = true;
-            saleBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Opening...';
+        function showSalesSection() {
+            // Load products from cache (instant!)
+            loadProductsForSaleFromCache();
+            
+            document.getElementById('salesForm').reset();
+            document.getElementById('saleTotal').value = '';
+            document.getElementById('saleUnitPrice').value = '';
+            totalEdited = false;
+            
+            const modal = new bootstrap.Modal(document.getElementById('salesModal'));
+            modal.show();
         }
         
-        // Load products and reset form
-        await loadProductsForSale();
-        document.getElementById('salesForm').reset();
-        document.getElementById('saleTotal').textContent = '₹0';
-        document.getElementById('saleUnitPrice').value = '';
-        
-        // Open modal immediately
-        const modal = new bootstrap.Modal(document.getElementById('salesModal'));
-        modal.show();
-        
-        // Restore button after 500ms
-        setTimeout(() => {
-            if (saleBtn) {
-                saleBtn.disabled = false;
-                saleBtn.innerHTML = '<i class="bi bi-cart-check"></i> Record Sale';
+        // INSTANT PRICE UPDATE (NO API CALL)
+        function updateSalePriceInstant() {
+            if (totalEdited) return; // Don't overwrite if user edited it
+            
+            const productId = document.getElementById('saleProduct').value;
+            const quantity = parseInt(document.getElementById('saleQuantity').value) || 0;
+            
+            if (!productId || quantity <= 0) {
+                document.getElementById('saleTotal').value = '';
+                document.getElementById('saleUnitPrice').value = '';
+                return;
             }
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error opening sales modal:', error);
-        setTimeout(() => {
-            const saleBtn = document.querySelector('.btn-info');
-            if (saleBtn) {
-                saleBtn.disabled = false;
-                saleBtn.innerHTML = '<i class="bi bi-cart-check"></i> Record Sale';
+            
+            const product = cachedProducts.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            if (quantity > product.stock) {
+                alert(`❌ Only ${product.stock} ${product.unitType} available in stock!`);
+                document.getElementById('saleQuantity').value = product.stock;
+                return;
             }
-        }, 500);
-    }
-}
-
-        async function updateSalePrice() {
-    const productId = document.getElementById('saleProduct').value;
-    const quantity = parseInt(document.getElementById('saleQuantity').value) || 0;
-    
-    if (!productId || quantity <= 0) {
-        document.getElementById('saleTotal').textContent = '₹0';
-        document.getElementById('saleUnitPrice').value = '';
-        return;
-    }
-    
-    const products = await getProducts();
-    const product = products.find(p => p.id === productId);
-    
-    if (!product) return;
-    
-    // Check if quantity exceeds stock
-    if (quantity > product.stock) {
-        alert(`❌ Only ${product.stock} ${product.unitType} available in stock!`);
-        document.getElementById('saleQuantity').value = product.stock;
-        return;
-    }
-    
-    const total = product.price * quantity;
-    document.getElementById('saleTotal').textContent = '₹' + total.toFixed(2);
-    document.getElementById('saleUnitPrice').value = '₹' + product.price + '/' + product.unitType;
-}
-
-      async function recordSale() {
-    const productId = document.getElementById('saleProduct').value;
-    const quantity = parseInt(document.getElementById('saleQuantity').value);
-    
-    if (!productId || !quantity || quantity <= 0) {
-        alert('❌ Please select product and enter quantity!');
-        return;
-    }
-    
-    const products = await getProducts();
-    const product = products.find(p => p.id === productId);
-    
-    if (!product) {
-        alert('❌ Product not found!');
-        return;
-    }
-    
-    if (quantity > product.stock) {
-        alert(`❌ Insufficient stock! Only ${product.stock} available.`);
-        return;
-    }
-    
-    const total = product.price * quantity;
-    
-    const sale = {
-        productId: product.id,
-        productName: product.name,
-        quantity: quantity,
-        unitType: product.unitType,
-        totalAmount: total
-    };
-    
-    try {
-        // Get the complete sale button
-        const saleBtn = document.querySelector('#salesModal .btn-success');
-        if (saleBtn) {
-            saleBtn.disabled = true;
-            saleBtn.textContent = 'Processing...';
+            
+            const total = product.price * quantity;
+            document.getElementById('saleTotal').value = total.toFixed(2);
+            document.getElementById('saleUnitPrice').value = '₹' + product.price + '/' + product.unitType;
         }
         
-        // FIRE AND FORGET: Submit sale in background
-        saveSaleToSheet(sale); // No await - fire and forget!
+        function markTotalAsEdited() {
+            totalEdited = true;
+        }
         
-        // Close modal IMMEDIATELY
-        const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
-        modal.hide();
-        
-        // Reset form immediately
-        document.getElementById('salesForm').reset();
-        document.getElementById('saleTotal').textContent = '₹0';
-        document.getElementById('saleUnitPrice').value = '';
-        
-        // Update displays immediately
-        displayProducts();
-        displaySales();
-        updateSummary();
-        loadProductsForSale();
-        
-        // Restore button and show success after 1.5 seconds
-        setTimeout(() => {
-            if (saleBtn) {
-                saleBtn.disabled = false;
-                saleBtn.textContent = 'Complete Sale';
+        function recordSale() {
+            const productId = document.getElementById('saleProduct').value;
+            const quantity = parseInt(document.getElementById('saleQuantity').value);
+            const totalAmount = parseFloat(document.getElementById('saleTotal').value);
+            
+            if (!productId || !quantity || quantity <= 0 || !totalAmount) {
+                alert('❌ Please select product, enter quantity, and total amount!');
+                return;
             }
-            alert(`✅ Sale recorded successfully!\nTotal: ₹${total.toFixed(2)}`);
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Sale recording error:', error);
-        
-        // Restore button even on error
-        setTimeout(() => {
-            const saleBtn = document.querySelector('#salesModal .btn-success');
-            if (saleBtn) {
-                saleBtn.disabled = false;
-                saleBtn.textContent = 'Complete Sale';
+            
+            const product = cachedProducts.find(p => p.id === productId);
+            
+            if (!product) {
+                alert('❌ Product not found!');
+                return;
             }
-            alert('❌ Error: ' + (error.message || 'Failed to record sale'));
-        }, 1000);
-    }
-}
-
-
-
-        async function displaySales() {
-    const sales = await getSales();
-    const salesList = document.getElementById('salesList');
-    
-    if (sales.length === 0) {
-        salesList.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                    No sales recorded yet
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    salesList.innerHTML = '';
-    
-    // Show last 10 sales (reverse order - newest first)
-    const recentSales = sales.slice(0, 10).reverse();
-    
-    recentSales.forEach(sale => {
-        const date = new Date(sale.date);
-        const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
-                             date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
-        
-        const row = `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${sale.productName}</td>
-                <td>${sale.quantity}</td>
-                <td>${sale.unitType}</td>
-                <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
-            </tr>
-        `;
-        
-        salesList.innerHTML += row;
-    });
-}
-
-        // Clear product form (called after successful save)
-function clearProductForm() {
-    document.getElementById('productForm').reset();
-    document.getElementById('productId').value = '';
-    editingProductId = null;
-}
-
-// Clear sales form (called after successful sale)
-function clearSalesForm() {
-    document.getElementById('salesForm').reset();
-    document.getElementById('saleTotal').textContent = '₹0';
-    document.getElementById('saleUnitPrice').value = '';
-}
-// Restore buttons when modals are closed
-document.getElementById('productModal').addEventListener('hidden.bs.modal', function () {
-    const saveBtn = document.querySelector('#productModal .btn-primary');
-    if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Product';
-    }
-    clearProductForm();
-    
-});
-
-document.getElementById('salesModal').addEventListener('hidden.bs.modal', function () {
-    const saleBtn = document.querySelector('#salesModal .btn-success');
-    if (saleBtn) {
-        saleBtn.disabled = false;
-        saleBtn.textContent = 'Complete Sale';
-    }
-    clearSalesForm();
-});
-
-
-        // Toast notification system
-function showToast(message, type = 'success') {
-    // Create container if it doesn't exist
-    let container = document.querySelector('.toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-    }
-    
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <div style="flex: 1;">${message}</div>
-        <button onclick="this.parentElement.remove()" style="border: none; background: none; font-size: 20px; cursor: pointer; margin-left: 10px;">&times;</button>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-// Local cache for instant display
-let cachedProducts = [];
-let cachedSales = [];
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5000; // 5 seconds
-
-// Modified getProducts with cache
-async function getProducts() {
-    const now = Date.now();
-    
-    // Return cached data if fresh
-    if (cachedProducts.length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
-        return cachedProducts;
-    }
-    
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`);
-        const data = await response.json();
-        cachedProducts = data.products || [];
-        cacheTimestamp = now;
-        return cachedProducts;
-    } catch (error) {
-        console.error('Error getting products:', error);
-        // Return cached data even if expired
-        return cachedProducts;
-    }
-}
-
-// Modified getSales with cache
-async function getSales() {
-    const now = Date.now();
-    
-    if (cachedSales.length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
-        return cachedSales;
-    }
-    
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales`);
-        const data = await response.json();
-        cachedSales = data.sales || [];
-        return cachedSales;
-    } catch (error) {
-        console.error('Error getting sales:', error);
-        return cachedSales;
-    }
-}
-
-// Helper function to update local cache
-function updateLocalCache(product) {
-    const index = cachedProducts.findIndex(p => p.id === product.id);
-    if (index !== -1) {
-        cachedProducts[index] = product;
-    } else {
-        cachedProducts.push(product);
-    }
-}
-
-function removeFromLocalCache(productId) {
-    cachedProducts = cachedProducts.filter(p => p.id !== productId);
-}
-
-function addSaleToLocalCache(sale) {
-    cachedSales.unshift(sale);
-}
-
-
-
-        // ========== APP FUNCTIONS ==========
-        
-        async function updateSummary() {
-    const products = await getProducts();
-    const sales = await getSales();
-    
-    // Total products
-    document.getElementById('totalProducts').textContent = products.length;
-    
-    // Sales today
-    const today = new Date().toDateString();
-    const todaySales = sales.filter(sale => {
-        const saleDate = new Date(sale.date).toDateString();
-        return saleDate === today;
-    });
-    
-    const totalSalesToday = todaySales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount), 0);
-    document.getElementById('salesToday').textContent = '₹' + totalSalesToday.toFixed(2);
-    
-    // Low stock items
-    const lowStockItems = products.filter(p => p.stock <= p.minStock && p.stock > 0);
-    document.getElementById('lowStock').textContent = lowStockItems.length;
-}
-
-
-      window.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Tile & Sanitaryware Inventory App Loaded');
-    
-    // Display all data
-    await displayProducts();
-    await displaySales();
-    await updateSummary();
-    await loadProductsForSale();
-    
-    // Setup modal close event listeners for button restoration
-    const productModal = document.getElementById('productModal');
-    const salesModal = document.getElementById('salesModal');
-    
-    if (productModal) {
-        productModal.addEventListener('hidden.bs.modal', function () {
-            const saveBtn = document.querySelector('#productModal .btn-primary');
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Product';
+            
+            if (quantity > product.stock) {
+                alert(`❌ Insufficient stock! Only ${product.stock} available.`);
+                return;
             }
-            clearProductForm();
+            
+            const sale = {
+                id: generateId(),
+                productId: product.id,
+                productName: product.name,
+                quantity: quantity,
+                unitType: product.unitType,
+                totalAmount: totalAmount,
+                date: new Date().toISOString()
+            };
+            
+            // Update product stock in cache INSTANTLY
+            product.stock -= quantity;
+            
+            // Add sale to cache INSTANTLY
+            cachedSales.unshift(sale);
+            
+            saveCache();
+            
+            // Close modal IMMEDIATELY
+            const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+            modal.hide();
+            
+            // Update all displays INSTANTLY
+            displayProductsFromCache();
+            displaySalesFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Send to Google Sheets in background
+            saveSaleToSheet(sale);
+            
+            setTimeout(() => {
+                alert(`✅ Sale recorded successfully!\nTotal: ₹${totalAmount.toFixed(2)}`);
+            }, 1000);
+        }
+        
+        // ========== BACKUP/RESTORE ==========
+        
+        function exportData() {
+            const data = {
+                products: cachedProducts,
+                sales: cachedSales,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            alert('✅ Backup downloaded successfully!');
+        }
+        
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+        
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.products) {
+                        cachedProducts = data.products;
+                    }
+                    if (data.sales) {
+                        cachedSales = data.sales;
+                    }
+                    
+                    saveCache();
+                    
+                    displayProductsFromCache();
+                    displaySalesFromCache();
+                    updateSummaryFromCache();
+                    loadProductsForSaleFromCache();
+                    
+                    alert('✅ Data restored successfully!');
+                } catch (error) {
+                    alert('❌ Error: Invalid backup file!');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // ========== INITIALIZATION ==========
+        
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Tile & Sanitaryware Inventory App Loading...');
+            
+            // Load cache from localStorage first (INSTANT display)
+            loadCache();
+            
+            // Display from cache immediately (0ms delay)
+            displayProductsFromCache();
+            displaySalesFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            isInitialLoad = false;
+            
+            console.log('✅ App loaded instantly from cache!');
+            
+            // Sync with Google Sheets in background
+            syncProductsFromSheet();
+            syncSalesFromSheet();
+            
+            // Auto-sync every 30 seconds in background
+            setInterval(() => {
+                syncProductsFromSheet();
+                syncSalesFromSheet();
+            }, 30000);
         });
-    }
-    
-    if (salesModal) {
-        salesModal.addEventListener('hidden.bs.modal', function () {
-            const saleBtn = document.querySelector('#salesModal .btn-success');
-            if (saleBtn) {
-                saleBtn.disabled = false;
-                saleBtn.textContent = 'Complete Sale';
-            }
-            clearSalesForm();
-        });
-    }
-    
-    console.log('✅ App initialized with fire-and-forget pattern!');
-});
-
-
-        
-
     </script>
 
 </body>
 </html>
-
-
-
