@@ -16,6 +16,62 @@
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
+/* Toast Notification Styles */
+.toast-container {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 250px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-success {
+    border-left: 4px solid #28a745;
+}
+
+.toast-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-error {
+    border-left: 4px solid #dc3545;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+        
         .product-card {
             transition: transform 0.2s, box-shadow 0.2s;
             height: 100%;
@@ -360,21 +416,29 @@ async function saveProductToSheet(product) {
     }
 }
 
-// Delete product from Google Sheets
-async function deleteProductFromSheet(id) {
-    try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-            method: 'POST',
-            body: JSON.stringify({id: id})
-        });
-        
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        return {error: true};
-    }
+async function deleteProduct(id) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    
+    // Show instant feedback
+    showToast('✅ Product deleted! Syncing...', 'success');
+    
+    // Remove from display immediately (Optimistic UI)
+    await displayProducts();
+    await updateSummary();
+    await loadProductsForSale();
+    
+    // Delete from Google Sheets in background
+    deleteProductFromSheet(id).then(result => {
+        if (result.error) {
+            showToast('⚠️ Warning: Failed to delete from Google Sheets.', 'warning');
+            // Reload data to show correct state
+            displayProducts();
+        } else {
+            showToast('✅ Deleted from Google Sheets!', 'success');
+        }
+    });
 }
+
 
 // Get sales from Google Sheets
 async function getSales() {
@@ -515,7 +579,7 @@ async function displayProducts() {
 }
 
 
-       async function saveProduct() {
+  async function saveProduct() {
     const name = document.getElementById('productName').value.trim();
     const category = document.getElementById('category').value;
     const brand = document.getElementById('brand').value.trim();
@@ -534,31 +598,32 @@ async function displayProducts() {
     }
     
     const product = {
+        id: editingProductId || generateId(),
         name, category, brand, size, unitType,
         piecesPerBox, sftPerBox, price, stock, minStock, imageUrl
     };
     
-    if (editingProductId) {
-        product.id = editingProductId;
-    }
-    
-    // Show loading
-    alert('⏳ Saving to Google Sheets...');
-    
-    const result = await saveProductToSheet(product);
-    
-    if (result.error) {
-        alert('❌ Error saving product!');
-        return;
-    }
-    
+    // Close modal immediately
     const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
     modal.hide();
     
-    await displayProducts();
-    await updateSummary();
+    // Update local cache instantly
+    updateLocalCache(product);
     
-    alert('✅ Product saved successfully!');
+    // Update display from cache (instant!)
+    displayProducts();
+    updateSummary();
+    loadProductsForSale();
+    
+    // Show success toast
+    showToast('✅ Product saved!', 'success');
+    
+    // Save to Google Sheets in background
+    saveProductToSheet(product).then(result => {
+        if (result.error) {
+            showToast('⚠️ Failed to sync to Google Sheets', 'warning');
+        }
+    });
 }
 
 
@@ -710,7 +775,7 @@ async function displayProducts() {
     document.getElementById('saleUnitPrice').value = '₹' + product.price + '/' + product.unitType;
 }
 
-       async function recordSale() {
+      async function recordSale() {
     const productId = document.getElementById('saleProduct').value;
     const quantity = parseInt(document.getElementById('saleQuantity').value);
     
@@ -727,47 +792,52 @@ async function displayProducts() {
         return;
     }
     
-    // Check stock
     if (quantity > product.stock) {
         alert(`❌ Insufficient stock! Only ${product.stock} available.`);
         return;
     }
     
-    // Calculate total
     const total = product.price * quantity;
     
-    // Create sale object
     const sale = {
+        id: generateId(),
         productId: product.id,
         productName: product.name,
         quantity: quantity,
         unitType: product.unitType,
-        totalAmount: total
+        totalAmount: total,
+        date: new Date().toISOString()
     };
     
-    // Show loading
-    alert('⏳ Recording sale to Google Sheets...');
-    
-    // Save to Google Sheets
-    const result = await saveSaleToSheet(sale);
-    
-    if (result.error) {
-        alert('❌ Error recording sale!');
-        return;
-    }
-    
-    // Close modal
+    // Close modal immediately
     const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
     modal.hide();
     
-    // Refresh displays
+    // Show instant success
+    showToast(`✅ Sale recorded: ₹${total.toFixed(2)}! Syncing...`, 'success');
+    
+    // Update product stock locally (Optimistic UI)
+    product.stock -= quantity;
+    
+    // Update displays instantly
     await displayProducts();
     await displaySales();
     await updateSummary();
     await loadProductsForSale();
     
-    alert(`✅ Sale recorded successfully!\nTotal: ₹${total.toFixed(2)}`);
+    // Save to Google Sheets in background
+    saveSaleToSheet(sale).then(result => {
+        if (result.error) {
+            showToast('⚠️ Warning: Failed to sync sale to Google Sheets.', 'warning');
+            // Revert stock change
+            product.stock += quantity;
+            displayProducts();
+        } else {
+            showToast('✅ Sale synced to Google Sheets!', 'success');
+        }
+    });
 }
+
 
 
         async function displaySales() {
@@ -809,6 +879,98 @@ async function displayProducts() {
     });
 }
 
+        // Toast notification system
+function showToast(message, type = 'success') {
+    // Create container if it doesn't exist
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div style="flex: 1;">${message}</div>
+        <button onclick="this.parentElement.remove()" style="border: none; background: none; font-size: 20px; cursor: pointer; margin-left: 10px;">&times;</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+// Local cache for instant display
+let cachedProducts = [];
+let cachedSales = [];
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5000; // 5 seconds
+
+// Modified getProducts with cache
+async function getProducts() {
+    const now = Date.now();
+    
+    // Return cached data if fresh
+    if (cachedProducts.length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
+        return cachedProducts;
+    }
+    
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`);
+        const data = await response.json();
+        cachedProducts = data.products || [];
+        cacheTimestamp = now;
+        return cachedProducts;
+    } catch (error) {
+        console.error('Error getting products:', error);
+        // Return cached data even if expired
+        return cachedProducts;
+    }
+}
+
+// Modified getSales with cache
+async function getSales() {
+    const now = Date.now();
+    
+    if (cachedSales.length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
+        return cachedSales;
+    }
+    
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales`);
+        const data = await response.json();
+        cachedSales = data.sales || [];
+        return cachedSales;
+    } catch (error) {
+        console.error('Error getting sales:', error);
+        return cachedSales;
+    }
+}
+
+// Helper function to update local cache
+function updateLocalCache(product) {
+    const index = cachedProducts.findIndex(p => p.id === product.id);
+    if (index !== -1) {
+        cachedProducts[index] = product;
+    } else {
+        cachedProducts.push(product);
+    }
+}
+
+function removeFromLocalCache(productId) {
+    cachedProducts = cachedProducts.filter(p => p.id !== productId);
+}
+
+function addSaleToLocalCache(sale) {
+    cachedSales.unshift(sale);
+}
+
+
 
         // ========== APP FUNCTIONS ==========
         
@@ -849,8 +1011,11 @@ window.addEventListener('DOMContentLoaded', async function() {
     console.log('✅ Data loaded successfully!');
 });
 
+        
+
     </script>
 
 </body>
 </html>
+
 
