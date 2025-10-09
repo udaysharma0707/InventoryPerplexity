@@ -379,7 +379,7 @@
     <script>
         // ========== GOOGLE SHEETS API CONFIGURATION ==========
         
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC8uRypHKQH0nB6Ylhbgr3MDGu1R1dxpZ8IbrltW253uAxbMKsRLo3jKNl1dI1heYn/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8pRdbm3x3E7Z4v6nbPSiEQ3kU15QgBdIm74_BxFWeUTWjvogSbQSb3WJekSUUMPoL/exec';
         
         // ========== CROSS-DEVICE SYNC STORAGE ==========
         
@@ -458,47 +458,109 @@
             }
         }
         
-        // Save product to Google Sheets (fire and forget)
-        function saveProductToSheet(product) {
-            const action = product.id && cachedProducts.some(p => p.id === product.id) ? 'updateProduct' : 'addProduct';
-            
-            fetch(`${GOOGLE_SCRIPT_URL}?action=${action}`, {
-                method: 'POST',
-                body: JSON.stringify(product)
-            })
-            .then(() => {
-                console.log('✅ Product saved to Google Sheets');
-                // Trigger immediate sync on all devices
-                setTimeout(() => syncFromGoogleSheets(), 2000);
-            })
-            .catch(e => console.error('Save error:', e));
+       // ---------- HELPER: parse server response (safe) ----------
+async function safeParseResponse(res) {
+    const txt = await res.text();
+    try {
+        return { ok: res.ok, json: JSON.parse(txt), text: txt };
+    } catch (e) {
+        return { ok: res.ok, json: null, text: txt };
+    }
+}
+
+// ---------- SAVE PRODUCT (robust) ----------
+async function saveProductToSheet(product) {
+    const action = product.id && cachedProducts.some(p => p.id === product.id) ? 'updateProduct' : 'addProduct';
+    const url = `${GOOGLE_SCRIPT_URL}?action=${action}`;
+
+    try {
+        // Use text/plain to often avoid OPTIONS preflight. Many Apps Script endpoints accept this.
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(product)
+        });
+
+        const parsed = await safeParseResponse(res);
+
+        // If server returned JSON with success flag, honor it
+        if (parsed.json) {
+            if (parsed.json.success === false || !res.ok) {
+                console.error('Server responded with error:', parsed.json);
+                showSyncIndicator('Save failed', ''); // visual
+                alert('❌ Save failed: ' + (parsed.json.error || JSON.stringify(parsed.json)));
+                return false;
+            }
+
+            console.log('✅ Product saved to Google Sheets (server response):', parsed.json);
+            // trigger sync
+            setTimeout(() => syncFromGoogleSheets(), 2000);
+            return true;
         }
-        
-        // Delete product from Google Sheets (fire and forget)
-        function deleteProductFromSheet(id) {
-            fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-                method: 'POST',
-                body: JSON.stringify({id: id})
-            })
-            .then(() => {
-                console.log('✅ Product deleted from Google Sheets');
-                setTimeout(() => syncFromGoogleSheets(), 2000);
-            })
-            .catch(e => console.error('Delete error:', e));
+
+        // Non-JSON response (common when URL is wrong or permission/login page returned)
+        console.error('Non-JSON server response:', parsed.text);
+        showSyncIndicator('Save failed', '');
+        alert('❌ Save failed — server returned non-JSON response. Check console Network tab.');
+        return false;
+
+    } catch (err) {
+        console.error('Save error:', err);
+        showSyncIndicator('Save failed', '');
+        alert('❌ Save failed. See console for details: ' + err.message);
+        return false;
+    }
+}
+
+// ---------- DELETE & SALE wrappers: also improved (optional) ----------
+async function deleteProductFromSheet(id) {
+    try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({ id })
+        });
+        const parsed = await safeParseResponse(res);
+        if (parsed.json && parsed.json.success) {
+            console.log('✅ Product deleted from Google Sheets');
+            setTimeout(() => syncFromGoogleSheets(), 2000);
+            return true;
+        } else {
+            console.error('Delete error:', parsed);
+            alert('❌ Delete failed. Check console/network.');
+            return false;
         }
-        
-        // Save sale to Google Sheets (fire and forget)
-        function saveSaleToSheet(sale) {
-            fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-                method: 'POST',
-                body: JSON.stringify(sale)
-            })
-            .then(() => {
-                console.log('✅ Sale saved to Google Sheets');
-                setTimeout(() => syncFromGoogleSheets(), 2000);
-            })
-            .catch(e => console.error('Sale save error:', e));
+    } catch (e) {
+        console.error('Delete network error:', e);
+        alert('❌ Delete network error. See console.');
+        return false;
+    }
+}
+
+async function saveSaleToSheet(sale) {
+    try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(sale)
+        });
+        const parsed = await safeParseResponse(res);
+        if (parsed.json && parsed.json.success) {
+            console.log('✅ Sale saved to Google Sheets');
+            setTimeout(() => syncFromGoogleSheets(), 2000);
+            return true;
+        } else {
+            console.error('Sale save failed', parsed);
+            alert('❌ Sale save failed. See console/network.');
+            return false;
         }
+    } catch (e) {
+        console.error('Sale save network error:', e);
+        alert('❌ Sale save network error. See console.');
+        return false;
+    }
+}
+
         
         // Generate unique ID
         function generateId() {
@@ -1003,4 +1065,5 @@
 
 </body>
 </html>
+
 
