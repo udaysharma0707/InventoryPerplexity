@@ -107,9 +107,9 @@
    *************************/
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNkvZW4g5Bp6JWuGGgcE55dbhbSCVZ7ioWwzKzgBm3FLn9tS_XNXHg2SJnyxUKtWf8/exec';
   // Adjust these to tune behavior
-  const NORMAL_POLL_MS = 2000;      // normal polling interval
-  const FAST_POLL_MS = 800;         // fast polling interval after a local change
-  const FAST_POLL_DURATION_MS = 8000; // how long to fast-poll after a change
+  const NORMAL_POLL_MS = 20000;      // normal polling interval
+  const FAST_POLL_MS = 8000;         // fast polling interval after a local change
+  const FAST_POLL_DURATION_MS = 80000; // how long to fast-poll after a change
 
   /*************************
    * State
@@ -666,3 +666,4 @@
   </script>
 </body>
 </html>
+
