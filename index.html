@@ -1,53 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tile & Sanitaryware Inventory</title>
     
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .product-card { transition: transform 0.2s, box-shadow 0.2s; height: 100%; border: 1px solid #dee2e6; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .product-image { width: 100%; height: 200px; object-fit: cover; background-color: #e9ecef; }
-        .stock-badge { font-size: 1rem; padding: 0.5rem 1rem; }
-        .stock-good { background-color: #28a745; color: white; }
-        .stock-low { background-color: #ffc107; color: black; }
-        .stock-out { background-color: #dc3545; color: white; }
-        .card-actions { display: flex; gap: 0.5rem; }
-        .btn-action { flex: 1; }
-        .empty-state { text-align: center; padding: 3rem; color: #6c757d; }
-        .empty-state i { font-size: 4rem; margin-bottom: 1rem; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .loading-spinner { background: white; padding: 2rem; border-radius: 10px; }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Product Cards */
+        .product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            border: 1px solid #dee2e6;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #e9ecef;
+        }
+        
+        .stock-badge {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .stock-good {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .stock-low {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        .stock-out {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-action {
+            flex: 1;
+        }
+        
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Sync Indicator */
+        .sync-indicator {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .sync-indicator.syncing {
+            display: block;
+            color: #0d6efd;
+        }
+        
+        .sync-indicator.success {
+            display: block;
+            color: #28a745;
+        }
+        
+        @media (max-width: 768px) {
+            .btn-lg {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .product-image {
+                height: 150px;
+            }
+            
+            .sync-indicator {
+                top: 60px;
+                left: 10px;
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
     </style>
 </head>
 <body>
     
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Loading...</p>
-        </div>
+    <!-- Sync Indicator -->
+    <div id="syncIndicator" class="sync-indicator">
+        <i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span>
     </div>
     
+    <!-- Header -->
     <nav class="navbar navbar-dark bg-primary sticky-top">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">
                 <i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory
             </span>
-            <button class="btn btn-light btn-sm" onclick="loadData()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
-            </button>
+            <div>
+                <button class="btn btn-light btn-sm me-2" onclick="exportData()">
+                    <i class="bi bi-download"></i> Backup
+                </button>
+                <button class="btn btn-light btn-sm" onclick="importData()">
+                    <i class="bi bi-upload"></i> Restore
+                </button>
+            </div>
         </div>
     </nav>
 
     <div class="container-fluid py-4">
         
+        <!-- Action Buttons -->
         <div class="row mb-4">
             <div class="col-12 text-center">
                 <button class="btn btn-success btn-lg me-2 mb-2" onclick="showAddProduct()">
@@ -59,6 +162,7 @@
             </div>
         </div>
 
+        <!-- Summary Cards -->
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
                 <div class="card text-center shadow-sm">
@@ -89,20 +193,26 @@
             </div>
         </div>
 
+        <!-- Search Bar -->
         <div class="row mb-3">
             <div class="col-md-6 mx-auto">
                 <input type="text" class="form-control form-control-lg" id="searchInput" 
-                       placeholder="🔍 Search products..." onkeyup="searchProducts()">
+                       placeholder="🔍 Search products by name or brand..." 
+                       onkeyup="searchProducts()">
             </div>
         </div>
 
+        <!-- Products Section -->
         <div class="row mb-4">
             <div class="col-12">
                 <h4 class="mb-3">Products Inventory</h4>
-                <div class="row" id="productsList"></div>
+                <div class="row" id="productsList">
+                    <!-- Products will be displayed here -->
+                </div>
             </div>
         </div>
 
+        <!-- Recent Sales Section -->
         <div class="row">
             <div class="col-12">
                 <h4 class="mb-3">Recent Sales</h4>
@@ -117,7 +227,9 @@
                                 <th>Amount</th>
                             </tr>
                         </thead>
-                        <tbody id="salesList"></tbody>
+                        <tbody id="salesList">
+                            <!-- Sales will be displayed here -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -125,7 +237,7 @@
 
     </div>
 
-    <!-- Product Modal -->
+    <!-- Add/Edit Product Modal -->
     <div class="modal fade" id="productModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -160,7 +272,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Size</label>
-                                <input type="text" class="form-control" id="size">
+                                <input type="text" class="form-control" id="size" placeholder="e.g., 2x2 feet">
                             </div>
                         </div>
 
@@ -199,8 +311,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Product Image URL</label>
-                            <input type="url" class="form-control" id="imageUrl">
+                            <label class="form-label">Product Image URL (optional)</label>
+                            <input type="url" class="form-control" id="imageUrl" placeholder="https://example.com/image.jpg">
                         </div>
 
                     </form>
@@ -225,7 +337,7 @@
                     <form id="salesForm">
                         <div class="mb-3">
                             <label class="form-label">Select Product *</label>
-                            <select class="form-select" id="saleProduct" onchange="updateSalePrice()" required>
+                            <select class="form-select" id="saleProduct" onchange="updateSalePriceInstant()" required>
                                 <option value="">Choose product...</option>
                             </select>
                         </div>
@@ -233,7 +345,7 @@
                         <div class="mb-3">
                             <label class="form-label">Quantity *</label>
                             <input type="number" class="form-control" id="saleQuantity" 
-                                   oninput="updateSalePrice()" required min="1">
+                                   oninput="updateSalePriceInstant()" required min="1">
                         </div>
 
                         <div class="mb-3">
@@ -243,7 +355,9 @@
 
                         <div class="mb-3">
                             <label class="form-label">Total Amount (Editable)</label>
-                            <input type="number" class="form-control" id="saleTotal" step="0.01">
+                            <input type="number" class="form-control" id="saleTotal" step="0.01" 
+                                   placeholder="0.00" oninput="markTotalAsEdited()">
+                            <small class="text-muted">Auto-calculated, but you can edit if needed</small>
                         </div>
                     </form>
                 </div>
@@ -255,84 +369,193 @@
         </div>
     </div>
 
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- ALL JavaScript Code Here -->
     <script>
+        // ========== GOOGLE SHEETS API CONFIGURATION ==========
+        
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfBwn8BRffSh20VCTr1ANbEi8HFwgQXB62I9Ct1s3ROCuA6xlHOzlF3fMZoxL7Aur/exec';
+        
+        // ========== CROSS-DEVICE SYNC STORAGE ==========
+        
         let cachedProducts = [];
         let cachedSales = [];
-        let editingProductId = null;
+        let totalEdited = false;
+        let syncInProgress = false;
+        let lastSyncTime = 0;
         
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
+        // ========== SYNC INDICATOR FUNCTIONS ==========
+        
+        function showSyncIndicator(message, type = 'syncing') {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            
+            indicator.className = `sync-indicator ${type}`;
+            text.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            }
         }
         
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
+        function hideSyncIndicator() {
+            document.getElementById('syncIndicator').style.display = 'none';
         }
         
-        function loadData() {
-            showLoading();
-            google.script.run
-                .withSuccessHandler(function(products) {
-                    cachedProducts = products;
-                    displayProducts();
-                    updateSummary();
+        // ========== CROSS-DEVICE SYNC FUNCTIONS ==========
+        
+        // Fetch fresh data from Google Sheets
+        async function syncFromGoogleSheets() {
+            if (syncInProgress) return;
+            
+            syncInProgress = true;
+            
+            try {
+                // Fetch both products and sales
+                const [productsResponse, salesResponse] = await Promise.all([
+                    fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`),
+                    fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`)
+                ]);
+                
+                const productsData = await productsResponse.json();
+                const salesData = await salesResponse.json();
+                
+                // Check if data has changed
+                const productsChanged = JSON.stringify(cachedProducts) !== JSON.stringify(productsData.products || []);
+                const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(salesData.sales || []);
+                
+                if (productsChanged || salesChanged) {
+                    console.log('🔄 Data changed - updating display');
                     
-                    google.script.run
-                        .withSuccessHandler(function(sales) {
-                            cachedSales = sales;
-                            displaySales();
-                            updateSummary();
-                            hideLoading();
-                        })
-                        .withFailureHandler(function(error) {
-                            console.error('Error loading sales:', error);
-                            hideLoading();
-                            alert('Error loading sales: ' + error.message);
-                        })
-                        .getSales();
-                })
-                .withFailureHandler(function(error) {
-                    console.error('Error loading products:', error);
-                    hideLoading();
-                    alert('Error loading products: ' + error.message);
-                })
-                .getProducts();
+                    cachedProducts = productsData.products || [];
+                    cachedSales = salesData.sales || [];
+                    
+                    // Update display
+                    displayProductsFromCache();
+                    displaySalesFromCache();
+                    updateSummaryFromCache();
+                    loadProductsForSaleFromCache();
+                    
+                    showSyncIndicator('Synced!', 'success');
+                } else {
+                    hideSyncIndicator();
+                }
+                
+                lastSyncTime = Date.now();
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+                hideSyncIndicator();
+            } finally {
+                syncInProgress = false;
+            }
         }
         
-        function displayProducts() {
-            const list = document.getElementById('productsList');
+        // Save product to Google Sheets (fire and forget)
+        function saveProductToSheet(product) {
+            const action = product.id && cachedProducts.some(p => p.id === product.id) ? 'updateProduct' : 'addProduct';
+            
+            fetch(`${GOOGLE_SCRIPT_URL}?action=${action}`, {
+                method: 'POST',
+                body: JSON.stringify(product)
+            })
+            .then(() => {
+                console.log('✅ Product saved to Google Sheets');
+                // Trigger immediate sync on all devices
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Save error:', e));
+        }
+        
+        // Delete product from Google Sheets (fire and forget)
+        function deleteProductFromSheet(id) {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
+                method: 'POST',
+                body: JSON.stringify({id: id})
+            })
+            .then(() => {
+                console.log('✅ Product deleted from Google Sheets');
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Delete error:', e));
+        }
+        
+        // Save sale to Google Sheets (fire and forget)
+        function saveSaleToSheet(sale) {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
+                method: 'POST',
+                body: JSON.stringify(sale)
+            })
+            .then(() => {
+                console.log('✅ Sale saved to Google Sheets');
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Sale save error:', e));
+        }
+        
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        // ========== DISPLAY FUNCTIONS (INSTANT FROM CACHE) ==========
+        
+        function displayProductsFromCache() {
+            const productsList = document.getElementById('productsList');
             
             if (cachedProducts.length === 0) {
-                list.innerHTML = '<div class="col-12"><div class="empty-state"><i class="bi bi-inbox"></i><h4>No Products Yet</h4></div></div>';
+                productsList.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h4>No Products Yet</h4>
+                            <p>Click "Add Product" to add your first item</p>
+                        </div>
+                    </div>
+                `;
                 return;
             }
             
-            list.innerHTML = '';
-            cachedProducts.forEach(p => {
-                const stockClass = p.stock > p.minStock ? 'stock-good' : p.stock > 0 ? 'stock-low' : 'stock-out';
-                const stockText = p.stock > p.minStock ? 'In Stock' : p.stock > 0 ? 'Low Stock' : 'Out of Stock';
-                const img = p.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(p.name);
+            productsList.innerHTML = '';
+            
+            cachedProducts.forEach(product => {
+                const stockClass = product.stock > product.minStock ? 'stock-good' : 
+                                  product.stock > 0 ? 'stock-low' : 'stock-out';
                 
-                list.innerHTML += `
+                const stockText = product.stock > product.minStock ? 'In Stock' : 
+                                 product.stock > 0 ? 'Low Stock' : 'Out of Stock';
+                
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
+                
+                const card = `
                     <div class="col-md-6 col-lg-4 mb-3">
                         <div class="card product-card">
-                            <img src="${img}" class="product-image" alt="${p.name}">
+                            <img src="${imageUrl}" class="product-image" alt="${product.name}" 
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
                             <div class="card-body">
-                                <h5 class="card-title">${p.name}</h5>
-                                <p class="text-muted mb-2"><small>${p.category} ${p.brand ? '• ' + p.brand : ''}</small></p>
-                                <div class="d-flex justify-content-between mb-2">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="badge stock-badge ${stockClass}">${stockText}</span>
-                                    <h5 class="mb-0">Stock: ${p.stock}</h5>
+                                    <h5 class="mb-0">Stock: ${product.stock}</h5>
                                 </div>
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span>Price: <strong>₹${p.price}</strong>/${p.unitType}</span>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
                                 </div>
                                 <div class="card-actions">
-                                    <button class="btn btn-primary btn-action" onclick='editProduct(${JSON.stringify(p)})'>
+                                    <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
                                         <i class="bi bi-pencil"></i> Edit
                                     </button>
-                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${p.id}')">
+                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </div>
@@ -340,55 +563,104 @@
                         </div>
                     </div>
                 `;
+                
+                productsList.innerHTML += card;
             });
         }
         
-        function displaySales() {
-            const list = document.getElementById('salesList');
+        function displaySalesFromCache() {
+            const salesList = document.getElementById('salesList');
             
             if (cachedSales.length === 0) {
-                list.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No sales yet</td></tr>';
+                salesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No sales recorded yet
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
-            list.innerHTML = '';
-            cachedSales.slice(0, 10).forEach(s => {
-                const date = new Date(s.date);
-                const formatted = date.toLocaleDateString('en-IN') + ' ' + date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+            salesList.innerHTML = '';
+            
+            const recentSales = cachedSales.slice(0, 10);
+            
+            recentSales.forEach(sale => {
+                const date = new Date(sale.date);
+                const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
+                                     date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
                 
-                list.innerHTML += `
+                const row = `
                     <tr>
-                        <td>${formatted}</td>
-                        <td>${s.productName}</td>
-                        <td>${s.quantity}</td>
-                        <td>${s.unitType}</td>
-                        <td class="text-success fw-bold">₹${s.totalAmount.toFixed(2)}</td>
+                        <td>${formattedDate}</td>
+                        <td>${sale.productName}</td>
+                        <td>${sale.quantity}</td>
+                        <td>${sale.unitType}</td>
+                        <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
                     </tr>
                 `;
+                
+                salesList.innerHTML += row;
             });
         }
         
-        function updateSummary() {
+        // INSTANT SUMMARY UPDATE (FROM CACHE)
+        function updateSummaryFromCache() {
             document.getElementById('totalProducts').textContent = cachedProducts.length;
             
             const today = new Date().toDateString();
-            const todaySales = cachedSales.filter(s => new Date(s.date).toDateString() === today);
-            const total = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
-            document.getElementById('salesToday').textContent = '₹' + total.toFixed(2);
+            const todaySales = cachedSales.filter(sale => {
+                const saleDate = new Date(sale.date).toDateString();
+                return saleDate === today;
+            });
             
-            const lowStock = cachedProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
-            document.getElementById('lowStock').textContent = lowStock.length;
+            const totalSalesToday = todaySales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount), 0);
+            document.getElementById('salesToday').textContent = '₹' + totalSalesToday.toFixed(2);
+            
+            const lowStockItems = cachedProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
+            document.getElementById('lowStock').textContent = lowStockItems.length;
         }
+        
+        // INSTANT PRODUCT DROPDOWN UPDATE
+        function loadProductsForSaleFromCache() {
+            const select = document.getElementById('saleProduct');
+            select.innerHTML = '<option value="">Choose product...</option>';
+            
+            cachedProducts.forEach(product => {
+                if (product.stock > 0) {
+                    select.innerHTML += `
+                        <option value="${product.id}">
+                            ${product.name} (Stock: ${product.stock} ${product.unitType})
+                        </option>
+                    `;
+                }
+            });
+        }
+        
+        // ========== PRODUCT FUNCTIONS ==========
+        
+        let editingProductId = null;
         
         function showAddProduct() {
             editingProductId = null;
             document.getElementById('modalTitle').textContent = 'Add New Product';
             document.getElementById('productForm').reset();
-            new bootstrap.Modal(document.getElementById('productModal')).show();
+            document.getElementById('productId').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            modal.show();
         }
         
-        function editProduct(product) {
-            editingProductId = product.id;
+        function editProduct(id) {
+            const product = cachedProducts.find(p => p.id === id);
+            
+            if (!product) {
+                alert('❌ Product not found!');
+                return;
+            }
+            
+            editingProductId = id;
             document.getElementById('modalTitle').textContent = 'Edit Product';
             document.getElementById('productId').value = product.id;
             document.getElementById('productName').value = product.name;
@@ -403,88 +675,167 @@
             document.getElementById('minStock').value = product.minStock;
             document.getElementById('imageUrl').value = product.imageUrl || '';
             
-            new bootstrap.Modal(document.getElementById('productModal')).show();
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            modal.show();
         }
         
         function saveProduct() {
-            const product = {
-                id: editingProductId,
-                name: document.getElementById('productName').value.trim(),
-                category: document.getElementById('category').value,
-                brand: document.getElementById('brand').value.trim(),
-                size: document.getElementById('size').value.trim(),
-                unitType: document.getElementById('unitType').value,
-                piecesPerBox: parseInt(document.getElementById('piecesPerBox').value) || 1,
-                sftPerBox: parseFloat(document.getElementById('sftPerBox').value) || 0,
-                price: parseFloat(document.getElementById('price').value),
-                stock: parseInt(document.getElementById('stock').value),
-                minStock: parseInt(document.getElementById('minStock').value) || 5,
-                imageUrl: document.getElementById('imageUrl').value.trim()
-            };
+            const name = document.getElementById('productName').value.trim();
+            const category = document.getElementById('category').value;
+            const brand = document.getElementById('brand').value.trim();
+            const size = document.getElementById('size').value.trim();
+            const unitType = document.getElementById('unitType').value;
+            const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value) || 1;
+            const sftPerBox = parseFloat(document.getElementById('sftPerBox').value) || 0;
+            const price = parseFloat(document.getElementById('price').value);
+            const stock = parseInt(document.getElementById('stock').value);
+            const minStock = parseInt(document.getElementById('minStock').value) || 5;
+            const imageUrl = document.getElementById('imageUrl').value.trim();
             
-            if (!product.name || !product.category || !product.price || product.stock < 0) {
-                alert('Please fill all required fields!');
+            if (!name || !category || !price || stock < 0) {
+                alert('❌ Please fill all required fields!');
                 return;
             }
             
-            showLoading();
+            const product = {
+                id: editingProductId || generateId(),
+                name, category, brand, size, unitType,
+                piecesPerBox, sftPerBox, price, stock, minStock, imageUrl
+            };
             
-            if (editingProductId) {
-                google.script.run
-                    .withSuccessHandler(function() {
-                        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-                        loadData();
-                        alert('✅ Product updated!');
-                    })
-                    .withFailureHandler(function(error) {
-                        hideLoading();
-                        alert('Error: ' + error.message);
-                    })
-                    .updateProduct(product);
+            // Update cache INSTANTLY
+            const index = cachedProducts.findIndex(p => p.id === product.id);
+            if (index !== -1) {
+                cachedProducts[index] = product;
             } else {
-                google.script.run
-                    .withSuccessHandler(function() {
-                        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-                        loadData();
-                        alert('✅ Product added!');
-                    })
-                    .withFailureHandler(function(error) {
-                        hideLoading();
-                        alert('Error: ' + error.message);
-                    })
-                    .addProduct(product);
+                cachedProducts.push(product);
             }
+            
+            // Close modal IMMEDIATELY
+            const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+            modal.hide();
+            
+            // Update display INSTANTLY
+            displayProductsFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Send to Google Sheets in background (triggers sync on all devices)
+            showSyncIndicator('Saving...', 'syncing');
+            saveProductToSheet(product);
+            
+            setTimeout(() => {
+                alert('✅ Product saved successfully!');
+            }, 1000);
         }
         
         function deleteProduct(id) {
-            if (!confirm('Delete this product?')) return;
+            if (!confirm('Are you sure you want to delete this product?')) return;
             
-            showLoading();
-            google.script.run
-                .withSuccessHandler(function() {
-                    loadData();
-                    alert('✅ Product deleted!');
-                })
-                .withFailureHandler(function(error) {
-                    hideLoading();
-                    alert('Error: ' + error.message);
-                })
-                .deleteProduct(id);
+            // Remove from cache INSTANTLY
+            cachedProducts = cachedProducts.filter(p => p.id !== id);
+            
+            // Update display INSTANTLY
+            displayProductsFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Delete from Google Sheets in background
+            showSyncIndicator('Deleting...', 'syncing');
+            deleteProductFromSheet(id);
+            
+            setTimeout(() => {
+                alert('✅ Product deleted successfully!');
+            }, 1000);
         }
+        
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = cachedProducts.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) ||
+                (p.brand && p.brand.toLowerCase().includes(searchTerm)) ||
+                p.category.toLowerCase().includes(searchTerm)
+            );
+            
+            const productsList = document.getElementById('productsList');
+            
+            if (filtered.length === 0) {
+                productsList.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="bi bi-search"></i>
+                            <h4>No Results Found</h4>
+                            <p>Try different search terms</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            productsList.innerHTML = '';
+            
+            filtered.forEach(product => {
+                const stockClass = product.stock > product.minStock ? 'stock-good' : 
+                                  product.stock > 0 ? 'stock-low' : 'stock-out';
+                
+                const stockText = product.stock > product.minStock ? 'In Stock' : 
+                                 product.stock > 0 ? 'Low Stock' : 'Out of Stock';
+                
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
+                
+                const card = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card product-card">
+                            <img src="${imageUrl}" class="product-image" alt="${product.name}"
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>${product.category} ${product.brand ? '• ' + product.brand : ''}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge stock-badge ${stockClass}">${stockText}</span>
+                                    <h5 class="mb-0">Stock: ${product.stock}</h5>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Price: <strong>₹${product.price}</strong>/${product.unitType}</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-primary btn-action" onclick="editProduct('${product.id}')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${product.id}')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                productsList.innerHTML += card;
+            });
+        }
+        
+        // ========== SALES FUNCTIONS ==========
         
         function showSalesSection() {
-            document.getElementById('saleProduct').innerHTML = '<option value="">Choose product...</option>';
-            cachedProducts.forEach(p => {
-                if (p.stock > 0) {
-                    document.getElementById('saleProduct').innerHTML += `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`;
-                }
-            });
+            loadProductsForSaleFromCache();
             
             document.getElementById('salesForm').reset();
-            new bootstrap.Modal(document.getElementById('salesModal')).show();
+            document.getElementById('saleTotal').value = '';
+            document.getElementById('saleUnitPrice').value = '';
+            totalEdited = false;
+            
+            const modal = new bootstrap.Modal(document.getElementById('salesModal'));
+            modal.show();
         }
         
-        function updateSalePrice() {
+        // INSTANT PRICE UPDATE (NO API CALL)
+        function updateSalePriceInstant() {
+            if (totalEdited) return;
+            
             const productId = document.getElementById('saleProduct').value;
             const quantity = parseInt(document.getElementById('saleQuantity').value) || 0;
             
@@ -495,10 +846,11 @@
             }
             
             const product = cachedProducts.find(p => p.id === productId);
+            
             if (!product) return;
             
             if (quantity > product.stock) {
-                alert(`Only ${product.stock} available!`);
+                alert(`❌ Only ${product.stock} ${product.unitType} available in stock!`);
                 document.getElementById('saleQuantity').value = product.stock;
                 return;
             }
@@ -508,91 +860,145 @@
             document.getElementById('saleUnitPrice').value = '₹' + product.price + '/' + product.unitType;
         }
         
+        function markTotalAsEdited() {
+            totalEdited = true;
+        }
+        
         function recordSale() {
             const productId = document.getElementById('saleProduct').value;
             const quantity = parseInt(document.getElementById('saleQuantity').value);
             const totalAmount = parseFloat(document.getElementById('saleTotal').value);
             
-            if (!productId || !quantity || !totalAmount) {
-                alert('Please fill all fields!');
+            if (!productId || !quantity || quantity <= 0 || !totalAmount) {
+                alert('❌ Please select product, enter quantity, and total amount!');
                 return;
             }
             
             const product = cachedProducts.find(p => p.id === productId);
-            if (!product) return;
+            
+            if (!product) {
+                alert('❌ Product not found!');
+                return;
+            }
+            
+            if (quantity > product.stock) {
+                alert(`❌ Insufficient stock! Only ${product.stock} available.`);
+                return;
+            }
             
             const sale = {
+                id: generateId(),
                 productId: product.id,
                 productName: product.name,
                 quantity: quantity,
                 unitType: product.unitType,
-                totalAmount: totalAmount
+                totalAmount: totalAmount,
+                date: new Date().toISOString()
             };
             
-            showLoading();
-            google.script.run
-                .withSuccessHandler(function() {
-                    bootstrap.Modal.getInstance(document.getElementById('salesModal')).hide();
-                    loadData();
-                    alert(`✅ Sale recorded: ₹${totalAmount.toFixed(2)}`);
-                })
-                .withFailureHandler(function(error) {
-                    hideLoading();
-                    alert('Error: ' + error.message);
-                })
-                .addSale(sale);
+            // Update product stock in cache INSTANTLY
+            product.stock -= quantity;
+            
+            // Add sale to cache INSTANTLY
+            cachedSales.unshift(sale);
+            
+            // Close modal IMMEDIATELY
+            const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+            modal.hide();
+            
+            // Update all displays INSTANTLY
+            displayProductsFromCache();
+            displaySalesFromCache();
+            updateSummaryFromCache();
+            loadProductsForSaleFromCache();
+            
+            // Send to Google Sheets in background
+            showSyncIndicator('Saving sale...', 'syncing');
+            saveSaleToSheet(sale);
+            
+            setTimeout(() => {
+                alert(`✅ Sale recorded successfully!\nTotal: ₹${totalAmount.toFixed(2)}`);
+            }, 1000);
         }
         
-        function searchProducts() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = cachedProducts.filter(p => 
-                p.name.toLowerCase().includes(term) ||
-                (p.brand && p.brand.toLowerCase().includes(term)) ||
-                p.category.toLowerCase().includes(term)
-            );
+        // ========== BACKUP/RESTORE ==========
+        
+        function exportData() {
+            const data = {
+                products: cachedProducts,
+                sales: cachedSales,
+                exportDate: new Date().toISOString()
+            };
             
-            const list = document.getElementById('productsList');
-            if (filtered.length === 0) {
-                list.innerHTML = '<div class="col-12"><div class="empty-state"><i class="bi bi-search"></i><h4>No results</h4></div></div>';
-                return;
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            alert('✅ Backup downloaded successfully!');
+        }
+        
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+        
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.products) {
+                        cachedProducts = data.products;
+                    }
+                    if (data.sales) {
+                        cachedSales = data.sales;
+                    }
+                    
+                    displayProductsFromCache();
+                    displaySalesFromCache();
+                    updateSummaryFromCache();
+                    loadProductsForSaleFromCache();
+                    
+                    alert('✅ Data restored successfully!');
+                } catch (error) {
+                    alert('❌ Error: Invalid backup file!');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // ========== INITIALIZATION ==========
+        
+        window.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Tile & Sanitaryware Inventory App Loading...');
+            
+            // Initial sync from Google Sheets
+            showSyncIndicator('Loading...', 'syncing');
+            await syncFromGoogleSheets();
+            
+            console.log('✅ App loaded successfully!');
+            
+            // Auto-sync every 5 seconds (real-time sync across devices)
+            setInterval(() => {
+                syncFromGoogleSheets();
+            }, 5000); // 5 seconds - adjust as needed
+        });
+        
+        // Sync when tab becomes visible (user switches back to app)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👀 Tab visible - syncing...');
+                syncFromGoogleSheets();
             }
-            
-            list.innerHTML = '';
-            filtered.forEach(p => {
-                const stockClass = p.stock > p.minStock ? 'stock-good' : p.stock > 0 ? 'stock-low' : 'stock-out';
-                const stockText = p.stock > p.minStock ? 'In Stock' : p.stock > 0 ? 'Low Stock' : 'Out of Stock';
-                const img = p.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(p.name);
-                
-                list.innerHTML += `
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card product-card">
-                            <img src="${img}" class="product-image" alt="${p.name}">
-                            <div class="card-body">
-                                <h5 class="card-title">${p.name}</h5>
-                                <p class="text-muted mb-2"><small>${p.category} ${p.brand ? '• ' + p.brand : ''}</small></p>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="badge stock-badge ${stockClass}">${stockText}</span>
-                                    <h5 class="mb-0">Stock: ${p.stock}</h5>
-                                </div>
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span>Price: <strong>₹${p.price}</strong>/${p.unitType}</span>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="btn btn-primary btn-action" onclick='editProduct(${JSON.stringify(p)})'>
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                    <button class="btn btn-danger btn-action" onclick="deleteProduct('${p.id}')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        window.addEventListener('DOMContentLoaded', loadData);
+        });
     </script>
 
 </body>
