@@ -305,7 +305,7 @@
     <!-- ALL JavaScript Code Here -->
     <script>
         // ========== GOOGLE SHEETS API CONFIGURATION ==========
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBgiN00BnJXAuGU7_yZU-_1LJxprK-9nEAFebo1KBVXmSa3wSLVcDUINvmj9jlwUwe/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcn4l-vLF6oY1c47n4-jDwl1nmQY9uAKhrJKN8owz6AojuaiQjWp4Yrl1P_OXwJiOI/exec';
 
         // ========== CROSS-DEVICE SYNC STORAGE ==========
         let cachedProducts = [];
@@ -313,6 +313,7 @@
         let totalEdited = false;
         let syncInProgress = false;
         let lastSyncTime = 0;
+        let hasInitialLoaded = false; // NEW: indicates first successful getAll
 
         // ========== SYNC INDICATOR FUNCTIONS ==========
         function showSyncIndicator(message, type = 'syncing') {
@@ -322,39 +323,37 @@
             text.textContent = message;
             indicator.style.display = 'block';
             if (type === 'success') {
-                setTimeout(() => {
-                    indicator.style.display = 'none';
-                }, 2000);
+                setTimeout(() => { indicator.style.display = 'none'; }, 2000);
             }
         }
-
         function hideSyncIndicator() {
             document.getElementById('syncIndicator').style.display = 'none';
         }
 
         // ========== CROSS-DEVICE SYNC FUNCTIONS ==========
-        // Fetch fresh data from Google Sheets
+        // NEW: single request to get both products and sales
         async function syncFromGoogleSheets() {
             if (syncInProgress) return;
             syncInProgress = true;
+            showSyncIndicator('Syncing...', 'syncing');
+
             try {
-                const [productsResponse, salesResponse] = await Promise.all([
-                    fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`),
-                    fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`)
-                ]);
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
+                const data = await res.json();
 
-                const productsData = await productsResponse.json();
-                const salesData = await salesResponse.json();
+                if (!data || data.success === false) {
+                    console.error('getAll failed or returned empty:', data);
+                    // keep current UI (don't overwrite with empties)
+                    return;
+                }
 
-                // server returns { success: true, products: [...] }
-                const serverProducts = (productsData && productsData.products) ? productsData.products : [];
-                const serverSales = (salesData && salesData.sales) ? salesData.sales : [];
+                const serverProducts = data.products || [];
+                const serverSales = data.sales || [];
 
                 const productsChanged = JSON.stringify(cachedProducts) !== JSON.stringify(serverProducts);
                 const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(serverSales);
 
-                if (productsChanged || salesChanged) {
-                    console.log('🔄 Data changed - updating display');
+                if (productsChanged || salesChanged || !hasInitialLoaded) {
                     cachedProducts = serverProducts;
                     cachedSales = serverSales;
 
@@ -368,10 +367,11 @@
                     hideSyncIndicator();
                 }
 
+                hasInitialLoaded = true;
                 lastSyncTime = Date.now();
             } catch (error) {
-                console.error('Sync error:', error);
-                hideSyncIndicator();
+                console.error('Sync error (getAll):', error);
+                // keep UI as-is (loading skeleton will remain until hasInitialLoaded true)
             } finally {
                 syncInProgress = false;
             }
@@ -388,7 +388,6 @@
         }
 
         // ---------- SAVE PRODUCT (robust, uses explicit isEdit flag) ----------
-        // Returns server JSON object on success, or null on failure.
         async function saveProductToSheet(product, isEdit = false) {
             const action = isEdit ? 'updateProduct' : 'addProduct';
             const url = `${GOOGLE_SCRIPT_URL}?action=${action}`;
@@ -411,21 +410,17 @@
                     }
 
                     console.log('✅ Product saved to Google Sheets (server response):', parsed.json);
-                    // If server returned an id for addProduct, replace local client id with server id
+                    // replace local id with server id for newly added product
                     if (!isEdit && parsed.json.id) {
-                        // find local product by its client id (it may be the generated one)
-                        const localIndex = cachedProducts.findIndex(p => p && p.name === product.name && (p.id === product.id));
+                        const localIndex = cachedProducts.findIndex(p => p && p.id === product.id);
                         if (localIndex !== -1) {
-                            // update id locally
                             cachedProducts[localIndex].id = parsed.json.id;
-                            // also update any other references (safe)
                             product.id = parsed.json.id;
-                            // refresh UI
                             displayProductsFromCache();
                             loadProductsForSaleFromCache();
                             updateSummaryFromCache();
                         } else {
-                            // if not found by id, attempt to match by name + price as fallback
+                            // fallback match by name + price
                             const fallbackIndex = cachedProducts.findIndex(p => p && p.name === product.name && p.price == product.price);
                             if (fallbackIndex !== -1) {
                                 cachedProducts[fallbackIndex].id = parsed.json.id;
@@ -437,17 +432,16 @@
                         }
                     }
 
-                    // trigger full sync after a short delay
+                    // quick re-sync after short delay
                     setTimeout(() => syncFromGoogleSheets(), 1500);
                     return parsed.json;
                 }
 
-                // Non-JSON response (likely permission/login or HTML)
+                // Non-JSON response
                 console.error('Non-JSON server response:', parsed.text);
                 showSyncIndicator('Save failed', '');
                 alert('❌ Save failed — server returned non-JSON response. Check console Network tab.');
                 return null;
-
             } catch (err) {
                 console.error('Save error:', err);
                 showSyncIndicator('Save failed', '');
@@ -514,6 +508,17 @@
         function displayProductsFromCache() {
             const productsList = document.getElementById('productsList');
 
+            // Show loading skeleton until first successful sync
+            if (!hasInitialLoaded) {
+                productsList.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border" role="status" aria-hidden="true"></div>
+                        <p class="mt-3 text-muted">Loading inventory…</p>
+                    </div>
+                `;
+                return;
+            }
+
             if (!cachedProducts || cachedProducts.length === 0) {
                 productsList.innerHTML = `
                     <div class="col-12">
@@ -528,14 +533,11 @@
             }
 
             productsList.innerHTML = '';
-
             cachedProducts.forEach(product => {
                 const stockClass = product.stock > product.minStock ? 'stock-good' :
                     product.stock > 0 ? 'stock-low' : 'stock-out';
-
                 const stockText = product.stock > product.minStock ? 'In Stock' :
                     product.stock > 0 ? 'Low Stock' : 'Out of Stock';
-
                 const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
 
                 const card = `
@@ -567,13 +569,24 @@
                         </div>
                     </div>
                 `;
-
                 productsList.innerHTML += card;
             });
         }
 
         function displaySalesFromCache() {
             const salesList = document.getElementById('salesList');
+
+            if (!hasInitialLoaded) {
+                salesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border" role="status" aria-hidden="true"></div>
+                            <div class="mt-2 text-muted">Loading sales…</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
             if (!cachedSales || cachedSales.length === 0) {
                 salesList.innerHTML = `
@@ -585,9 +598,7 @@
             }
 
             salesList.innerHTML = '';
-
             const recentSales = cachedSales.slice(0, 10);
-
             recentSales.forEach(sale => {
                 const date = new Date(sale.date);
                 const formattedDate = date.toLocaleDateString('en-IN') + ' ' +
@@ -607,6 +618,13 @@
         }
 
         function updateSummaryFromCache() {
+            if (!hasInitialLoaded) {
+                document.getElementById('totalProducts').textContent = 'Loading...';
+                document.getElementById('salesToday').textContent = 'Loading...';
+                document.getElementById('lowStock').textContent = 'Loading...';
+                return;
+            }
+
             document.getElementById('totalProducts').textContent = (cachedProducts || []).length;
 
             const today = new Date().toDateString();
@@ -692,76 +710,58 @@
                 piecesPerBox, sftPerBox, price, stock, minStock, imageUrl
             };
 
-            // Save previous state for revert if needed
             const existingIndex = (cachedProducts || []).findIndex(p => p.id === product.id);
             const previous = existingIndex !== -1 ? Object.assign({}, cachedProducts[existingIndex]) : null;
 
-            // Optimistic update in cache
+            // Optimistic update
             if (existingIndex !== -1) {
                 cachedProducts[existingIndex] = product;
             } else {
                 cachedProducts.push(product);
             }
 
-            // Update UI immediately
             displayProductsFromCache();
             updateSummaryFromCache();
             loadProductsForSaleFromCache();
 
-            // Close modal immediately
             const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
             modal.hide();
 
-            // Show syncing indicator
             showSyncIndicator('Saving...', 'syncing');
 
-            // Send to server: pass true if editing
             const isEdit = !!editingProductId;
             const serverResp = await saveProductToSheet(product, isEdit);
 
             if (serverResp && serverResp.success) {
-                // success already handled inside saveProductToSheet (id replacement + sync)
                 showSyncIndicator('Saved', 'success');
-                // Clear editing flag
                 editingProductId = null;
-                // Confirm to user
                 setTimeout(()=> alert('✅ Product saved successfully!'), 300);
             } else {
-                // revert optimistic update
+                // revert
                 if (previous) {
                     cachedProducts[existingIndex] = previous;
                 } else {
-                    // remove the newly added product
                     cachedProducts = (cachedProducts || []).filter(p => p.id !== product.id);
                 }
-                // refresh UI
                 displayProductsFromCache();
                 updateSummaryFromCache();
                 loadProductsForSaleFromCache();
-
-                // keep editingProductId as-is (so user can retry)
                 alert('❌ Product save failed. Changes were reverted locally.');
             }
         }
 
         function deleteProduct(id) {
             if (!confirm('Are you sure you want to delete this product?')) return;
-
-            // Optimistic remove
             const prevProducts = cachedProducts.slice();
             cachedProducts = (cachedProducts || []).filter(p => p.id !== id);
-
             displayProductsFromCache();
             updateSummaryFromCache();
             loadProductsForSaleFromCache();
-
             showSyncIndicator('Deleting...', 'syncing');
-
             deleteProductFromSheet(id).then(success => {
                 if (success) {
                     setTimeout(()=> alert('✅ Product deleted successfully!'), 300);
                 } else {
-                    // revert
                     cachedProducts = prevProducts;
                     displayProductsFromCache();
                     updateSummaryFromCache();
@@ -773,7 +773,6 @@
 
         function searchProducts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
             const filtered = (cachedProducts || []).filter(p =>
                 p.name.toLowerCase().includes(searchTerm) ||
                 (p.brand && p.brand.toLowerCase().includes(searchTerm)) ||
@@ -796,14 +795,11 @@
             }
 
             productsList.innerHTML = '';
-
             filtered.forEach(product => {
                 const stockClass = product.stock > product.minStock ? 'stock-good' :
                     product.stock > 0 ? 'stock-low' : 'stock-out';
-
                 const stockText = product.stock > product.minStock ? 'In Stock' :
                     product.stock > 0 ? 'Low Stock' : 'Out of Stock';
-
                 const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(product.name);
 
                 const card = `
@@ -852,25 +848,20 @@
 
         function updateSalePriceInstant() {
             if (totalEdited) return;
-
             const productId = document.getElementById('saleProduct').value;
             const quantity = parseInt(document.getElementById('saleQuantity').value) || 0;
-
             if (!productId || quantity <= 0) {
                 document.getElementById('saleTotal').value = '';
                 document.getElementById('saleUnitPrice').value = '';
                 return;
             }
-
             const product = (cachedProducts || []).find(p => p.id === productId);
             if (!product) return;
-
             if (quantity > product.stock) {
                 alert(`❌ Only ${product.stock} ${product.unitType} available in stock!`);
                 document.getElementById('saleQuantity').value = product.stock;
                 return;
             }
-
             const total = product.price * quantity;
             document.getElementById('saleTotal').value = total.toFixed(2);
             document.getElementById('saleUnitPrice').value = '₹' + product.price + '/' + product.unitType;
@@ -887,7 +878,6 @@
                 alert('❌ Please select product, enter quantity, and total amount!');
                 return;
             }
-
             const product = (cachedProducts || []).find(p => p.id === productId);
             if (!product) { alert('❌ Product not found!'); return; }
             if (quantity > product.stock) { alert(`❌ Insufficient stock! Only ${product.stock} available.`); return; }
@@ -920,9 +910,8 @@
                 showSyncIndicator('Saved', 'success');
                 setTimeout(()=> alert(`✅ Sale recorded successfully!\nTotal: ₹${totalAmount.toFixed(2)}`), 300);
             } else {
-                // revert sale & stock
+                // revert
                 cachedSales = cachedSales.filter(s => s.id !== sale.id);
-                // restore product stock by adding back quantity
                 const prod = (cachedProducts || []).find(p => p.id === productId);
                 if (prod) prod.stock += quantity;
                 displayProductsFromCache();
@@ -977,6 +966,7 @@
             showSyncIndicator('Loading...', 'syncing');
             await syncFromGoogleSheets();
             console.log('✅ App loaded successfully!');
+            // Keep periodic syncing (careful with heavy usage - Apps Script quotas)
             setInterval(() => { syncFromGoogleSheets(); }, 5000);
         });
 
