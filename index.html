@@ -81,6 +81,30 @@
             margin-bottom: 1rem;
         }
         
+        /* Sync Indicator */
+        .sync-indicator {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .sync-indicator.syncing {
+            display: block;
+            color: #0d6efd;
+        }
+        
+        .sync-indicator.success {
+            display: block;
+            color: #28a745;
+        }
+        
         @media (max-width: 768px) {
             .btn-lg {
                 padding: 0.75rem 1.5rem;
@@ -90,10 +114,22 @@
             .product-image {
                 height: 150px;
             }
+            
+            .sync-indicator {
+                top: 60px;
+                left: 10px;
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
 <body>
+    
+    <!-- Sync Indicator -->
+    <div id="syncIndicator" class="sync-indicator">
+        <i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span>
+    </div>
     
     <!-- Header -->
     <nav class="navbar navbar-dark bg-primary sticky-top">
@@ -345,78 +381,81 @@
         
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfBwn8BRffSh20VCTr1ANbEi8HFwgQXB62I9Ct1s3ROCuA6xlHOzlF3fMZoxL7Aur/exec';
         
-        // ========== PERMANENT LOCAL CACHE (NEVER EXPIRES AUTOMATICALLY) ==========
+        // ========== CROSS-DEVICE SYNC STORAGE ==========
         
         let cachedProducts = [];
         let cachedSales = [];
-        let isInitialLoad = true;
-        let totalEdited = false; // Track if user manually edited total
+        let totalEdited = false;
+        let syncInProgress = false;
+        let lastSyncTime = 0;
         
-        // Save cache to localStorage for persistence
-        function saveCache() {
-            try {
-                localStorage.setItem('cachedProducts', JSON.stringify(cachedProducts));
-                localStorage.setItem('cachedSales', JSON.stringify(cachedSales));
-                localStorage.setItem('cacheTime', Date.now().toString());
-            } catch (e) {
-                console.warn('Failed to save cache to localStorage:', e);
+        // ========== SYNC INDICATOR FUNCTIONS ==========
+        
+        function showSyncIndicator(message, type = 'syncing') {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            
+            indicator.className = `sync-indicator ${type}`;
+            text.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
             }
         }
         
-        // Load cache from localStorage on page load
-        function loadCache() {
+        function hideSyncIndicator() {
+            document.getElementById('syncIndicator').style.display = 'none';
+        }
+        
+        // ========== CROSS-DEVICE SYNC FUNCTIONS ==========
+        
+        // Fetch fresh data from Google Sheets
+        async function syncFromGoogleSheets() {
+            if (syncInProgress) return;
+            
+            syncInProgress = true;
+            
             try {
-                const products = localStorage.getItem('cachedProducts');
-                const sales = localStorage.getItem('cachedSales');
+                // Fetch both products and sales
+                const [productsResponse, salesResponse] = await Promise.all([
+                    fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`),
+                    fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`)
+                ]);
                 
-                if (products) cachedProducts = JSON.parse(products);
-                if (sales) cachedSales = JSON.parse(sales);
+                const productsData = await productsResponse.json();
+                const salesData = await salesResponse.json();
                 
-                console.log('✅ Loaded cache from localStorage:', cachedProducts.length, 'products,', cachedSales.length, 'sales');
-            } catch (e) {
-                console.warn('Failed to load cache from localStorage:', e);
+                // Check if data has changed
+                const productsChanged = JSON.stringify(cachedProducts) !== JSON.stringify(productsData.products || []);
+                const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(salesData.sales || []);
+                
+                if (productsChanged || salesChanged) {
+                    console.log('🔄 Data changed - updating display');
+                    
+                    cachedProducts = productsData.products || [];
+                    cachedSales = salesData.sales || [];
+                    
+                    // Update display
+                    displayProductsFromCache();
+                    displaySalesFromCache();
+                    updateSummaryFromCache();
+                    loadProductsForSaleFromCache();
+                    
+                    showSyncIndicator('Synced!', 'success');
+                } else {
+                    hideSyncIndicator();
+                }
+                
+                lastSyncTime = Date.now();
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+                hideSyncIndicator();
+            } finally {
+                syncInProgress = false;
             }
-        }
-        
-        // ========== GOOGLE SHEETS API FUNCTIONS (FIRE AND FORGET) ==========
-        
-        // Sync products from Google Sheets in background
-        function syncProductsFromSheet() {
-            fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.products && data.products.length > 0) {
-                        cachedProducts = data.products;
-                        saveCache();
-                        console.log('✅ Synced', cachedProducts.length, 'products from Google Sheets');
-                        
-                        // Update display if not initial load
-                        if (!isInitialLoad) {
-                            displayProductsFromCache();
-                            updateSummaryFromCache();
-                        }
-                    }
-                })
-                .catch(error => console.error('Background sync error:', error));
-        }
-        
-        // Sync sales from Google Sheets in background
-        function syncSalesFromSheet() {
-            fetch(`${GOOGLE_SCRIPT_URL}?action=getSales`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.sales) {
-                        cachedSales = data.sales;
-                        saveCache();
-                        console.log('✅ Synced', cachedSales.length, 'sales from Google Sheets');
-                        
-                        if (!isInitialLoad) {
-                            displaySalesFromCache();
-                            updateSummaryFromCache();
-                        }
-                    }
-                })
-                .catch(error => console.error('Background sales sync error:', error));
         }
         
         // Save product to Google Sheets (fire and forget)
@@ -426,7 +465,13 @@
             fetch(`${GOOGLE_SCRIPT_URL}?action=${action}`, {
                 method: 'POST',
                 body: JSON.stringify(product)
-            }).then(() => console.log('✅ Product saved to Google Sheets')).catch(e => console.error('Save error:', e));
+            })
+            .then(() => {
+                console.log('✅ Product saved to Google Sheets');
+                // Trigger immediate sync on all devices
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Save error:', e));
         }
         
         // Delete product from Google Sheets (fire and forget)
@@ -434,7 +479,12 @@
             fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
                 method: 'POST',
                 body: JSON.stringify({id: id})
-            }).then(() => console.log('✅ Product deleted from Google Sheets')).catch(e => console.error('Delete error:', e));
+            })
+            .then(() => {
+                console.log('✅ Product deleted from Google Sheets');
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Delete error:', e));
         }
         
         // Save sale to Google Sheets (fire and forget)
@@ -442,7 +492,12 @@
             fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
                 method: 'POST',
                 body: JSON.stringify(sale)
-            }).then(() => console.log('✅ Sale saved to Google Sheets')).catch(e => console.error('Sale save error:', e));
+            })
+            .then(() => {
+                console.log('✅ Sale saved to Google Sheets');
+                setTimeout(() => syncFromGoogleSheets(), 2000);
+            })
+            .catch(e => console.error('Sale save error:', e));
         }
         
         // Generate unique ID
@@ -552,10 +607,8 @@
         
         // INSTANT SUMMARY UPDATE (FROM CACHE)
         function updateSummaryFromCache() {
-            // Total products
             document.getElementById('totalProducts').textContent = cachedProducts.length;
             
-            // Sales today
             const today = new Date().toDateString();
             const todaySales = cachedSales.filter(sale => {
                 const saleDate = new Date(sale.date).toDateString();
@@ -565,7 +618,6 @@
             const totalSalesToday = todaySales.reduce((sum, sale) => sum + parseFloat(sale.totalAmount), 0);
             document.getElementById('salesToday').textContent = '₹' + totalSalesToday.toFixed(2);
             
-            // Low stock items
             const lowStockItems = cachedProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
             document.getElementById('lowStock').textContent = lowStockItems.length;
         }
@@ -659,8 +711,6 @@
                 cachedProducts.push(product);
             }
             
-            saveCache();
-            
             // Close modal IMMEDIATELY
             const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
             modal.hide();
@@ -670,10 +720,10 @@
             updateSummaryFromCache();
             loadProductsForSaleFromCache();
             
-            // Send to Google Sheets in background (fire and forget)
+            // Send to Google Sheets in background (triggers sync on all devices)
+            showSyncIndicator('Saving...', 'syncing');
             saveProductToSheet(product);
             
-            // Show success after 1 second
             setTimeout(() => {
                 alert('✅ Product saved successfully!');
             }, 1000);
@@ -684,7 +734,6 @@
             
             // Remove from cache INSTANTLY
             cachedProducts = cachedProducts.filter(p => p.id !== id);
-            saveCache();
             
             // Update display INSTANTLY
             displayProductsFromCache();
@@ -692,6 +741,7 @@
             loadProductsForSaleFromCache();
             
             // Delete from Google Sheets in background
+            showSyncIndicator('Deleting...', 'syncing');
             deleteProductFromSheet(id);
             
             setTimeout(() => {
@@ -771,7 +821,6 @@
         // ========== SALES FUNCTIONS ==========
         
         function showSalesSection() {
-            // Load products from cache (instant!)
             loadProductsForSaleFromCache();
             
             document.getElementById('salesForm').reset();
@@ -785,7 +834,7 @@
         
         // INSTANT PRICE UPDATE (NO API CALL)
         function updateSalePriceInstant() {
-            if (totalEdited) return; // Don't overwrite if user edited it
+            if (totalEdited) return;
             
             const productId = document.getElementById('saleProduct').value;
             const quantity = parseInt(document.getElementById('saleQuantity').value) || 0;
@@ -853,8 +902,6 @@
             // Add sale to cache INSTANTLY
             cachedSales.unshift(sale);
             
-            saveCache();
-            
             // Close modal IMMEDIATELY
             const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
             modal.hide();
@@ -866,6 +913,7 @@
             loadProductsForSaleFromCache();
             
             // Send to Google Sheets in background
+            showSyncIndicator('Saving sale...', 'syncing');
             saveSaleToSheet(sale);
             
             setTimeout(() => {
@@ -914,8 +962,6 @@
                         cachedSales = data.sales;
                     }
                     
-                    saveCache();
-                    
                     displayProductsFromCache();
                     displaySalesFromCache();
                     updateSummaryFromCache();
@@ -931,31 +977,27 @@
         
         // ========== INITIALIZATION ==========
         
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Tile & Sanitaryware Inventory App Loading...');
             
-            // Load cache from localStorage first (INSTANT display)
-            loadCache();
+            // Initial sync from Google Sheets
+            showSyncIndicator('Loading...', 'syncing');
+            await syncFromGoogleSheets();
             
-            // Display from cache immediately (0ms delay)
-            displayProductsFromCache();
-            displaySalesFromCache();
-            updateSummaryFromCache();
-            loadProductsForSaleFromCache();
+            console.log('✅ App loaded successfully!');
             
-            isInitialLoad = false;
-            
-            console.log('✅ App loaded instantly from cache!');
-            
-            // Sync with Google Sheets in background
-            syncProductsFromSheet();
-            syncSalesFromSheet();
-            
-            // Auto-sync every 30 seconds in background
+            // Auto-sync every 5 seconds (real-time sync across devices)
             setInterval(() => {
-                syncProductsFromSheet();
-                syncSalesFromSheet();
-            }, 30000);
+                syncFromGoogleSheets();
+            }, 5000); // 5 seconds - adjust as needed
+        });
+        
+        // Sync when tab becomes visible (user switches back to app)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👀 Tab visible - syncing...');
+                syncFromGoogleSheets();
+            }
         });
     </script>
 
