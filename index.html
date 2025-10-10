@@ -5,35 +5,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Tile & Sanitaryware Inventory</title>
 
-  <!-- Bootstrap & icons -->
+  <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
-    .table-explorer { background: #fff; border-radius: 6px; overflow: hidden; }
-    .table-explorer thead { background:#f1f3f5; }
-    .table-explorer tbody tr:hover { background: #f8fafc; cursor: default; }
-    .file-icon { font-size: 1.25rem; display:inline-block; width:1.6rem; text-align:center; }
-    .file-icon.tile { color: #0d6efd; }       /* blue */
-    .file-icon.sanitary { color: #198754; }   /* green */
-    .file-icon.accessory { color: #fd7e14; }  /* orange */
-    .stock-badge { font-size: .85rem; padding: .25rem .5rem; border-radius: .5rem; }
-    .mobile-list { display: none; }
-    .mobile-item { background: #fff; padding: .75rem; border-radius: .5rem; margin-bottom:.7rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    .table-sm td, .table-sm th { padding: .45rem .6rem; vertical-align: middle; }
-    @media (max-width: 767.98px) {
-      .desktop-table { display: none !important; }
-      .mobile-list { display: block !important; }
+    .table-explorer { background:#fff; border-radius:6px; overflow:hidden; }
+    .file-icon { font-size:1.15rem; display:inline-block; width:1.6rem; text-align:center; }
+    .stock-badge{font-size:.85rem;padding:.25rem .5rem;border-radius:.5rem}
+    .mobile-list{display:none}
+    .mobile-item{background:#fff;padding:.75rem;border-radius:.5rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .btn-action-sm{padding:.25rem .5rem;font-size:.85rem}
+    .sync-indicator{position:fixed;top:70px;left:20px;background:#fff;padding:8px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;z-index:1000}
+    /* Sales grid mobile transforms */
+    @media (max-width:768px) {
+      .desktop-table { display:none !important; }
+      .mobile-list { display:block !important; }
+      /* Make table rows card-like */
+      .grid-table thead { display:none; }
+      .grid-table tbody tr { display:block; margin-bottom:12px; padding:12px; border:1px solid #e9ecef; border-radius:8px; background:#fff; }
+      .grid-table td { display:block; width:100%; padding:.35rem 0; border:0; }
+      .grid-row-number { float:right; font-size:.85rem; color:#6c757d; }
+      .product-select, .qty-input, .price-input { width:100% !important; font-size:16px; height:44px; }
+      .mobile-two-col { display:flex; gap:10px; }
+      .mobile-two-col > div { flex:1; }
+      .modal-dialog { margin:.5rem; max-width: calc(100% - 1rem); }
+      .modal-body { max-height: calc(100vh - 200px); overflow-y:auto; -webkit-overflow-scrolling: touch; }
+      .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
     }
-    .btn-action-sm { padding: .25rem .5rem; font-size: .85rem; }
-    /* Sales modal grid styling */
-    .grid-table td, .grid-table th { vertical-align: middle; }
-    .grid-row-number { width:40px; text-align:center; }
-    .grid-small { width:80px; }
-    .readonly-input { background:#f8f9fa; pointer-events:none; }
-    .small-muted { font-size:.85rem; color:#6c757d; }
-    .sync-indicator { position: fixed; top: 70px; left: 20px; background: #fff; padding:8px 12px; border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); display:none; z-index:1000; }
   </style>
 </head>
 <body>
@@ -45,9 +45,7 @@
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory</span>
       <div>
-        <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()">
-          <i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
+        <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()"><i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh</button>
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
       </div>
@@ -55,7 +53,7 @@
   </nav>
 
   <div class="container-fluid py-4">
-    <!-- Action buttons -->
+    <!-- Actions -->
     <div class="row mb-4">
       <div class="col-12 text-center">
         <button class="btn btn-success btn-lg me-2 mb-2" onclick="showAddProduct()"><i class="bi bi-plus-circle"></i> Add Product</button>
@@ -63,7 +61,7 @@
       </div>
     </div>
 
-    <!-- Summary cards -->
+    <!-- Summary -->
     <div class="row mb-4">
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-box-seam text-primary" style="font-size:2rem"></i><h3 id="totalProducts" class="mt-2">0</h3><p class="text-muted mb-0">Total Products</p></div></div></div>
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">₹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
@@ -77,23 +75,12 @@
       </div>
     </div>
 
-    <!-- Products desktop table & mobile -->
+    <!-- Products table (desktop) & mobile list -->
     <div class="row mb-4">
       <div class="col-12 desktop-table">
         <div class="table-explorer">
-          <table class="table table-sm table-striped table-hover mb-0">
-            <thead>
-              <tr>
-                <th style="width:50px">Icon</th>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Brand</th>
-                <th>Size</th>
-                <th style="width:120px">Stock</th>
-                <th style="width:140px">Price</th>
-                <th style="width:150px">Actions</th>
-              </tr>
-            </thead>
+          <table class="table table-sm table-striped mb-0">
+            <thead><tr><th style="width:50px">Icon</th><th>Product</th><th>Category</th><th>Brand</th><th>Size</th><th style="width:120px">Stock</th><th style="width:140px">Price</th><th style="width:150px">Actions</th></tr></thead>
             <tbody id="productsTableBody"></tbody>
           </table>
         </div>
@@ -102,15 +89,13 @@
       <div class="col-12 mobile-list" id="mobileProductsList" style="margin-top:6px;"></div>
     </div>
 
-    <!-- Sales recent -->
+    <!-- Recent Sales -->
     <div class="row">
       <div class="col-12">
         <h4 class="mb-3">Recent Sales</h4>
         <div class="table-responsive">
           <table class="table table-striped">
-            <thead class="table-primary">
-              <tr><th>Date & Time</th><th>Product</th><th>Quantity</th><th>Unit</th><th>Amount</th></tr>
-            </thead>
+            <thead class="table-primary"><tr><th>Date & Time</th><th>Product</th><th>Quantity</th><th>Unit</th><th>Amount</th></tr></thead>
             <tbody id="salesList"></tbody>
           </table>
         </div>
@@ -118,7 +103,7 @@
     </div>
   </div>
 
-  <!-- Add/Edit Product Modal (unchanged except image removal) -->
+  <!-- Add/Edit Product Modal (image removed) -->
   <div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header bg-primary text-white"><h5 id="modalTitle" class="modal-title">Add New Product</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
@@ -147,38 +132,22 @@
     <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveProduct()">Save Product</button></div>
   </div></div></div>
 
-  <!-- SALES MODAL (NEW: grid for multi-product sales) -->
+  <!-- SALES MODAL (grid) - top buttons removed, kept within body below grid -->
   <div class="modal fade" id="salesModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
-    <div class="modal-header bg-info text-white d-flex justify-content-between align-items-center">
+    <div class="modal-header bg-info text-white">
       <h5 class="modal-title">Record New Sale</h5>
-      <div>
-        <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()"><i class="bi bi-plus-circle"></i> Add More Rows</button>
-        <button class="btn btn-outline-success btn-sm" onclick="openCustomProductPopup()"><i class="bi bi-pencil-square"></i> Add Custom Product</button>
-        <button type="button" class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
-      </div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 
     <div class="modal-body">
       <div class="table-responsive">
         <table class="table table-sm grid-table mb-0">
-          <thead>
-            <tr>
-              <th class="grid-row-number">#</th>
-              <th style="min-width:240px">Product Name</th>
-              <th style="width:140px">Size</th>
-              <th class="grid-small">Qty</th>
-              <th style="width:100px">Unit</th>
-              <th style="width:120px">Price</th>
-              <th style="width:140px">Total</th>
-              <th style="width:80px"> </th>
-            </tr>
-          </thead>
-          <tbody id="product-grid-body">
-            <!-- Rows inserted here by JS (initial 3) -->
-          </tbody>
+          <thead><tr><th class="grid-row-number">#</th><th>Product Name</th><th style="width:130px">Size</th><th style="width:90px">Qty</th><th style="width:110px">Unit</th><th style="width:120px">Price</th><th style="width:140px">Total</th><th style="width:60px"></th></tr></thead>
+          <tbody id="product-grid-body"></tbody>
         </table>
       </div>
 
+      <!-- Keep Add buttons only here (below grid) -->
       <div class="mt-3 d-flex justify-content-between align-items-center">
         <div>
           <button class="btn btn-outline-primary btn-sm" onclick="addMoreRows()"><i class="bi bi-plus-circle"></i> Add More Rows</button>
@@ -199,18 +168,26 @@
     </div>
   </div></div></div>
 
-  <!-- CUSTOM PRODUCT MODAL -->
+  <!-- CUSTOM PRODUCT MODAL (NEW fields) -->
   <div class="modal fade" id="customProductModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">Add Custom Product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <form id="customProductForm">
         <div class="mb-3"><label class="form-label">Product Name *</label><input id="customName" class="form-control" required/></div>
-        <div class="mb-3"><label class="form-label">Size</label><input id="customSize" class="form-control"/></div>
-        <div class="mb-3"><label class="form-label">Quantity *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
-        <div class="mb-3"><label class="form-label">Unit Type *</label>
-          <select id="customUnit" class="form-select"><option>Box</option><option>Piece</option><option>SFT</option></select>
+        <div class="mb-3"><label class="form-label">Size</label><input id="customSize" class="form-control" placeholder="e.g., 3x3 feet or Standard"/></div>
+        <div class="row">
+          <div class="col-md-6 mb-3"><label class="form-label">Quantity (for this sale) *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
+          <div class="col-md-6 mb-3"><label class="form-label">Unit Type *</label><select id="customUnit" class="form-select"><option>Box</option><option>Piece</option><option>SFT</option></select></div>
         </div>
         <div class="mb-3"><label class="form-label">Unit Price *</label><input id="customPrice" type="number" class="form-control" min="0.01" step="0.01" value="0"/></div>
+
+        <!-- New optional fields -->
+        <div class="mb-3"><label class="form-label">Current Stock (optional)</label><input id="customStock" type="number" class="form-control" min="1" placeholder="If you want to save this product to inventory"/></div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="addToInventory">
+          <label class="form-check-label" for="addToInventory">Add product to inventory (if checked)</label>
+        </div>
+
         <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">₹0.00</div></div>
       </form>
     </div>
@@ -226,22 +203,25 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-  /*************************
-   * Configuration & State
-   *************************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec';
+  /***********************
+   * CONFIG
+   ***********************/
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
   let hasInitialLoaded = false;
 
-  /*************************
-   * Basic helpers
-   *************************/
+  // Keep custom products added into the current sale (persist across grid re-builds)
+  let customProductsInSale = []; // { id, name, size, unitType, price, quantity, isPersistedToInventory:false/true, tempProductId }
+
+  /***********************
+   * Helpers
+   ***********************/
   function showSyncIndicator(msg='Syncing...', hideAfterMs=null) {
     const el = document.getElementById('syncIndicator');
     document.getElementById('syncText').textContent = msg;
-    el.style.display='block';
-    if (hideAfterMs) setTimeout(()=> el.style.display='none', hideAfterMs);
+    el.style.display = 'block';
+    if (hideAfterMs) setTimeout(()=> el.style.display = 'none', hideAfterMs);
   }
   function hideSyncIndicator(){ document.getElementById('syncIndicator').style.display='none'; }
 
@@ -251,24 +231,18 @@
       catch(e) { return { ok: res.ok, json: null, text: txt }; }
     });
   }
+  function formatCurrency(n){ return '₹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function generateId(){ return 'TMP_' + Date.now().toString(36) + Math.random().toString(36).substr(2); }
+  function escapeHtml(s){ if (s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  function formatCurrency(n) {
-    return '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function escapeHtml(text) {
-    if (!text && text !== 0) return '';
-    return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  /*************************
-   * Data fetch & sync (manual refresh)
-   *************************/
+  /***********************
+   * Sync / Fetch
+   ***********************/
   async function syncFromGoogleSheets() {
     showSyncIndicator('Refreshing...');
     try {
       const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
-      if (!res.ok) throw new Error('Network error: ' + res.status);
+      if (!res.ok) throw new Error('Network ' + res.status);
       const data = await res.json();
       if (data && data.success) {
         const prodChanged = JSON.stringify(cachedProducts) !== JSON.stringify(data.products || []);
@@ -279,88 +253,63 @@
           hasInitialLoaded = true;
           renderProducts();
           renderSales();
-          showSyncIndicator('✅ Synced!', 1200);
-        } else {
-          hideSyncIndicator();
-        }
+          showSyncIndicator('✅ Synced!', 900);
+        } else hideSyncIndicator();
       } else {
-        console.warn('getAll returned no success, falling back');
         await fallbackGetProductsAndSales();
       }
     } catch (err) {
       console.error('sync error', err);
-      alert('❌ Refresh failed. Check network / Apps Script deployment.');
-    } finally {
-      // ensure indicator hides after a short delay if still visible
-      setTimeout(()=> hideSyncIndicator(), 1400);
+      hideSyncIndicator();
     }
   }
-
   async function fallbackGetProductsAndSales() {
-    try {
-      const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`);
-      if (p.ok) { const pj = await p.json(); if (pj && pj.products) cachedProducts = pj.products; }
-    } catch (e) { console.warn('fallback prod failed', e); }
-    try {
-      const s = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`);
-      if (s.ok) { const sj = await s.json(); if (sj && sj.sales) cachedSales = sj.sales; }
-    } catch (e) { console.warn('fallback sales failed', e); }
-    hasInitialLoaded = true;
-    renderProducts(); renderSales();
+    try { const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`); if(p.ok){ const pj=await p.json(); if(pj && pj.products) cachedProducts=pj.products; } }
+    catch(e){ console.warn('fallback products failed', e); }
+    try { const s = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`); if(s.ok){ const sj=await s.json(); if(sj && sj.sales) cachedSales=sj.sales; } }
+    catch(e){ console.warn('fallback sales failed', e); }
+    hasInitialLoaded = true; renderProducts(); renderSales();
+  }
+  async function manualRefresh(){ const btn = document.getElementById('refreshBtn'); const icon=document.getElementById('refreshIcon'); btn.disabled=true; icon.className='bi bi-arrow-clockwise spinner-border spinner-border-sm'; await syncFromGoogleSheets(); icon.className='bi bi-arrow-clockwise'; btn.disabled=false; }
+
+  /***********************
+   * Rendering
+   ***********************/
+  function categoryIconColor(cat){
+    if(!cat) return '#6c757d';
+    const c = cat.toLowerCase();
+    if(c.includes('tile')) return '#0d6efd';
+    if(c.includes('sanitary')) return '#198754';
+    if(c.includes('access')) return '#fd7e14';
+    return '#6c757d';
   }
 
-  async function manualRefresh() {
-    const btn = document.getElementById('refreshBtn');
-    const icon = document.getElementById('refreshIcon');
-    btn.disabled = true;
-    icon.className = 'bi bi-arrow-clockwise spinner-border spinner-border-sm';
-    await syncFromGoogleSheets();
-    icon.className = 'bi bi-arrow-clockwise';
-    btn.disabled = false;
-  }
-
-  /*************************
-   * Product rendering
-   *************************/
-  function categoryIconClass(category) {
-    if (!category) return '';
-    const c = category.toLowerCase();
-    if (c.includes('tile')) return 'tile';
-    if (c.includes('sanitary')) return 'sanitary';
-    if (c.includes('access')) return 'accessory';
-    return '';
-  }
-
-  function stockBadgeHtml(stock, minStock) {
-    minStock = (typeof minStock === 'number') ? minStock : Number(minStock) || 5;
-    stock = Number(stock) || 0;
-    if (stock === 0) return `<span class="stock-badge bg-danger text-white">Out of Stock</span>`;
-    if (stock <= minStock) return `<span class="stock-badge bg-warning text-dark">Low (${stock})</span>`;
+  function stockBadgeHtml(stock, minStock){
+    minStock = (typeof minStock === 'number') ? minStock : Number(minStock)||5;
+    stock = Number(stock)||0;
+    if(stock === 0) return `<span class="stock-badge bg-danger text-white">Out of Stock</span>`;
+    if(stock <= minStock) return `<span class="stock-badge bg-warning text-dark">Low (${stock})</span>`;
     return `<span class="stock-badge bg-success text-white">In Stock (${stock})</span>`;
   }
 
-  function renderProducts() {
-    // desktop table
+  function renderProducts(){
     const tbody = document.getElementById('productsTableBody');
-    if (!hasInitialLoaded) {
+    if(!hasInitialLoaded){
       tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></td></tr>`;
-    } else if (!cachedProducts || cachedProducts.length === 0) {
+    } else if(!cachedProducts || cachedProducts.length===0){
       tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
     } else {
       let html = '';
       cachedProducts.forEach(p => {
-        const ic = categoryIconClass(p.category);
-        const stockHtml = stockBadgeHtml(p.stock, p.minStock);
-        const priceText = (p.price !== undefined && p.price !== null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
-        const sizeText = p.size || '';
-        const iconColor = ic === 'tile' ? '#0d6efd' : ic === 'sanitary' ? '#198754' : ic === 'accessory' ? '#fd7e14' : '#6c757d';
+        const iconColor = categoryIconColor(p.category);
+        const priceText = (p.price!==undefined && p.price!==null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
         html += `<tr>
-          <td><i class="bi bi-file-earmark-fill" style="font-size:1.15rem;color:${iconColor}"></i></td>
-          <td>${escapeHtml(p.name || '')}</td>
-          <td>${escapeHtml(p.category || '')}</td>
-          <td>${escapeHtml(p.brand || '')}</td>
-          <td><strong>${escapeHtml(sizeText)}</strong></td>
-          <td>${stockHtml}</td>
+          <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${escapeHtml(p.category||'')}</td>
+          <td>${escapeHtml(p.brand||'')}</td>
+          <td><strong>${escapeHtml(p.size||'')}</strong></td>
+          <td>${stockBadgeHtml(p.stock,p.minStock)}</td>
           <td>${priceText}</td>
           <td>
             <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i> Edit</button>
@@ -370,29 +319,25 @@
       });
       tbody.innerHTML = html;
     }
-
     // mobile list
     const container = document.getElementById('mobileProductsList');
-    if (!hasInitialLoaded) {
-      container.innerHTML = `<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></div>`;
-    } else if (!cachedProducts || cachedProducts.length === 0) {
-      container.innerHTML = `<div class="mobile-item text-center text-muted">No products yet</div>`;
-    } else {
+    if(!hasInitialLoaded){ container.innerHTML=`<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></div>`; }
+    else if(!cachedProducts || cachedProducts.length===0){ container.innerHTML=`<div class="mobile-item text-center text-muted">No products yet</div>`; }
+    else {
       let html = '';
       cachedProducts.forEach(p => {
-        const ic = categoryIconClass(p.category);
-        const iconColor = ic === 'tile' ? '#0d6efd' : ic === 'sanitary' ? '#198754' : ic === 'accessory' ? '#fd7e14' : '#6c757d';
+        const iconColor = categoryIconColor(p.category);
         html += `<div class="mobile-item d-flex align-items-start justify-content-between">
           <div style="display:flex;gap:.8rem;align-items:center;">
             <div style="width:36px;text-align:center;"><i class="bi bi-file-earmark-fill" style="font-size:1.25rem;color:${iconColor}"></i></div>
             <div>
-              <div style="font-weight:600">${escapeHtml(p.name || '')}</div>
-              <div class="small-muted">${escapeHtml(p.category || '')} • ${escapeHtml(p.brand || '')}</div>
-              <div class="small-muted"><strong>${escapeHtml(p.size || '')}</strong> • ₹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
+              <div style="font-weight:600">${escapeHtml(p.name)}</div>
+              <div class="small-muted">${escapeHtml(p.category||'')} • ${escapeHtml(p.brand||'')}</div>
+              <div class="small-muted"><strong>${escapeHtml(p.size||'')}</strong> • ₹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
             </div>
           </div>
           <div style="text-align:right;">
-            <div>${stockBadgeHtml(p.stock, p.minStock)}</div>
+            <div>${stockBadgeHtml(p.stock,p.minStock)}</div>
             <div style="margin-top:.5rem">
               <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
               <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
@@ -402,211 +347,189 @@
       });
       container.innerHTML = html;
     }
-
     updateSummaryFromCache();
     loadProductsForSaleFromCache();
   }
 
-  function renderSales() {
+  function renderSales(){
     const tbody = document.getElementById('salesList');
-    if (!hasInitialLoaded) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading sales…</div></td></tr>`;
-      return;
-    }
-    if (!cachedSales || cachedSales.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>`;
-      return;
-    }
+    if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading sales…</div></td></tr>`; return; }
+    if(!cachedSales || cachedSales.length===0){ tbody.innerHTML=`<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>`; return; }
     let html = '';
-    const recent = (cachedSales || []).slice(0, 10);
+    const recent = (cachedSales || []).slice(0,10);
     recent.forEach(sale => {
-      const d = new Date(sale.date || '');
+      const d = new Date(sale.date||'');
       const formatted = d && !isNaN(d) ? (d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) : sale.date;
-      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">₹${parseFloat(sale.totalAmount || 0).toFixed(2)}</td></tr>`;
+      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">₹${parseFloat(sale.totalAmount||0).toFixed(2)}</td></tr>`;
     });
     tbody.innerHTML = html;
     updateSummaryFromCache();
   }
 
-  function updateSummaryFromCache() {
-    if (!hasInitialLoaded) {
-      document.getElementById('totalProducts').textContent = 'Loading...';
-      document.getElementById('salesToday').textContent = 'Loading...';
-      document.getElementById('lowStock').textContent = 'Loading...';
-      return;
-    }
+  function updateSummaryFromCache(){
+    if(!hasInitialLoaded){ document.getElementById('totalProducts').textContent='Loading...'; document.getElementById('salesToday').textContent='Loading...'; document.getElementById('lowStock').textContent='Loading...'; return; }
     document.getElementById('totalProducts').textContent = (cachedProducts||[]).length;
     const today = new Date().toDateString();
     const todaySales = (cachedSales||[]).filter(s => new Date(s.date).toDateString() === today);
-    const sum = todaySales.reduce((acc, s) => acc + parseFloat(s.totalAmount || 0), 0);
+    const sum = todaySales.reduce((acc,s) => acc + parseFloat(s.totalAmount||0), 0);
     document.getElementById('salesToday').textContent = '₹' + sum.toFixed(2);
     const low = (cachedProducts||[]).filter(p => p.stock <= p.minStock && p.stock > 0).length;
     document.getElementById('lowStock').textContent = low;
   }
 
-  function loadProductsForSaleFromCache() {
-    const sel = document.getElementById('saleProduct');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Choose product...</option>';
-    (cachedProducts||[]).forEach(p => {
-      if (Number(p.stock) > 0) {
-        sel.innerHTML += `<option value="${p.id}" data-size="${escapeHtml(p.size||'')}" data-unit="${escapeHtml(p.unitType||'')}" data-price="${p.price}" data-stock="${p.stock}">${escapeHtml(p.name)} (Stock: ${p.stock} ${p.unitType})</option>`;
-      }
+  /***********************
+   * Utility: build product selects including custom in-sale items
+   ***********************/
+  function populateProductSelectForRow(rowIndex){
+    const sel = document.getElementById(`product-${rowIndex}`);
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = `<option value="">-- Select Product --</option>`;
+    // Add cachedProducts first
+    (cachedProducts || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.dataset.size = p.size || '';
+      opt.dataset.unit = p.unitType || '';
+      opt.dataset.price = p.price;
+      opt.dataset.stock = p.stock;
+      opt.text = `${p.name} (Stock: ${p.stock} ${p.unitType})`;
+      sel.appendChild(opt);
     });
+    // Add custom in-sale products (those not in cachedProducts yet)
+    (customProductsInSale || []).forEach(cp => {
+      // If a matching id already exists in cachedProducts skip
+      if((cachedProducts||[]).find(p => p.id === cp.tempId)) return;
+      const opt = document.createElement('option');
+      opt.value = cp.tempId;
+      opt.dataset.size = cp.size || '';
+      opt.dataset.unit = cp.unitType || '';
+      opt.dataset.price = cp.price;
+      opt.dataset.stock = cp.quantity; // treat its available stock as sale-qty (or 9999)
+      opt.text = `${cp.name} (Custom)`;
+      sel.appendChild(opt);
+    });
+    if(current) sel.value = current;
   }
 
-  /*************************
-   * Save helpers to Apps Script
-   *************************/
-  async function saveProductToSheet(product, isEdit=false) {
-    try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+  /***********************
+   * Save helpers (server calls)
+   ***********************/
+  async function saveProductToSheet(product, isEdit=false){
+    try{
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct':'addProduct'}`, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
         body: JSON.stringify(product)
       });
       const parsed = await safeParseResponse(res);
       return parsed.json || null;
-    } catch (err) {
-      console.error('saveProductToSheet error', err);
-      return null;
-    }
+    }catch(e){ console.error('saveProductToSheet', e); return null; }
   }
 
-  async function deleteProductFromSheet(id) {
-    try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-        body: JSON.stringify({ id })
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json && parsed.json.success;
-    } catch (e) {
-      console.error('deleteProductFromSheet error', e);
-      return false;
-    }
-  }
-
-  // Save a sale line (single row). The frontend will call this for each item, passing saleId.
-  async function saveSaleToSheet(item) {
-    try {
+  async function saveSaleToSheet(item){
+    try{
       const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
         body: JSON.stringify(item)
       });
       const parsed = await safeParseResponse(res);
       return parsed.json || null;
-    } catch (e) {
-      console.error('saveSaleToSheet error', e);
-      return null;
-    }
+    }catch(e){ console.error('saveSaleToSheet', e); return null; }
   }
 
-  /*************************
-   * Product CRUD UI handlers (add/edit/delete)
-   *************************/
+  async function deleteProductFromSheet(id){
+    try{
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body: JSON.stringify({ id })
+      });
+      const parsed = await safeParseResponse(res);
+      return parsed.json && parsed.json.success;
+    }catch(e){ console.error('deleteProductFromSheet', e); return false; }
+  }
+
+  /***********************
+   * Product CRUD UI
+   ***********************/
   let editingProductId = null;
-  function showAddProduct() {
-    editingProductId = null;
-    document.getElementById('modalTitle').textContent = 'Add New Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('productId').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('productModal'));
-    modal.show();
-  }
-
-  function editProduct(id) {
-    const p = (cachedProducts||[]).find(x => x.id === id);
-    if (!p) { alert('❌ Product not found'); return; }
+  function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show(); }
+  function editProduct(id){
+    const p = (cachedProducts||[]).find(x=>x.id===id);
+    if(!p){ alert('❌ Product not found'); return; }
     editingProductId = id;
-    document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.getElementById('modalTitle').textContent='Edit Product';
     document.getElementById('productId').value = p.id;
     document.getElementById('productName').value = p.name;
     document.getElementById('category').value = p.category;
-    document.getElementById('brand').value = p.brand || '';
-    document.getElementById('size').value = p.size || '';
+    document.getElementById('brand').value = p.brand||'';
+    document.getElementById('size').value = p.size||'';
     document.getElementById('unitType').value = p.unitType;
-    document.getElementById('piecesPerBox').value = p.piecesPerBox || 1;
-    document.getElementById('sftPerBox').value = p.sftPerBox || '';
+    document.getElementById('piecesPerBox').value = p.piecesPerBox||1;
+    document.getElementById('sftPerBox').value = p.sftPerBox||'';
     document.getElementById('price').value = p.price;
     document.getElementById('stock').value = p.stock;
     document.getElementById('minStock').value = p.minStock;
-    const modal = new bootstrap.Modal(document.getElementById('productModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('productModal')).show();
   }
 
-  async function saveProduct() {
+  async function saveProduct(){
     const name = document.getElementById('productName').value.trim();
     const category = document.getElementById('category').value;
     const brand = document.getElementById('brand').value.trim();
     const size = document.getElementById('size').value.trim();
     const unitType = document.getElementById('unitType').value;
-    const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value) || 1;
-    const sftPerBox = parseFloat(document.getElementById('sftPerBox').value) || 0;
+    const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value)||1;
+    const sftPerBox = parseFloat(document.getElementById('sftPerBox').value)||0;
     const price = parseFloat(document.getElementById('price').value);
     const stock = parseInt(document.getElementById('stock').value);
-    const minStock = parseInt(document.getElementById('minStock').value) || 5;
-    if (!name || !category || isNaN(price) || isNaN(stock) || stock < 0) { alert('❌ Fill required fields'); return; }
+    const minStock = parseInt(document.getElementById('minStock').value)||5;
+    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('❌ Fill required fields'); return; }
     const product = { id: editingProductId || (Date.now().toString(36)+Math.random().toString(36).substr(2)), name, category, brand, size, unitType, piecesPerBox, sftPerBox, price, stock, minStock };
-    const idx = (cachedProducts||[]).findIndex(p => p.id === product.id);
+    const idx = (cachedProducts||[]).findIndex(p=>p.id===product.id);
     const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
-    if (idx !== -1) cachedProducts[idx] = product; else cachedProducts.push(product);
+    if(idx !== -1) cachedProducts[idx] = product; else cachedProducts.push(product);
     renderProducts();
-    const modal = bootstrap.Modal.getInstance(document.getElementById('productModal')); if (modal) modal.hide();
-    showSyncIndicator('Saving...');
-    const resp = await saveProductToSheet(product, !!editingProductId);
-    if (resp && resp.success) {
-      if (!editingProductId && resp.id) {
-        const li = cachedProducts.findIndex(p => p.id === product.id);
-        if (li !== -1) cachedProducts[li].id = resp.id;
+    const modal = bootstrap.Modal.getInstance(document.getElementById('productModal')); if(modal) modal.hide();
+    showSyncIndicator('Saving product...');
+    // background save but update local id if server returns id
+    saveProductToSheet(product, !!editingProductId).then(resp=>{
+      if(resp && resp.success && resp.id){
+        const localIdx = cachedProducts.findIndex(p=>p.id===product.id);
+        if(localIdx!==-1){ cachedProducts[localIdx].id = resp.id; renderProducts(); }
       }
-      showSyncIndicator('Saved', 900);
-      editingProductId = null;
-    } else {
-      if (previous) cachedProducts[idx] = previous; else cachedProducts = (cachedProducts||[]).filter(p => p.id !== product.id);
-      renderProducts();
-      alert('❌ Save failed — changes reverted locally.');
-    }
+      showSyncIndicator('Saved',900);
+    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('❌ Save failed - reverted locally.'); });
   }
 
-  function deleteProduct(id) {
-    if (!confirm('Are you sure?')) return;
+  function deleteProduct(id){
+    if(!confirm('Are you sure?')) return;
     const prev = cachedProducts.slice();
-    cachedProducts = (cachedProducts||[]).filter(p => p.id !== id);
+    cachedProducts = (cachedProducts||[]).filter(p=>p.id!==id);
     renderProducts();
     showSyncIndicator('Deleting...');
-    deleteProductFromSheet(id).then(success => {
-      if (success) showSyncIndicator('Deleted', 900);
-      else { cachedProducts = prev; renderProducts(); alert('❌ Delete failed — reverted locally.'); }
-    });
+    deleteProductFromSheet(id).then(success=>{ if(success) showSyncIndicator('Deleted',900); else { cachedProducts = prev; renderProducts(); alert('❌ Delete failed - reverted locally.'); } });
   }
 
-  /*************************
-   * SALES GRID: UI binder functions
-   *************************/
-  // create initial rows when opening the sales modal
-  function openSalesModal() {
-    const modal = new bootstrap.Modal(document.getElementById('salesModal'));
-    initSalesGrid(); // ensure grid present
-    modal.show();
-  }
-
-  function initSalesGrid() {
+  /***********************
+   * SALES GRID: create rows, populate selects, mobile behavior
+   ***********************/
+  function openSalesModal(){ initSalesGrid(); new bootstrap.Modal(document.getElementById('salesModal')).show(); }
+  function initSalesGrid(){
     const body = document.getElementById('product-grid-body');
-    body.innerHTML = ''; // clear
-    for (let i = 1; i <= 3; i++) appendEmptyRow(i);
+    body.innerHTML = '';
+    for(let i=1;i<=3;i++) appendEmptyRow(i);
     updateRowNumbers();
     updateGrandTotal();
   }
 
-  function appendEmptyRow(index) {
+  function appendEmptyRow(index){
     const tbody = document.getElementById('product-grid-body');
     const tr = document.createElement('tr');
     tr.className = 'product-row';
     tr.dataset.custom = 'false';
-    // Build inner HTML with placeholders. IDs are suffixed by rowIndex; we'll maintain sequential count via updateRowNumbers()
     tr.innerHTML = `
       <td class="grid-row-number"></td>
       <td>
@@ -622,135 +545,95 @@
       <td><button class="btn btn-sm btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x"></i></button></td>
     `;
     tbody.appendChild(tr);
-    // populate the product select with current cachedProducts
     populateProductSelectForRow(index);
   }
 
-  function updateRowNumbers() {
-    const rows = document.querySelectorAll('#product-grid-body .product-row');
-    rows.forEach((r, i) => {
-      const numCell = r.querySelector('.grid-row-number');
-      if (numCell) numCell.textContent = i + 1;
-      // update element IDs to match index (so event handlers use correct ids)
-      const idx = i + 1;
-      const select = r.querySelector('.product-select');
-      if (select) select.id = `product-${idx}`;
-      const sizeEl = r.querySelector('.size-input'); if (sizeEl) sizeEl.id = `size-${idx}`;
-      const qtyEl = r.querySelector('.qty-input'); if (qtyEl) { qtyEl.id = `qty-${idx}`; qtyEl.setAttribute('oninput', `onQtyChange(${idx})`); }
-      const unitEl = r.querySelector('.unit-input'); if (unitEl) unitEl.id = `unit-${idx}`;
-      const priceEl = r.querySelector('.price-input'); if (priceEl) priceEl.id = `price-${idx}`;
-      const totalEl = r.querySelector(`#total-${idx}`) || r.querySelector('[id^=total-]'); if (totalEl) totalEl.id = `total-${idx}`;
-      // ensure the select options are present
-      populateProductSelectForRow(idx);
-    });
-  }
-
-  function populateProductSelectForRow(rowIndex) {
-    // If cachedProducts not loaded, create placeholder
-    const sel = document.getElementById(`product-${rowIndex}`);
-    if (!sel) return;
-    const currentVal = sel.value;
-    sel.innerHTML = `<option value="">-- Select Product --</option>`;
-    (cachedProducts || []).forEach(p => {
-      // include all products (even zero stock) but disable if out of stock for UX? We allow selection but will validate qty.
-      const option = document.createElement('option');
-      option.value = p.id;
-      option.dataset.size = p.size || '';
-      option.dataset.unit = p.unitType || '';
-      option.dataset.price = p.price;
-      option.dataset.stock = p.stock;
-      option.text = `${p.name} (Stock: ${p.stock} ${p.unitType})`;
-      sel.appendChild(option);
-    });
-    // restore existing selection if any (matching id)
-    if (currentVal) sel.value = currentVal;
-  }
-
-  function addMoreRows() {
-    // add 3 rows
+  function addMoreRows(){
     const currentCount = document.querySelectorAll('#product-grid-body .product-row').length;
-    for (let i = 1; i <= 3; i++) appendEmptyRow(currentCount + i);
+    for(let i=1;i<=3;i++) appendEmptyRow(currentCount+i);
     updateRowNumbers();
   }
 
-  function removeRow(btn) {
+  function removeRow(btn){
     const tr = btn.closest('tr');
-    if (!tr) return;
+    if(!tr) return;
+    // if custom product in this row, remove from customProductsInSale as well
+    const select = tr.querySelector('.product-select');
+    if(select && select.value && select.value.startsWith('CUST_TMP_')){
+      customProductsInSale = customProductsInSale.filter(c => c.tempId !== select.value);
+    }
     tr.remove();
     updateRowNumbers();
     updateGrandTotal();
   }
 
-  function findFirstEmptyRowIndex() {
+  function updateRowNumbers(){
     const rows = document.querySelectorAll('#product-grid-body .product-row');
-    for (let i = 0; i < rows.length; i++) {
-      const idx = i + 1;
-      const sel = document.getElementById(`product-${idx}`);
-      if (!sel || !sel.value) return idx;
-    }
-    return null;
+    rows.forEach((r,i)=>{
+      const idx = i+1;
+      r.querySelector('.grid-row-number').textContent = idx;
+      // update element ids to keep consistent
+      const sel = r.querySelector('.product-select'); if(sel) sel.id = `product-${idx}`;
+      const sizeEl = r.querySelector('.size-input'); if(sizeEl) sizeEl.id = `size-${idx}`;
+      const qtyEl = r.querySelector('.qty-input'); if(qtyEl){ qtyEl.id = `qty-${idx}`; qtyEl.setAttribute('oninput', `onQtyChange(${idx})`); }
+      const unitEl = r.querySelector('.unit-input'); if(unitEl) unitEl.id = `unit-${idx}`;
+      const priceEl = r.querySelector('.price-input'); if(priceEl) priceEl.id = `price-${idx}`;
+      const totalEl = r.querySelector('[id^=total-]'); if(totalEl) totalEl.id = `total-${idx}`;
+      // ensure options refreshed (keeps custom options)
+      populateProductSelectForRow(idx);
+    });
   }
 
-  /*************************
-   * Row behavior: product select, qty change, totals
-   *************************/
-  function onProductSelect(rowIndex) {
+  /***********************
+   * Row interactions
+   ***********************/
+  function onProductSelect(rowIndex){
     const sel = document.getElementById(`product-${rowIndex}`);
     const sizeEl = document.getElementById(`size-${rowIndex}`);
     const unitEl = document.getElementById(`unit-${rowIndex}`);
     const priceEl = document.getElementById(`price-${rowIndex}`);
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
-
-    if (!sel) return;
+    if(!sel) return;
     const val = sel.value;
-    if (!val) {
-      // clear fields & disable qty
-      if (sizeEl) sizeEl.value = '';
-      if (unitEl) unitEl.value = '';
-      if (priceEl) priceEl.value = '';
-      if (qtyEl) { qtyEl.value = ''; qtyEl.disabled = true; qtyEl.removeAttribute('max'); }
+    if(!val){
+      if(sizeEl) sizeEl.value=''; if(unitEl) unitEl.value=''; if(priceEl) priceEl.value=''; if(qtyEl){ qtyEl.value=''; qtyEl.disabled=true; qtyEl.removeAttribute('max'); }
       document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(0);
-      updateGrandTotal();
+      updateGrandTotal(); return;
+    }
+    // if this value is a custom temporary product
+    if(val.startsWith('CUST_TMP_')){
+      const cp = customProductsInSale.find(c => c.tempId === val);
+      if(cp){
+        sizeEl.value = cp.size || 'N/A';
+        unitEl.value = cp.unitType;
+        priceEl.value = cp.price;
+        qtyEl.disabled = false;
+        qtyEl.max = cp.quantity || '';
+        qtyEl.value = cp.quantity || '';
+        document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(cp.price * (cp.quantity||0));
+        updateGrandTotal();
+      }
       return;
     }
-
-    // If this is a custom product row, special handling: custom rows have data-custom="true" and row-stored fields.
-    const row = sel.closest('tr');
-    if (row && row.dataset.custom === 'true') {
-      // custom: read stored dataset values (we stored them in row.dataset earlier)
-      sizeEl.value = row.dataset.size || 'N/A';
-      unitEl.value = row.dataset.unit || '';
-      priceEl.value = row.dataset.price || 0;
-      qtyEl.disabled = false;
-      qtyEl.focus();
-      qtyEl.max = row.dataset.stock || '';
-      updateRowTotal(rowIndex);
-      return;
-    }
-
-    // Non-custom: get product data from cachedProducts
+    // Normal product from cachedProducts
     const product = (cachedProducts || []).find(p => p.id === val);
-    if (!product) {
-      sizeEl.value = ''; unitEl.value = ''; priceEl.value = ''; qtyEl.disabled = true; return;
-    }
+    if(!product){ sizeEl.value=''; unitEl.value=''; priceEl.value=''; if(qtyEl){ qtyEl.disabled=true; qtyEl.value=''; } return; }
     sizeEl.value = product.size || 'N/A';
     unitEl.value = product.unitType || '';
     priceEl.value = product.price || 0;
     qtyEl.disabled = false;
+    qtyEl.value = '';
     qtyEl.max = product.stock || '';
-    qtyEl.value = ''; // focus
-    qtyEl.focus();
-    // reset total
     document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(0);
+    updateGrandTotal();
   }
 
-  function onQtyChange(rowIndex) {
+  function onQtyChange(rowIndex){
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
-    if (!qtyEl) return;
-    const sel = document.getElementById(`product-${rowIndex}`);
-    const qty = Number(qtyEl.value) || 0;
+    if(!qtyEl) return;
+    const qty = Number(qtyEl.value || 0);
     const max = Number(qtyEl.max || Infinity);
-    if (qty > max) {
+    if(qty > max){
       alert(`❌ Quantity exceeds available stock (${max}). Adjusting to max.`);
       qtyEl.value = max;
     }
@@ -758,307 +641,334 @@
     updateGrandTotal();
   }
 
-  function updateRowTotal(rowIndex) {
+  function updateRowTotal(rowIndex){
     const price = Number(document.getElementById(`price-${rowIndex}`).value || 0);
     const qty = Number(document.getElementById(`qty-${rowIndex}`).value || 0);
     const total = price * qty;
     const el = document.getElementById(`total-${rowIndex}`);
-    if (el) el.textContent = formatCurrency(total);
+    if(el) el.textContent = formatCurrency(total);
     return total;
   }
 
-  function updateGrandTotal() {
+  function updateGrandTotal(){
     let grand = 0;
     const rows = document.querySelectorAll('#product-grid-body .product-row');
-    rows.forEach((r, i) => {
-      const idx = i + 1;
+    rows.forEach((r,i)=>{
+      const idx = i+1;
       const sel = document.getElementById(`product-${idx}`);
-      if (!sel) return;
-      if (!sel.value && r.dataset.custom !== 'true') return; // skip empty
+      if(!sel) return;
+      if(!sel.value && r.dataset.custom!=='true') return;
       const qty = Number(document.getElementById(`qty-${idx}`)?.value || 0);
       const price = Number(document.getElementById(`price-${idx}`)?.value || 0);
       const line = qty * price;
       grand += line;
       const totalEl = document.getElementById(`total-${idx}`);
-      if (totalEl) totalEl.textContent = formatCurrency(line);
+      if(totalEl) totalEl.textContent = formatCurrency(line);
     });
     document.getElementById('grandTotal').textContent = formatCurrency(grand);
     document.getElementById('subtotal').textContent = formatCurrency(grand);
   }
 
-  /*************************
-   * Custom product modal handling
-   *************************/
-  function openCustomProductPopup() {
-    const modal = new bootstrap.Modal(document.getElementById('customProductModal'), { backdrop: 'static' });
+  /***********************
+   * CUSTOM PRODUCT: open, validate, add to grid (and optionally inventory)
+   ***********************/
+  function openCustomProductPopup(){
     document.getElementById('customProductForm').reset();
     document.getElementById('customTotal').textContent = formatCurrency(0);
-    modal.show();
+    document.getElementById('addToInventory').checked = false;
+    new bootstrap.Modal(document.getElementById('customProductModal'), { backdrop:'static' }).show();
     setTimeout(()=> document.getElementById('customName').focus(), 200);
   }
 
-  function updateCustomTotalDisplay() {
+  function updateCustomTotalDisplay(){
     const qty = Number(document.getElementById('customQty').value || 0);
     const price = Number(document.getElementById('customPrice').value || 0);
     document.getElementById('customTotal').textContent = formatCurrency(qty * price);
   }
+  // Attach in case DOM ready
+  document.addEventListener('input', (e)=>{
+    if(e.target && (e.target.id==='customQty' || e.target.id==='customPrice')) updateCustomTotalDisplay();
+  });
 
-  document.getElementById('customQty')?.addEventListener('input', updateCustomTotalDisplay);
-  document.getElementById('customPrice')?.addEventListener('input', updateCustomTotalDisplay);
-
-  function validateCustomProduct() {
-    const name = (document.getElementById('customName').value || '').trim();
+  function validateCustomProduct(){
+    const name = (document.getElementById('customName').value||'').trim();
     const qty = Number(document.getElementById('customQty').value || 0);
     const price = Number(document.getElementById('customPrice').value || 0);
-    const unit = document.getElementById('customUnit').value;
-    if (!name || name.length < 2) { alert('❌ Product name required (min 2 chars)'); return false; }
-    if (!qty || qty < 1) { alert('❌ Quantity must be at least 1'); return false; }
-    if (!price || price <= 0) { alert('❌ Unit price must be greater than 0'); return false; }
-    if (!unit) { alert('❌ Select unit type'); return false; }
+    const addInventory = document.getElementById('addToInventory').checked;
+    const stock = Number(document.getElementById('customStock').value || 0);
+    if(!name || name.length < 2){ alert('❌ Product name required (min 2 chars)'); return false; }
+    if(!qty || qty < 1){ alert('❌ Quantity must be at least 1'); return false; }
+    if(!price || price <= 0){ alert('❌ Unit price must be greater than 0'); return false; }
+    if(addInventory && (!stock || stock < 1)){ alert('❌ Please provide Current Stock to add to inventory'); return false; }
+    if(stock && stock < qty){ alert('❌ Current stock cannot be less than sale quantity'); return false; }
     return true;
   }
 
-  function addCustomProductToGrid() {
-    if (!validateCustomProduct()) return;
-    // Build custom product object
-    const custom = {
-      id: 'CUSTOM_' + Date.now(),
-      name: document.getElementById('customName').value.trim(),
-      size: document.getElementById('customSize').value.trim() || 'N/A',
-      quantity: Number(document.getElementById('customQty').value || 0),
-      unitType: document.getElementById('customUnit').value,
-      price: Number(document.getElementById('customPrice').value || 0),
-      isCustom: true
-    };
+  function addCustomProductToGrid(){
+    if(!validateCustomProduct()) return;
+    const name = document.getElementById('customName').value.trim();
+    const size = document.getElementById('customSize').value.trim() || 'N/A';
+    const qty = Number(document.getElementById('customQty').value || 0);
+    const unitType = document.getElementById('customUnit').value || 'Box';
+    const price = Number(document.getElementById('customPrice').value || 0);
+    const addInventory = document.getElementById('addToInventory').checked;
+    const currentStock = Number(document.getElementById('customStock').value || 0);
 
-    // Find first empty row index
-    let idx = findFirstEmptyRowIndex();
-    if (!idx) {
-      // append new row
-      const count = document.querySelectorAll('#product-grid-body .product-row').length;
-      appendEmptyRow(count + 1);
-      updateRowNumbers();
-      idx = count + 1;
+    const tempId = 'CUST_TMP_' + Date.now().toString(36); // unique temp id for select
+    // store in persistent array
+    const cp = { tempId, name, size, unitType, price, quantity: qty, addToInventory, currentStock, persistedId: null };
+    customProductsInSale.push(cp);
+
+    // If adding to inventory: create product object locally and save in background
+    if(addToInventory && currentStock > 0){
+      const newProduct = {
+        id: tempId, // use temp id locally; will replace when server returns id
+        name: name,
+        category: 'Custom',
+        brand: '',
+        size: size,
+        unitType: unitType,
+        piecesPerBox: 1,
+        sftPerBox: 0,
+        price: price,
+        stock: currentStock - qty, // deduct sale quantity
+        minStock: 5,
+        imageUrl: ''
+      };
+      // add to cached products so select options include it immediately
+      cachedProducts.push(newProduct);
+      renderProducts();
+      // background save - when server returns id, patch local cachedProducts & replace temp ids
+      saveProductToSheet(Object.assign({}, newProduct)).then(resp=>{
+        if(resp && resp.success && resp.id){
+          // replace tempId in cachedProducts & customProductsInSale
+          const idx = cachedProducts.findIndex(p=>p.id===tempId);
+          if(idx!==-1) cachedProducts[idx].id = resp.id;
+          customProductsInSale.forEach(c=>{
+            if(c.tempId === tempId){ c.persistedId = resp.id; }
+          });
+          renderProducts();
+        }
+      }).catch(e=>{ console.error('add custom->inventory failed', e); });
     }
 
-    // Populate row with custom data and mark row as custom
-    const row = document.querySelectorAll('#product-grid-body .product-row')[idx - 1];
-    if (!row) return;
-    row.dataset.custom = 'true';
-    row.dataset.size = custom.size;
-    row.dataset.unit = custom.unitType;
-    row.dataset.price = custom.price;
-    row.dataset.stock = 999999; // effectively unlimited for custom (or use qty)
-    // set fields manually (select as custom text)
-    const sel = document.getElementById(`product-${idx}`);
-    // create a temporary option to represent custom product
-    sel.innerHTML = `<option value="">-- Select Product --</option>`;
-    const opt = document.createElement('option');
-    opt.value = custom.id;
-    opt.text = `${custom.name} (Custom)`;
-    opt.dataset.size = custom.size;
-    opt.dataset.unit = custom.unitType;
-    opt.dataset.price = custom.price;
-    opt.dataset.stock = custom.quantity;
-    sel.appendChild(opt);
-    sel.value = custom.id;
-
-    document.getElementById(`size-${idx}`).value = custom.size;
-    document.getElementById(`unit-${idx}`).value = custom.unitType;
-    document.getElementById(`price-${idx}`).value = custom.price;
-    const qtyEl = document.getElementById(`qty-${idx}`);
-    qtyEl.disabled = false;
-    qtyEl.value = custom.quantity;
-    qtyEl.max = custom.quantity;
-    document.getElementById(`total-${idx}`).textContent = formatCurrency(custom.price * custom.quantity);
+    // Add custom item to first empty row (or append)
+    let idx = findFirstEmptyRowIndex();
+    if(!idx){
+      const count = document.querySelectorAll('#product-grid-body .product-row').length;
+      appendEmptyRow(count+1);
+      updateRowNumbers();
+      idx = count+1;
+    }
+    // populate row with custom data
+    populateRowWithCustom(idx, cp);
     updateGrandTotal();
-
     // close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal'));
-    if (modal) modal.hide();
-    // show small success toast (simple alert for now)
-    // showSyncIndicator('Custom product added', 900);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal')); if(modal) modal.hide();
   }
 
-  /*************************
-   * Complete sale: validation, optimistic update, server writes
-   *************************/
-  async function completeSale() {
-    // Gather rows
+  function populateRowWithCustom(rowIndex, cp){
+    const sel = document.getElementById(`product-${rowIndex}`);
+    if(!sel) return;
+    // ensure select contains this option (populateProductSelectForRow will add it)
+    populateProductSelectForRow(rowIndex);
+    // create or update option
+    let opt = Array.from(sel.options).find(o=>o.value===cp.tempId);
+    if(!opt){
+      opt = document.createElement('option');
+      opt.value = cp.tempId;
+      opt.text = `${cp.name} (Custom)`;
+      opt.dataset.size = cp.size;
+      opt.dataset.unit = cp.unitType;
+      opt.dataset.price = cp.price;
+      opt.dataset.stock = cp.quantity;
+      sel.appendChild(opt);
+    }
+    sel.value = cp.tempId;
+    document.getElementById(`size-${rowIndex}`).value = cp.size;
+    document.getElementById(`unit-${rowIndex}`).value = cp.unitType;
+    document.getElementById(`price-${rowIndex}`).value = cp.price;
+    const qtyEl = document.getElementById(`qty-${rowIndex}`);
+    qtyEl.disabled = false;
+    qtyEl.value = cp.quantity;
+    qtyEl.max = cp.quantity;
+    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(cp.price * cp.quantity);
+  }
+
+  function findFirstEmptyRowIndex(){
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    for(let i=0;i<rows.length;i++){
+      const idx = i+1;
+      const sel = document.getElementById(`product-${idx}`);
+      if(!sel || !sel.value) return idx;
+    }
+    return null;
+  }
+
+  /***********************
+   * COMPLETE SALE (fire-and-forget background saves)
+   ***********************/
+  async function completeSale(){
     const rows = document.querySelectorAll('#product-grid-body .product-row');
     const saleItems = [];
     let hasErrors = false;
 
-    rows.forEach((r, i) => {
-      const idx = i + 1;
+    rows.forEach((r,i)=>{
+      const idx = i+1;
       const sel = document.getElementById(`product-${idx}`);
       const qtyEl = document.getElementById(`qty-${idx}`);
       const priceEl = document.getElementById(`price-${idx}`);
       const unitEl = document.getElementById(`unit-${idx}`);
       const sizeEl = document.getElementById(`size-${idx}`);
-      const totalEl = document.getElementById(`total-${idx}`);
+      if(!sel) return;
+      // Skip empty rows
+      if(!sel.value) return;
 
-      if (!sel) return;
-      // determine if row is filled: product selected or marked custom
-      const isCustomRow = r.dataset.custom === 'true' || (sel.value && sel.value.startsWith('CUSTOM_'));
-      if (!sel.value && !isCustomRow) return; // skip empty
-
-      const quantity = Number(qtyEl?.value || 0);
-      if (!quantity || quantity <= 0) {
-        alert(`❌ Row ${idx}: Please enter a valid quantity`);
-        hasErrors = true; return;
-      }
+      const qty = Number(qtyEl.value || 0);
+      if(!qty || qty <= 0){ alert(`❌ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
       const maxStock = Number(qtyEl.max || Infinity);
-      if (!isCustomRow && quantity > maxStock) {
-        alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`);
-        hasErrors = true; return;
-      }
+      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
 
-      // Determine product data
-      let productId = null;
+      // Determine if custom (temp) or normal product
+      let isCustom = sel.value.startsWith('CUST_TMP_');
+      let productId = isCustom ? null : sel.value;
       let productName = '';
-      let size = sizeEl?.value || 'N/A';
-      let unitType = unitEl?.value || '';
-      let unitPrice = Number(priceEl?.value || 0);
-      let isCustomProduct = false;
+      let size = sizeEl.value || 'N/A';
+      let unitType = unitEl.value || '';
+      let unitPrice = Number(priceEl.value || 0);
+      let lineTotal = unitPrice * qty;
 
-      if (isCustomRow) {
-        isCustomProduct = true;
-        productId = null;
-        productName = sel.options[sel.selectedIndex]?.text || `Custom`;
-        // custom total uses provided data
+      if(isCustom){
+        const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
+        productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
       } else {
-        productId = sel.value;
-        const product = (cachedProducts || []).find(p => p.id === productId);
-        if (!product) { alert(`❌ Row ${idx}: Product not found`); hasErrors = true; return; }
-        productName = product.name;
-        size = product.size || size;
-        unitType = product.unitType || unitType;
-        unitPrice = product.price || unitPrice;
+        const prod = (cachedProducts||[]).find(p => p.id === productId);
+        if(!prod){ alert(`❌ Row ${idx}: Product not found`); hasErrors = true; return; }
+        productName = prod.name;
+        size = prod.size || size;
+        unitType = prod.unitType || unitType;
+        unitPrice = prod.price || unitPrice;
       }
 
-      const lineTotal = quantity * unitPrice;
       saleItems.push({
-        productId: productId,
-        productName: productName,
-        size: size,
-        quantity: quantity,
-        unitType: unitType,
-        unitPrice: unitPrice,
+        productId,
+        productName,
+        size,
+        quantity: qty,
+        unitType,
+        unitPrice,
         totalAmount: lineTotal,
-        isCustomProduct: isCustomProduct
+        isCustomProduct: isCustom
       });
     });
 
-    if (hasErrors) return;
-    if (saleItems.length === 0) { alert('❌ Please add at least one product to the sale'); return; }
+    if(hasErrors) return;
+    if(saleItems.length === 0){ alert('❌ Please add at least one product to the sale'); return; }
 
-    // All validation passed. Create saleId and optimistic update stock locally.
+    // OPTIMISTIC: update local cache & UI immediately
     const saleId = 'SALE_' + Date.now();
-    // Optimistic stock deduction for non-custom items
-    const stockChanges = []; // to revert if needed
+    const nowIso = new Date().toISOString();
+    // push each line to cachedSales and deduct stock for non-custom
     saleItems.forEach(item => {
-      if (!item.isCustomProduct && item.productId) {
-        const pIndex = (cachedProducts || []).findIndex(p => p.id === item.productId);
-        if (pIndex !== -1) {
-          const prevStock = Number(cachedProducts[pIndex].stock || 0);
-          cachedProducts[pIndex].stock = prevStock - Number(item.quantity);
-          stockChanges.push({ index: pIndex, prevStock: prevStock });
+      const line = {
+        id: generateId(),
+        saleId,
+        productId: item.productId || '',
+        productName: item.productName,
+        size: item.size,
+        quantity: item.quantity,
+        unitType: item.unitType,
+        unitPrice: item.unitPrice,
+        totalAmount: item.totalAmount,
+        date: nowIso,
+        isCustomProduct: item.isCustomProduct
+      };
+      cachedSales.unshift(line);
+      // Deduct stock optimistically
+      if(!item.isCustomProduct && item.productId){
+        const pi = cachedProducts.findIndex(p => p.id === item.productId);
+        if(pi !== -1){
+          cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
+          if(cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
         }
       }
     });
-    renderProducts(); renderSales();
-
-    // Send each item to server sequentially (grouped by saleId). If any fails, revert previous successful ones? We'll attempt best-effort and revert local optimistic changes on failure.
-    try {
-      showSyncIndicator('Saving sale...');
-      for (const item of saleItems) {
-        const payload = {
-          saleId: saleId,
-          productId: item.productId || '',
-          productName: item.productName,
-          size: item.size,
-          quantity: item.quantity,
-          unitType: item.unitType,
-          unitPrice: item.unitPrice,
-          totalAmount: item.totalAmount,
-          isCustomProduct: item.isCustomProduct || false
-        };
-        const resp = await saveSaleToSheet(payload);
-        if (!resp || resp.success === false) {
-          throw new Error('Server save error: ' + (resp && resp.error ? resp.error : 'unknown'));
-        }
-      }
-
-      // All saved successfully
-      showSyncIndicator('Saved', 1000);
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
-      if (modal) modal.hide();
-
-      // Refresh from server to get canonical state
-      await syncFromGoogleSheets();
-
-      const grandTotal = saleItems.reduce((s, it) => s + Number(it.totalAmount || 0), 0);
-      alert(`✅ Sale completed!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}`);
-
-    } catch (err) {
-      console.error('completeSale error:', err);
-      // revert optimistic stock updates
-      stockChanges.forEach(sc => {
-        if (cachedProducts[sc.index]) cachedProducts[sc.index].stock = sc.prevStock;
-      });
-      renderProducts();
-      alert('❌ Error completing sale: ' + (err.message || err));
-    } finally {
-      hideSyncIndicator();
-    }
-  }
-
-  /*************************
-   * Init + small utilities
-   *************************/
-  function initOnLoad() {
-    // initial empty render placeholders
     renderProducts();
     renderSales();
-    // initial one-time load
-    syncFromGoogleSheets();
+
+    // Close modal immediately (fast UX)
+    const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+    if(modal) modal.hide();
+
+    // Show immediate success message and that save happens in background
+    const grandTotal = saleItems.reduce((s,it) => s + Number(it.totalAmount || 0), 0);
+    setTimeout(()=> alert(`✅ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
+
+    // FIRE AND FORGET: save each item in background (don't block UI)
+    const saves = saleItems.map(item => {
+      const payload = {
+        saleId,
+        productId: item.productId || '',
+        productName: item.productName,
+        size: item.size,
+        quantity: item.quantity,
+        unitType: item.unitType,
+        unitPrice: item.unitPrice,
+        totalAmount: item.totalAmount,
+        isCustomProduct: item.isCustomProduct || false
+      };
+      return saveSaleToSheet(payload).then(resp=>{
+        if(!(resp && resp.success)){
+          console.error('Sale line failed to save', payload, resp);
+          // optionally: mark a small flag in UI or show toast later
+          return { ok:false, payload, resp };
+        }
+        return { ok:true, payload, resp };
+      }).catch(err => { console.error('saveSale error', err); return { ok:false, payload, err }; });
+    });
+
+    // handle results when finished (optional)
+    Promise.allSettled(saves).then(results => {
+      const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
+      if(failed.length){
+        console.warn('Some rows failed to save', failed);
+        // show a gentle non-blocking alert
+        setTimeout(()=> alert(`⚠️ Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
+      } else {
+        // re-sync to get canonical server state (ids, timestamps, stock)
+        syncFromGoogleSheets();
+      }
+    });
   }
 
-  // Export / import backups
-  function exportData() {
+  /***********************
+   * Load sale product select helper (if needed elsewhere)
+   ***********************/
+  function loadProductsForSaleFromCache(){
+    // not used directly now (we populate selects per-row), but keep for compatibility
+  }
+
+  /***********************
+   * Backup/Import
+   ***********************/
+  function exportData(){
     const data = { products: cachedProducts, sales: cachedSales, exportDate: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
     alert('✅ Backup downloaded');
   }
+  function importData(){ document.getElementById('fileInput').click(); }
+  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('✅ Data restored (local)'); }catch(err){ alert('❌ Invalid file'); } }; reader.readAsText(file); }
 
-  function importData() { document.getElementById('fileInput').click(); }
-  function handleFileImport(e) {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      try {
-        const data = JSON.parse(evt.target.result);
-        if (data.products) cachedProducts = data.products;
-        if (data.sales) cachedSales = data.sales;
-        hasInitialLoaded = true;
-        renderProducts(); renderSales();
-        alert('✅ Data restored (local)');
-      } catch (err) { alert('❌ Invalid file'); }
-    };
-    reader.readAsText(file);
-  }
-
-  // Attach listeners for custom modal inputs (ensure elements exist)
-  document.addEventListener('DOMContentLoaded', () => {
-    const customQty = document.getElementById('customQty');
-    const customPrice = document.getElementById('customPrice');
-    if (customQty) customQty.addEventListener('input', updateCustomTotalDisplay);
-    if (customPrice) customPrice.addEventListener('input', updateCustomTotalDisplay);
-    initOnLoad();
+  /***********************
+   * Init
+   ***********************/
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // initial placeholders
+    renderProducts();
+    renderSales();
+    syncFromGoogleSheets();
   });
   </script>
 </body>
