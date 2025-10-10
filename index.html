@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Tile & Sanitaryware Inventory</title>
 
-  <!-- Bootstrap -->
+  <!-- Bootstrap & icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
-    /* Explorer-like table */
     .table-explorer { background: #fff; border-radius: 6px; overflow: hidden; }
     .table-explorer thead { background:#f1f3f5; }
     .table-explorer tbody tr:hover { background: #f8fafc; cursor: default; }
@@ -19,36 +18,29 @@
     .file-icon.tile { color: #0d6efd; }       /* blue */
     .file-icon.sanitary { color: #198754; }   /* green */
     .file-icon.accessory { color: #fd7e14; }  /* orange */
-
-    /* Stock badge sizes */
     .stock-badge { font-size: .85rem; padding: .25rem .5rem; border-radius: .5rem; }
-
-    /* Mobile stacked list */
     .mobile-list { display: none; }
     .mobile-item { background: #fff; padding: .75rem; border-radius: .5rem; margin-bottom:.7rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    .mobile-item .meta { font-size: .9rem; color: #6c757d; }
-
-    /* Make the table use compact spacing */
     .table-sm td, .table-sm th { padding: .45rem .6rem; vertical-align: middle; }
-
-    /* Responsive: on small screens, show mobile list and hide table */
     @media (max-width: 767.98px) {
       .desktop-table { display: none !important; }
       .mobile-list { display: block !important; }
     }
-
-    /* Buttons small */
     .btn-action-sm { padding: .25rem .5rem; font-size: .85rem; }
-
+    /* Sales modal grid styling */
+    .grid-table td, .grid-table th { vertical-align: middle; }
+    .grid-row-number { width:40px; text-align:center; }
+    .grid-small { width:80px; }
+    .readonly-input { background:#f8f9fa; pointer-events:none; }
+    .small-muted { font-size:.85rem; color:#6c757d; }
+    .sync-indicator { position: fixed; top: 70px; left: 20px; background: #fff; padding:8px 12px; border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); display:none; z-index:1000; }
   </style>
 </head>
 <body>
   <!-- Sync indicator -->
-  <div id="syncIndicator" class="sync-indicator" style="position:fixed;top:70px;left:20px;background:#fff;padding:8px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;z-index:1000;">
-    <i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span>
-  </div>
+  <div id="syncIndicator" class="sync-indicator"><i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span></div>
 
-  <!-- Header / Navbar -->
+  <!-- Navbar -->
   <nav class="navbar navbar-dark bg-primary sticky-top">
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory</span>
@@ -63,15 +55,15 @@
   </nav>
 
   <div class="container-fluid py-4">
-    <!-- Actions -->
+    <!-- Action buttons -->
     <div class="row mb-4">
       <div class="col-12 text-center">
         <button class="btn btn-success btn-lg me-2 mb-2" onclick="showAddProduct()"><i class="bi bi-plus-circle"></i> Add Product</button>
-        <button class="btn btn-info btn-lg mb-2" onclick="showSalesSection()"><i class="bi bi-cart-check"></i> Record Sale</button>
+        <button class="btn btn-info btn-lg mb-2" onclick="openSalesModal()"><i class="bi bi-cart-check"></i> Record Sale</button>
       </div>
     </div>
 
-    <!-- Summary -->
+    <!-- Summary cards -->
     <div class="row mb-4">
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-box-seam text-primary" style="font-size:2rem"></i><h3 id="totalProducts" class="mt-2">0</h3><p class="text-muted mb-0">Total Products</p></div></div></div>
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">₹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
@@ -85,7 +77,7 @@
       </div>
     </div>
 
-    <!-- Desktop Table (Explorer-style) -->
+    <!-- Products desktop table & mobile -->
     <div class="row mb-4">
       <div class="col-12 desktop-table">
         <div class="table-explorer">
@@ -102,20 +94,15 @@
                 <th style="width:150px">Actions</th>
               </tr>
             </thead>
-            <tbody id="productsTableBody">
-              <!-- Rows injected here -->
-            </tbody>
+            <tbody id="productsTableBody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Mobile stacked list -->
-      <div class="col-12 mobile-list" id="mobileProductsList" style="margin-top:6px;">
-        <!-- Mobile items injected here -->
-      </div>
+      <div class="col-12 mobile-list" id="mobileProductsList" style="margin-top:6px;"></div>
     </div>
 
-    <!-- Recent Sales -->
+    <!-- Sales recent -->
     <div class="row">
       <div class="col-12">
         <h4 class="mb-3">Recent Sales</h4>
@@ -131,92 +118,106 @@
     </div>
   </div>
 
-  <!-- Add/Edit Product Modal (imageUrl removed) -->
+  <!-- Add/Edit Product Modal (unchanged except image removal) -->
   <div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header bg-primary text-white"><h5 id="modalTitle" class="modal-title">Add New Product</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <form id="productForm">
         <input type="hidden" id="productId">
         <div class="row mb-3">
-          <div class="col-md-8">
-            <label class="form-label">Product Name *</label>
-            <input id="productName" class="form-control" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Category *</label>
-            <select id="category" class="form-select" required>
-              <option value="">Select</option>
-              <option value="Tiles">Tiles</option>
-              <option value="Sanitaryware">Sanitaryware</option>
-              <option value="Accessories">Accessories</option>
-            </select>
-          </div>
+          <div class="col-md-8"><label class="form-label">Product Name *</label><input id="productName" class="form-control" required/></div>
+          <div class="col-md-4"><label class="form-label">Category *</label><select id="category" class="form-select" required><option value="">Select</option><option value="Tiles">Tiles</option><option value="Sanitaryware">Sanitaryware</option><option value="Accessories">Accessories</option></select></div>
         </div>
-
         <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">Brand</label>
-            <input id="brand" class="form-control" />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Size</label>
-            <input id="size" class="form-control" placeholder="e.g., 2x2 feet or Standard" />
-          </div>
+          <div class="col-md-6"><label class="form-label">Brand</label><input id="brand" class="form-control"/></div>
+          <div class="col-md-6"><label class="form-label">Size</label><input id="size" class="form-control" placeholder="e.g., 2x2 feet or Standard"/></div>
         </div>
-
         <div class="row mb-3">
-          <div class="col-md-4">
-            <label class="form-label">Unit Type *</label>
-            <select id="unitType" class="form-select" required>
-              <option value="Box">Box</option>
-              <option value="Piece">Piece</option>
-              <option value="SFT">Square Feet</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Pieces per Box</label>
-            <input id="piecesPerBox" class="form-control" type="number" value="1" />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">SFT per Box</label>
-            <input id="sftPerBox" class="form-control" type="number" step="0.01" />
-          </div>
+          <div class="col-md-4"><label class="form-label">Unit Type *</label><select id="unitType" class="form-select" required><option value="Box">Box</option><option value="Piece">Piece</option><option value="SFT">Square Feet</option></select></div>
+          <div class="col-md-4"><label class="form-label">Pieces per Box</label><input id="piecesPerBox" class="form-control" type="number" value="1"/></div>
+          <div class="col-md-4"><label class="form-label">SFT per Box</label><input id="sftPerBox" class="form-control" type="number" step="0.01"/></div>
         </div>
-
         <div class="row mb-3">
-          <div class="col-md-4">
-            <label class="form-label">Price per Unit *</label>
-            <input id="price" class="form-control" type="number" step="0.01" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Current Stock *</label>
-            <input id="stock" class="form-control" type="number" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Minimum Stock</label>
-            <input id="minStock" class="form-control" type="number" value="5" />
-          </div>
+          <div class="col-md-4"><label class="form-label">Price per Unit *</label><input id="price" class="form-control" type="number" step="0.01" required/></div>
+          <div class="col-md-4"><label class="form-label">Current Stock *</label><input id="stock" class="form-control" type="number" required/></div>
+          <div class="col-md-4"><label class="form-label">Minimum Stock</label><input id="minStock" class="form-control" type="number" value="5"/></div>
         </div>
-
-        <!-- imageUrl explicitly removed as requested -->
-
       </form>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="saveProduct()">Save Product</button></div>
   </div></div></div>
 
-  <!-- Sales Modal -->
-  <div class="modal fade" id="salesModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header bg-info text-white"><h5 class="modal-title">Record New Sale</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <!-- SALES MODAL (NEW: grid for multi-product sales) -->
+  <div class="modal fade" id="salesModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header bg-info text-white d-flex justify-content-between align-items-center">
+      <h5 class="modal-title">Record New Sale</h5>
+      <div>
+        <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()"><i class="bi bi-plus-circle"></i> Add More Rows</button>
+        <button class="btn btn-outline-success btn-sm" onclick="openCustomProductPopup()"><i class="bi bi-pencil-square"></i> Add Custom Product</button>
+        <button type="button" class="btn-close btn-close-white ms-3" data-bs-dismiss="modal"></button>
+      </div>
+    </div>
+
     <div class="modal-body">
-      <form id="salesForm">
-        <div class="mb-3"><label class="form-label">Select Product *</label><select id="saleProduct" class="form-select" onchange="updateSalePriceInstant()" required><option value="">Choose product...</option></select></div>
-        <div class="mb-3"><label class="form-label">Quantity *</label><input id="saleQuantity" class="form-control" type="number" min="1" oninput="updateSalePriceInstant()" required /></div>
-        <div class="mb-3"><label class="form-label">Unit Price</label><input id="saleUnitPrice" class="form-control" readonly /></div>
-        <div class="mb-3"><label class="form-label">Total Amount (Editable)</label><input id="saleTotal" class="form-control" type="number" step="0.01" placeholder="0.00" oninput="markTotalAsEdited()" /><small class="text-muted">Auto-calculated, but editable</small></div>
+      <div class="table-responsive">
+        <table class="table table-sm grid-table mb-0">
+          <thead>
+            <tr>
+              <th class="grid-row-number">#</th>
+              <th style="min-width:240px">Product Name</th>
+              <th style="width:140px">Size</th>
+              <th class="grid-small">Qty</th>
+              <th style="width:100px">Unit</th>
+              <th style="width:120px">Price</th>
+              <th style="width:140px">Total</th>
+              <th style="width:80px"> </th>
+            </tr>
+          </thead>
+          <tbody id="product-grid-body">
+            <!-- Rows inserted here by JS (initial 3) -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3 d-flex justify-content-between align-items-center">
+        <div>
+          <button class="btn btn-outline-primary btn-sm" onclick="addMoreRows()"><i class="bi bi-plus-circle"></i> Add More Rows</button>
+          <button class="btn btn-outline-success btn-sm ms-2" onclick="openCustomProductPopup()"><i class="bi bi-pencil-square"></i> Add Custom Product</button>
+        </div>
+        <div class="text-end" style="min-width:320px;">
+          <table class="table table-borderless mb-0">
+            <tr><td class="text-end small-muted"><strong>Subtotal:</strong></td><td id="subtotal" class="text-end">₹0.00</td></tr>
+            <tr style="font-size:1.25rem;color:#28a745"><td class="text-end"><strong>GRAND TOTAL:</strong></td><td id="grandTotal" class="text-end">₹0.00</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-success" onclick="completeSale()">Complete Sale</button>
+    </div>
+  </div></div></div>
+
+  <!-- CUSTOM PRODUCT MODAL -->
+  <div class="modal fade" id="customProductModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Add Custom Product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <form id="customProductForm">
+        <div class="mb-3"><label class="form-label">Product Name *</label><input id="customName" class="form-control" required/></div>
+        <div class="mb-3"><label class="form-label">Size</label><input id="customSize" class="form-control"/></div>
+        <div class="mb-3"><label class="form-label">Quantity *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
+        <div class="mb-3"><label class="form-label">Unit Type *</label>
+          <select id="customUnit" class="form-select"><option>Box</option><option>Piece</option><option>SFT</option></select>
+        </div>
+        <div class="mb-3"><label class="form-label">Unit Price *</label><input id="customPrice" type="number" class="form-control" min="0.01" step="0.01" value="0"/></div>
+        <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">₹0.00</div></div>
       </form>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-success" onclick="recordSale()">Complete Sale</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-success" onclick="addCustomProductToGrid()">Add to Sale</button>
+    </div>
   </div></div></div>
 
   <!-- Hidden file input for import -->
@@ -226,239 +227,186 @@
 
   <script>
   /*************************
-   * Config + State
+   * Configuration & State
    *************************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeHFA8lBZ8WJYwdrl0htCzhMumMOlAqFKDpAhp3aRAw1dxN222-uJaBMbzKCl3wNbD/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec';
   let cachedProducts = [];
   let cachedSales = [];
-  let syncInProgress = false;
   let hasInitialLoaded = false;
 
   /*************************
-   * Helpers
+   * Basic helpers
    *************************/
-  function showSyncIndicator(message, type='syncing') {
+  function showSyncIndicator(msg='Syncing...', hideAfterMs=null) {
     const el = document.getElementById('syncIndicator');
-    const txt = document.getElementById('syncText');
-    txt.textContent = message;
-    el.style.display = 'block';
-    if (type === 'success') setTimeout(()=> el.style.display='none', 1400);
+    document.getElementById('syncText').textContent = msg;
+    el.style.display='block';
+    if (hideAfterMs) setTimeout(()=> el.style.display='none', hideAfterMs);
   }
   function hideSyncIndicator(){ document.getElementById('syncIndicator').style.display='none'; }
 
-  async function safeParseResponse(res) {
-    const txt = await res.text();
-    try { return { ok: res.ok, json: JSON.parse(txt), text: txt }; }
-    catch(e) { return { ok: res.ok, json: null, text: txt }; }
+  function safeParseResponse(res) {
+    return res.text().then(txt => {
+      try { return { ok: res.ok, json: JSON.parse(txt), text: txt }; }
+      catch(e) { return { ok: res.ok, json: null, text: txt }; }
+    });
   }
 
-  function fetchWithTimeout(url, options={}, timeoutMs=8000) {
-    const controller = new AbortController();
-    const id = setTimeout(()=> controller.abort(), timeoutMs);
-    return fetch(url, Object.assign({}, options, { signal: controller.signal }))
-      .finally(()=> clearTimeout(id));
+  function formatCurrency(n) {
+    return '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(text) {
+    if (!text && text !== 0) return '';
+    return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   /*************************
-   * Sync (manual refresh)
+   * Data fetch & sync (manual refresh)
    *************************/
-  async function tryGetAll(timeoutMs=7000) {
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`;
-    const res = await fetchWithTimeout(url, {}, timeoutMs);
-    if (!res.ok) throw new Error('Network response not ok: ' + res.status);
-    return await res.json();
+  async function syncFromGoogleSheets() {
+    showSyncIndicator('Refreshing...');
+    try {
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
+      if (!res.ok) throw new Error('Network error: ' + res.status);
+      const data = await res.json();
+      if (data && data.success) {
+        const prodChanged = JSON.stringify(cachedProducts) !== JSON.stringify(data.products || []);
+        const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(data.sales || []);
+        if (prodChanged || salesChanged || !hasInitialLoaded) {
+          cachedProducts = data.products || [];
+          cachedSales = data.sales || [];
+          hasInitialLoaded = true;
+          renderProducts();
+          renderSales();
+          showSyncIndicator('✅ Synced!', 1200);
+        } else {
+          hideSyncIndicator();
+        }
+      } else {
+        console.warn('getAll returned no success, falling back');
+        await fallbackGetProductsAndSales();
+      }
+    } catch (err) {
+      console.error('sync error', err);
+      alert('❌ Refresh failed. Check network / Apps Script deployment.');
+    } finally {
+      // ensure indicator hides after a short delay if still visible
+      setTimeout(()=> hideSyncIndicator(), 1400);
+    }
   }
 
   async function fallbackGetProductsAndSales() {
     try {
-      const prodRes = await fetchWithTimeout(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`, {}, 5000);
-      if (prodRes.ok) {
-        const prodJson = await prodRes.json();
-        if (prodJson && prodJson.products) {
-          cachedProducts = prodJson.products;
-          hasInitialLoaded = true;
-          renderProducts();
-        }
-      }
-    } catch(e){ console.warn('fallback products failed', e); }
-
+      const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`);
+      if (p.ok) { const pj = await p.json(); if (pj && pj.products) cachedProducts = pj.products; }
+    } catch (e) { console.warn('fallback prod failed', e); }
     try {
-      const salesRes = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`);
-      if (salesRes.ok) {
-        const salesJson = await salesRes.json();
-        if (salesJson && salesJson.sales) {
-          cachedSales = salesJson.sales;
-          hasInitialLoaded = true;
-          renderSales();
-        }
-      }
-    } catch(e){ console.warn('fallback sales failed', e); }
+      const s = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`);
+      if (s.ok) { const sj = await s.json(); if (sj && sj.sales) cachedSales = sj.sales; }
+    } catch (e) { console.warn('fallback sales failed', e); }
+    hasInitialLoaded = true;
+    renderProducts(); renderSales();
   }
 
-  async function syncFromGoogleSheets() {
-    if (syncInProgress) return;
-    syncInProgress = true;
-    showSyncIndicator('Syncing...', 'syncing');
-    try {
-      try {
-        const data = await tryGetAll(7000);
-        if (data && data.success) {
-          const productsChanged = JSON.stringify(cachedProducts) !== JSON.stringify(data.products || []);
-          const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(data.sales || []);
-          if (productsChanged || salesChanged || !hasInitialLoaded) {
-            cachedProducts = data.products || [];
-            cachedSales = data.sales || [];
-            hasInitialLoaded = true;
-            renderProducts();
-            renderSales();
-            showSyncIndicator('✅ Synced!', 'success');
-          } else {
-            hideSyncIndicator();
-          }
-          return;
-        } else {
-          console.warn('getAll did not return success, fallback');
-        }
-      } catch (err) {
-        console.warn('getAll failed, fallback', err);
-      }
-      await fallbackGetProductsAndSales();
-      showSyncIndicator('✅ Synced!', 'success');
-    } catch(e) {
-      console.error('sync error', e);
-      alert('❌ Refresh failed. Check network or Apps Script deployment.');
-    } finally {
-      syncInProgress = false;
-    }
-  }
-
-  // Manual refresh button
   async function manualRefresh() {
     const btn = document.getElementById('refreshBtn');
     const icon = document.getElementById('refreshIcon');
-    try {
-      btn.disabled = true;
-      icon.className = 'bi bi-arrow-clockwise spinner-border spinner-border-sm';
-      await syncFromGoogleSheets();
-    } finally {
-      icon.className = 'bi bi-arrow-clockwise';
-      btn.disabled = false;
-    }
+    btn.disabled = true;
+    icon.className = 'bi bi-arrow-clockwise spinner-border spinner-border-sm';
+    await syncFromGoogleSheets();
+    icon.className = 'bi bi-arrow-clockwise';
+    btn.disabled = false;
   }
 
   /*************************
-   * Renderers (desktop table + mobile stacked)
+   * Product rendering
    *************************/
   function categoryIconClass(category) {
-    if (!category) return 'file-icon';
+    if (!category) return '';
     const c = category.toLowerCase();
-    if (c.includes('tile')) return 'file-icon tile';
-    if (c.includes('sanitary')) return 'file-icon sanitary';
-    if (c.includes('access')) return 'file-icon accessory';
-    return 'file-icon';
+    if (c.includes('tile')) return 'tile';
+    if (c.includes('sanitary')) return 'sanitary';
+    if (c.includes('access')) return 'accessory';
+    return '';
   }
 
   function stockBadgeHtml(stock, minStock) {
     minStock = (typeof minStock === 'number') ? minStock : Number(minStock) || 5;
     stock = Number(stock) || 0;
-    if (stock === 0) {
-      return `<span class="stock-badge bg-danger text-white">Out of Stock</span>`;
-    } else if (stock <= minStock) {
-      return `<span class="stock-badge bg-warning text-dark">Low (${stock})</span>`;
-    } else {
-      return `<span class="stock-badge bg-success text-white">In Stock (${stock})</span>`;
-    }
+    if (stock === 0) return `<span class="stock-badge bg-danger text-white">Out of Stock</span>`;
+    if (stock <= minStock) return `<span class="stock-badge bg-warning text-dark">Low (${stock})</span>`;
+    return `<span class="stock-badge bg-success text-white">In Stock (${stock})</span>`;
   }
 
   function renderProducts() {
-    renderProductsTable();
-    renderProductsMobileList();
+    // desktop table
+    const tbody = document.getElementById('productsTableBody');
+    if (!hasInitialLoaded) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></td></tr>`;
+    } else if (!cachedProducts || cachedProducts.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
+    } else {
+      let html = '';
+      cachedProducts.forEach(p => {
+        const ic = categoryIconClass(p.category);
+        const stockHtml = stockBadgeHtml(p.stock, p.minStock);
+        const priceText = (p.price !== undefined && p.price !== null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
+        const sizeText = p.size || '';
+        const iconColor = ic === 'tile' ? '#0d6efd' : ic === 'sanitary' ? '#198754' : ic === 'accessory' ? '#fd7e14' : '#6c757d';
+        html += `<tr>
+          <td><i class="bi bi-file-earmark-fill" style="font-size:1.15rem;color:${iconColor}"></i></td>
+          <td>${escapeHtml(p.name || '')}</td>
+          <td>${escapeHtml(p.category || '')}</td>
+          <td>${escapeHtml(p.brand || '')}</td>
+          <td><strong>${escapeHtml(sizeText)}</strong></td>
+          <td>${stockHtml}</td>
+          <td>${priceText}</td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i> Edit</button>
+            <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i> Delete</button>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // mobile list
+    const container = document.getElementById('mobileProductsList');
+    if (!hasInitialLoaded) {
+      container.innerHTML = `<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></div>`;
+    } else if (!cachedProducts || cachedProducts.length === 0) {
+      container.innerHTML = `<div class="mobile-item text-center text-muted">No products yet</div>`;
+    } else {
+      let html = '';
+      cachedProducts.forEach(p => {
+        const ic = categoryIconClass(p.category);
+        const iconColor = ic === 'tile' ? '#0d6efd' : ic === 'sanitary' ? '#198754' : ic === 'accessory' ? '#fd7e14' : '#6c757d';
+        html += `<div class="mobile-item d-flex align-items-start justify-content-between">
+          <div style="display:flex;gap:.8rem;align-items:center;">
+            <div style="width:36px;text-align:center;"><i class="bi bi-file-earmark-fill" style="font-size:1.25rem;color:${iconColor}"></i></div>
+            <div>
+              <div style="font-weight:600">${escapeHtml(p.name || '')}</div>
+              <div class="small-muted">${escapeHtml(p.category || '')} • ${escapeHtml(p.brand || '')}</div>
+              <div class="small-muted"><strong>${escapeHtml(p.size || '')}</strong> • ₹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div>${stockBadgeHtml(p.stock, p.minStock)}</div>
+            <div style="margin-top:.5rem">
+              <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
     updateSummaryFromCache();
     loadProductsForSaleFromCache();
   }
 
-  function renderProductsTable() {
-    const tbody = document.getElementById('productsTableBody');
-    if (!hasInitialLoaded) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></td></tr>`;
-      return;
-    }
-    if (!cachedProducts || cachedProducts.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
-      return;
-    }
-    let html = '';
-    (cachedProducts || []).forEach(p => {
-      const iconClass = categoryIconClass(p.category);
-      const stockHtml = stockBadgeHtml(p.stock, p.minStock);
-      const priceText = (p.price !== undefined && p.price !== null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
-      const sizeText = p.size || '';
-      html += `<tr>
-        <td><i class="bi bi-file-earmark-fill ${iconClass.replace('file-icon ', '')}" style="font-size:1.15rem; ${iconClass.includes('tile')? 'color:#0d6efd;': iconClass.includes('sanitary')? 'color:#198754;': iconClass.includes('accessory')? 'color:#fd7e14;':'' }"></i></td>
-        <td>${escapeHtml(p.name || '')}</td>
-        <td>${escapeHtml(p.category || '')}</td>
-        <td>${escapeHtml(p.brand || '')}</td>
-        <td><strong>${escapeHtml(sizeText)}</strong></td>
-        <td>${stockHtml}</td>
-        <td>${priceText}</td>
-        <td>
-          <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i> Edit</button>
-          <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i> Delete</button>
-        </td>
-      </tr>`;
-    });
-    tbody.innerHTML = html;
-  }
-
-  function renderProductsMobileList() {
-    const container = document.getElementById('mobileProductsList');
-    if (!hasInitialLoaded) {
-      container.innerHTML = `<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventory…</div></div>`;
-      return;
-    }
-    if (!cachedProducts || cachedProducts.length === 0) {
-      container.innerHTML = `<div class="mobile-item text-center text-muted">No products yet</div>`;
-      return;
-    }
-    let html = '';
-    (cachedProducts || []).forEach(p => {
-      const sizeText = p.size || '';
-      const stockHtml = stockBadgeHtml(p.stock, p.minStock);
-      const priceText = (p.price !== undefined && p.price !== null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
-      const iconColorClass = categoryIconClass(p.category);
-      const iconInlineColor = iconColorClass.includes('tile')? '#0d6efd' : iconColorClass.includes('sanitary')? '#198754' : iconColorClass.includes('accessory')? '#fd7e14' : '#6c757d';
-      html += `<div class="mobile-item d-flex align-items-start justify-content-between">
-        <div style="display:flex;gap:.8rem;align-items:center;">
-          <div style="width:36px;text-align:center;"><i class="bi bi-file-earmark-fill" style="font-size:1.25rem;color:${iconInlineColor}"></i></div>
-          <div>
-            <div style="font-weight:600">${escapeHtml(p.name||'')}</div>
-            <div class="meta">${escapeHtml(p.category||'')} • ${escapeHtml(p.brand||'')}</div>
-            <div class="meta"><strong>${escapeHtml(sizeText)}</strong> • <span>${priceText}</span></div>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div>${stockHtml}</div>
-          <div style="margin-top:.5rem">
-            <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
-          </div>
-        </div>
-      </div>`;
-    });
-    container.innerHTML = html;
-  }
-
-  function escapeHtml(text) {
-    if (!text && text !== 0) return '';
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  }
-
-  /*************************
-   * Sales rendering & summary
-   *************************/
   function renderSales() {
     const tbody = document.getElementById('salesList');
     if (!hasInitialLoaded) {
@@ -470,13 +418,14 @@
       return;
     }
     let html = '';
-    const recent = (cachedSales || []).slice(0,10);
+    const recent = (cachedSales || []).slice(0, 10);
     recent.forEach(sale => {
       const d = new Date(sale.date || '');
       const formatted = d && !isNaN(d) ? (d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) : sale.date;
       html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">₹${parseFloat(sale.totalAmount || 0).toFixed(2)}</td></tr>`;
     });
     tbody.innerHTML = html;
+    updateSummaryFromCache();
   }
 
   function updateSummaryFromCache() {
@@ -488,7 +437,7 @@
     }
     document.getElementById('totalProducts').textContent = (cachedProducts||[]).length;
     const today = new Date().toDateString();
-    const todaySales = (cachedSales||[]).filter(s=> new Date(s.date).toDateString() === today);
+    const todaySales = (cachedSales||[]).filter(s => new Date(s.date).toDateString() === today);
     const sum = todaySales.reduce((acc, s) => acc + parseFloat(s.totalAmount || 0), 0);
     document.getElementById('salesToday').textContent = '₹' + sum.toFixed(2);
     const low = (cachedProducts||[]).filter(p => p.stock <= p.minStock && p.stock > 0).length;
@@ -497,27 +446,27 @@
 
   function loadProductsForSaleFromCache() {
     const sel = document.getElementById('saleProduct');
+    if (!sel) return;
     sel.innerHTML = '<option value="">Choose product...</option>';
     (cachedProducts||[]).forEach(p => {
-      if (p.stock > 0) sel.innerHTML += `<option value="${p.id}">${escapeHtml(p.name)} (Stock: ${p.stock} ${p.unitType})</option>`;
+      if (Number(p.stock) > 0) {
+        sel.innerHTML += `<option value="${p.id}" data-size="${escapeHtml(p.size||'')}" data-unit="${escapeHtml(p.unitType||'')}" data-price="${p.price}" data-stock="${p.stock}">${escapeHtml(p.name)} (Stock: ${p.stock} ${p.unitType})</option>`;
+      }
     });
   }
 
   /*************************
-   * CRUD operations (client)
+   * Save helpers to Apps Script
    *************************/
-  function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
-
   async function saveProductToSheet(product, isEdit=false) {
     try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit? 'updateProduct':'addProduct'}`, {
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify(product)
       });
       const parsed = await safeParseResponse(res);
-      if (parsed.json && parsed.json.success) return parsed.json;
-      else throw new Error(parsed.text || 'Save failed');
+      return parsed.json || null;
     } catch (err) {
       console.error('saveProductToSheet error', err);
       return null;
@@ -539,24 +488,26 @@
     }
   }
 
-  async function saveSaleToSheet(sale) {
+  // Save a sale line (single row). The frontend will call this for each item, passing saleId.
+  async function saveSaleToSheet(item) {
     try {
       const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-        body: JSON.stringify(sale)
+        body: JSON.stringify(item)
       });
       const parsed = await safeParseResponse(res);
-      return parsed.json && parsed.json.success ? parsed.json : null;
+      return parsed.json || null;
     } catch (e) {
       console.error('saveSaleToSheet error', e);
       return null;
     }
   }
 
-  /***** UI CRUD handlers *****/
+  /*************************
+   * Product CRUD UI handlers (add/edit/delete)
+   *************************/
   let editingProductId = null;
-
   function showAddProduct() {
     editingProductId = null;
     document.getElementById('modalTitle').textContent = 'Add New Product';
@@ -567,18 +518,18 @@
   }
 
   function editProduct(id) {
-    const p = (cachedProducts||[]).find(x=>x.id===id);
-    if (!p) { alert('❌ Product not found!'); return; }
+    const p = (cachedProducts||[]).find(x => x.id === id);
+    if (!p) { alert('❌ Product not found'); return; }
     editingProductId = id;
     document.getElementById('modalTitle').textContent = 'Edit Product';
     document.getElementById('productId').value = p.id;
     document.getElementById('productName').value = p.name;
     document.getElementById('category').value = p.category;
-    document.getElementById('brand').value = p.brand||'';
-    document.getElementById('size').value = p.size||'';
+    document.getElementById('brand').value = p.brand || '';
+    document.getElementById('size').value = p.size || '';
     document.getElementById('unitType').value = p.unitType;
-    document.getElementById('piecesPerBox').value = p.piecesPerBox||1;
-    document.getElementById('sftPerBox').value = p.sftPerBox||'';
+    document.getElementById('piecesPerBox').value = p.piecesPerBox || 1;
+    document.getElementById('sftPerBox').value = p.sftPerBox || '';
     document.getElementById('price').value = p.price;
     document.getElementById('stock').value = p.stock;
     document.getElementById('minStock').value = p.minStock;
@@ -597,40 +548,24 @@
     const price = parseFloat(document.getElementById('price').value);
     const stock = parseInt(document.getElementById('stock').value);
     const minStock = parseInt(document.getElementById('minStock').value) || 5;
-
-    if (!name || !category || isNaN(price) || isNaN(stock) || stock < 0) { alert('❌ Please fill required fields'); return; }
-
-    const product = {
-      id: editingProductId || generateId(),
-      name, category, brand, size, unitType,
-      piecesPerBox, sftPerBox, price, stock, minStock
-      // imageUrl deliberately removed
-    };
-
-    // optimistic update
-    const idx = (cachedProducts||[]).findIndex(p=>p.id===product.id);
-    const prev = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
+    if (!name || !category || isNaN(price) || isNaN(stock) || stock < 0) { alert('❌ Fill required fields'); return; }
+    const product = { id: editingProductId || (Date.now().toString(36)+Math.random().toString(36).substr(2)), name, category, brand, size, unitType, piecesPerBox, sftPerBox, price, stock, minStock };
+    const idx = (cachedProducts||[]).findIndex(p => p.id === product.id);
+    const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
     if (idx !== -1) cachedProducts[idx] = product; else cachedProducts.push(product);
     renderProducts();
-
-    // close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('productModal')); if (modal) modal.hide();
-
-    showSyncIndicator('Saving...', 'syncing');
-    const serverResp = await saveProductToSheet(product, !!editingProductId);
-
-    if (serverResp && serverResp.success) {
-      if (!editingProductId && serverResp.id) {
-        const localIdx = cachedProducts.findIndex(p=>p.id===product.id);
-        if (localIdx !== -1) { cachedProducts[localIdx].id = serverResp.id; }
+    showSyncIndicator('Saving...');
+    const resp = await saveProductToSheet(product, !!editingProductId);
+    if (resp && resp.success) {
+      if (!editingProductId && resp.id) {
+        const li = cachedProducts.findIndex(p => p.id === product.id);
+        if (li !== -1) cachedProducts[li].id = resp.id;
       }
-      showSyncIndicator('Saved', 'success');
+      showSyncIndicator('Saved', 900);
       editingProductId = null;
-      setTimeout(()=> alert('✅ Product saved'), 300);
     } else {
-      // revert
-      if (prev) cachedProducts[idx] = prev;
-      else cachedProducts = (cachedProducts||[]).filter(p=>p.id!==product.id);
+      if (previous) cachedProducts[idx] = previous; else cachedProducts = (cachedProducts||[]).filter(p => p.id !== product.id);
       renderProducts();
       alert('❌ Save failed — changes reverted locally.');
     }
@@ -639,99 +574,492 @@
   function deleteProduct(id) {
     if (!confirm('Are you sure?')) return;
     const prev = cachedProducts.slice();
-    cachedProducts = (cachedProducts||[]).filter(p=>p.id!==id);
+    cachedProducts = (cachedProducts||[]).filter(p => p.id !== id);
     renderProducts();
-    showSyncIndicator('Deleting...', 'syncing');
+    showSyncIndicator('Deleting...');
     deleteProductFromSheet(id).then(success => {
-      if (success) { showSyncIndicator('Deleted', 'success'); setTimeout(()=> alert('✅ Deleted'), 300); }
+      if (success) showSyncIndicator('Deleted', 900);
       else { cachedProducts = prev; renderProducts(); alert('❌ Delete failed — reverted locally.'); }
     });
   }
 
-  /* SALES: same as previous logic (optimistic + server write) */
-  let totalEdited = false;
-  function showSalesSection() { loadProductsForSaleFromCache(); document.getElementById('salesForm').reset(); document.getElementById('saleTotal').value=''; document.getElementById('saleUnitPrice').value=''; totalEdited=false; const modal = new bootstrap.Modal(document.getElementById('salesModal')); modal.show(); }
-  function updateSalePriceInstant(){
-    if (totalEdited) return;
-    const pid = document.getElementById('saleProduct').value;
-    const qty = parseInt(document.getElementById('saleQuantity').value) || 0;
-    if (!pid || qty<=0){ document.getElementById('saleTotal').value=''; document.getElementById('saleUnitPrice').value=''; return; }
-    const product = (cachedProducts||[]).find(p=>p.id===pid);
-    if (!product) return;
-    if (qty>product.stock){ alert(`❌ Only ${product.stock} available`); document.getElementById('saleQuantity').value=product.stock; return; }
-    document.getElementById('saleTotal').value = (product.price * qty).toFixed(2);
-    document.getElementById('saleUnitPrice').value = '₹'+product.price+'/'+product.unitType;
+  /*************************
+   * SALES GRID: UI binder functions
+   *************************/
+  // create initial rows when opening the sales modal
+  function openSalesModal() {
+    const modal = new bootstrap.Modal(document.getElementById('salesModal'));
+    initSalesGrid(); // ensure grid present
+    modal.show();
   }
-  function markTotalAsEdited(){ totalEdited=true; }
 
-  async function recordSale(){
-    const pid = document.getElementById('saleProduct').value;
-    const qty = parseInt(document.getElementById('saleQuantity').value);
-    const totalAmount = parseFloat(document.getElementById('saleTotal').value);
-    if (!pid || !qty || qty<=0 || !totalAmount){ alert('❌ Fill sale details'); return; }
-    const product = (cachedProducts||[]).find(p=>p.id===pid);
-    if (!product) { alert('❌ Product not found'); return; }
-    if (qty>product.stock){ alert('❌ Insufficient stock'); return; }
+  function initSalesGrid() {
+    const body = document.getElementById('product-grid-body');
+    body.innerHTML = ''; // clear
+    for (let i = 1; i <= 3; i++) appendEmptyRow(i);
+    updateRowNumbers();
+    updateGrandTotal();
+  }
 
-    const sale = { id: generateId(), productId: product.id, productName: product.name, quantity: qty, unitType: product.unitType, totalAmount: totalAmount, date: new Date().toISOString() };
+  function appendEmptyRow(index) {
+    const tbody = document.getElementById('product-grid-body');
+    const tr = document.createElement('tr');
+    tr.className = 'product-row';
+    tr.dataset.custom = 'false';
+    // Build inner HTML with placeholders. IDs are suffixed by rowIndex; we'll maintain sequential count via updateRowNumbers()
+    tr.innerHTML = `
+      <td class="grid-row-number"></td>
+      <td>
+        <select class="form-select product-select" id="product-${index}" onchange="onProductSelect(${index})">
+          <option value="">-- Select Product --</option>
+        </select>
+      </td>
+      <td><input type="text" class="form-control size-input readonly-input" id="size-${index}" readonly /></td>
+      <td><input type="number" class="form-control qty-input" id="qty-${index}" min="1" disabled oninput="onQtyChange(${index})" /></td>
+      <td><input type="text" class="form-control unit-input readonly-input" id="unit-${index}" readonly /></td>
+      <td><input type="number" class="form-control price-input readonly-input" id="price-${index}" readonly /></td>
+      <td><div id="total-${index}" class="fw-bold">₹0.00</div></td>
+      <td><button class="btn btn-sm btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+    // populate the product select with current cachedProducts
+    populateProductSelectForRow(index);
+  }
 
-    // optimistic update
-    product.stock -= qty;
-    cachedSales.unshift(sale);
+  function updateRowNumbers() {
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    rows.forEach((r, i) => {
+      const numCell = r.querySelector('.grid-row-number');
+      if (numCell) numCell.textContent = i + 1;
+      // update element IDs to match index (so event handlers use correct ids)
+      const idx = i + 1;
+      const select = r.querySelector('.product-select');
+      if (select) select.id = `product-${idx}`;
+      const sizeEl = r.querySelector('.size-input'); if (sizeEl) sizeEl.id = `size-${idx}`;
+      const qtyEl = r.querySelector('.qty-input'); if (qtyEl) { qtyEl.id = `qty-${idx}`; qtyEl.setAttribute('oninput', `onQtyChange(${idx})`); }
+      const unitEl = r.querySelector('.unit-input'); if (unitEl) unitEl.id = `unit-${idx}`;
+      const priceEl = r.querySelector('.price-input'); if (priceEl) priceEl.id = `price-${idx}`;
+      const totalEl = r.querySelector(`#total-${idx}`) || r.querySelector('[id^=total-]'); if (totalEl) totalEl.id = `total-${idx}`;
+      // ensure the select options are present
+      populateProductSelectForRow(idx);
+    });
+  }
+
+  function populateProductSelectForRow(rowIndex) {
+    // If cachedProducts not loaded, create placeholder
+    const sel = document.getElementById(`product-${rowIndex}`);
+    if (!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = `<option value="">-- Select Product --</option>`;
+    (cachedProducts || []).forEach(p => {
+      // include all products (even zero stock) but disable if out of stock for UX? We allow selection but will validate qty.
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.dataset.size = p.size || '';
+      option.dataset.unit = p.unitType || '';
+      option.dataset.price = p.price;
+      option.dataset.stock = p.stock;
+      option.text = `${p.name} (Stock: ${p.stock} ${p.unitType})`;
+      sel.appendChild(option);
+    });
+    // restore existing selection if any (matching id)
+    if (currentVal) sel.value = currentVal;
+  }
+
+  function addMoreRows() {
+    // add 3 rows
+    const currentCount = document.querySelectorAll('#product-grid-body .product-row').length;
+    for (let i = 1; i <= 3; i++) appendEmptyRow(currentCount + i);
+    updateRowNumbers();
+  }
+
+  function removeRow(btn) {
+    const tr = btn.closest('tr');
+    if (!tr) return;
+    tr.remove();
+    updateRowNumbers();
+    updateGrandTotal();
+  }
+
+  function findFirstEmptyRowIndex() {
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    for (let i = 0; i < rows.length; i++) {
+      const idx = i + 1;
+      const sel = document.getElementById(`product-${idx}`);
+      if (!sel || !sel.value) return idx;
+    }
+    return null;
+  }
+
+  /*************************
+   * Row behavior: product select, qty change, totals
+   *************************/
+  function onProductSelect(rowIndex) {
+    const sel = document.getElementById(`product-${rowIndex}`);
+    const sizeEl = document.getElementById(`size-${rowIndex}`);
+    const unitEl = document.getElementById(`unit-${rowIndex}`);
+    const priceEl = document.getElementById(`price-${rowIndex}`);
+    const qtyEl = document.getElementById(`qty-${rowIndex}`);
+
+    if (!sel) return;
+    const val = sel.value;
+    if (!val) {
+      // clear fields & disable qty
+      if (sizeEl) sizeEl.value = '';
+      if (unitEl) unitEl.value = '';
+      if (priceEl) priceEl.value = '';
+      if (qtyEl) { qtyEl.value = ''; qtyEl.disabled = true; qtyEl.removeAttribute('max'); }
+      document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(0);
+      updateGrandTotal();
+      return;
+    }
+
+    // If this is a custom product row, special handling: custom rows have data-custom="true" and row-stored fields.
+    const row = sel.closest('tr');
+    if (row && row.dataset.custom === 'true') {
+      // custom: read stored dataset values (we stored them in row.dataset earlier)
+      sizeEl.value = row.dataset.size || 'N/A';
+      unitEl.value = row.dataset.unit || '';
+      priceEl.value = row.dataset.price || 0;
+      qtyEl.disabled = false;
+      qtyEl.focus();
+      qtyEl.max = row.dataset.stock || '';
+      updateRowTotal(rowIndex);
+      return;
+    }
+
+    // Non-custom: get product data from cachedProducts
+    const product = (cachedProducts || []).find(p => p.id === val);
+    if (!product) {
+      sizeEl.value = ''; unitEl.value = ''; priceEl.value = ''; qtyEl.disabled = true; return;
+    }
+    sizeEl.value = product.size || 'N/A';
+    unitEl.value = product.unitType || '';
+    priceEl.value = product.price || 0;
+    qtyEl.disabled = false;
+    qtyEl.max = product.stock || '';
+    qtyEl.value = ''; // focus
+    qtyEl.focus();
+    // reset total
+    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(0);
+  }
+
+  function onQtyChange(rowIndex) {
+    const qtyEl = document.getElementById(`qty-${rowIndex}`);
+    if (!qtyEl) return;
+    const sel = document.getElementById(`product-${rowIndex}`);
+    const qty = Number(qtyEl.value) || 0;
+    const max = Number(qtyEl.max || Infinity);
+    if (qty > max) {
+      alert(`❌ Quantity exceeds available stock (${max}). Adjusting to max.`);
+      qtyEl.value = max;
+    }
+    updateRowTotal(rowIndex);
+    updateGrandTotal();
+  }
+
+  function updateRowTotal(rowIndex) {
+    const price = Number(document.getElementById(`price-${rowIndex}`).value || 0);
+    const qty = Number(document.getElementById(`qty-${rowIndex}`).value || 0);
+    const total = price * qty;
+    const el = document.getElementById(`total-${rowIndex}`);
+    if (el) el.textContent = formatCurrency(total);
+    return total;
+  }
+
+  function updateGrandTotal() {
+    let grand = 0;
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    rows.forEach((r, i) => {
+      const idx = i + 1;
+      const sel = document.getElementById(`product-${idx}`);
+      if (!sel) return;
+      if (!sel.value && r.dataset.custom !== 'true') return; // skip empty
+      const qty = Number(document.getElementById(`qty-${idx}`)?.value || 0);
+      const price = Number(document.getElementById(`price-${idx}`)?.value || 0);
+      const line = qty * price;
+      grand += line;
+      const totalEl = document.getElementById(`total-${idx}`);
+      if (totalEl) totalEl.textContent = formatCurrency(line);
+    });
+    document.getElementById('grandTotal').textContent = formatCurrency(grand);
+    document.getElementById('subtotal').textContent = formatCurrency(grand);
+  }
+
+  /*************************
+   * Custom product modal handling
+   *************************/
+  function openCustomProductPopup() {
+    const modal = new bootstrap.Modal(document.getElementById('customProductModal'), { backdrop: 'static' });
+    document.getElementById('customProductForm').reset();
+    document.getElementById('customTotal').textContent = formatCurrency(0);
+    modal.show();
+    setTimeout(()=> document.getElementById('customName').focus(), 200);
+  }
+
+  function updateCustomTotalDisplay() {
+    const qty = Number(document.getElementById('customQty').value || 0);
+    const price = Number(document.getElementById('customPrice').value || 0);
+    document.getElementById('customTotal').textContent = formatCurrency(qty * price);
+  }
+
+  document.getElementById('customQty')?.addEventListener('input', updateCustomTotalDisplay);
+  document.getElementById('customPrice')?.addEventListener('input', updateCustomTotalDisplay);
+
+  function validateCustomProduct() {
+    const name = (document.getElementById('customName').value || '').trim();
+    const qty = Number(document.getElementById('customQty').value || 0);
+    const price = Number(document.getElementById('customPrice').value || 0);
+    const unit = document.getElementById('customUnit').value;
+    if (!name || name.length < 2) { alert('❌ Product name required (min 2 chars)'); return false; }
+    if (!qty || qty < 1) { alert('❌ Quantity must be at least 1'); return false; }
+    if (!price || price <= 0) { alert('❌ Unit price must be greater than 0'); return false; }
+    if (!unit) { alert('❌ Select unit type'); return false; }
+    return true;
+  }
+
+  function addCustomProductToGrid() {
+    if (!validateCustomProduct()) return;
+    // Build custom product object
+    const custom = {
+      id: 'CUSTOM_' + Date.now(),
+      name: document.getElementById('customName').value.trim(),
+      size: document.getElementById('customSize').value.trim() || 'N/A',
+      quantity: Number(document.getElementById('customQty').value || 0),
+      unitType: document.getElementById('customUnit').value,
+      price: Number(document.getElementById('customPrice').value || 0),
+      isCustom: true
+    };
+
+    // Find first empty row index
+    let idx = findFirstEmptyRowIndex();
+    if (!idx) {
+      // append new row
+      const count = document.querySelectorAll('#product-grid-body .product-row').length;
+      appendEmptyRow(count + 1);
+      updateRowNumbers();
+      idx = count + 1;
+    }
+
+    // Populate row with custom data and mark row as custom
+    const row = document.querySelectorAll('#product-grid-body .product-row')[idx - 1];
+    if (!row) return;
+    row.dataset.custom = 'true';
+    row.dataset.size = custom.size;
+    row.dataset.unit = custom.unitType;
+    row.dataset.price = custom.price;
+    row.dataset.stock = 999999; // effectively unlimited for custom (or use qty)
+    // set fields manually (select as custom text)
+    const sel = document.getElementById(`product-${idx}`);
+    // create a temporary option to represent custom product
+    sel.innerHTML = `<option value="">-- Select Product --</option>`;
+    const opt = document.createElement('option');
+    opt.value = custom.id;
+    opt.text = `${custom.name} (Custom)`;
+    opt.dataset.size = custom.size;
+    opt.dataset.unit = custom.unitType;
+    opt.dataset.price = custom.price;
+    opt.dataset.stock = custom.quantity;
+    sel.appendChild(opt);
+    sel.value = custom.id;
+
+    document.getElementById(`size-${idx}`).value = custom.size;
+    document.getElementById(`unit-${idx}`).value = custom.unitType;
+    document.getElementById(`price-${idx}`).value = custom.price;
+    const qtyEl = document.getElementById(`qty-${idx}`);
+    qtyEl.disabled = false;
+    qtyEl.value = custom.quantity;
+    qtyEl.max = custom.quantity;
+    document.getElementById(`total-${idx}`).textContent = formatCurrency(custom.price * custom.quantity);
+    updateGrandTotal();
+
+    // close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal'));
+    if (modal) modal.hide();
+    // show small success toast (simple alert for now)
+    // showSyncIndicator('Custom product added', 900);
+  }
+
+  /*************************
+   * Complete sale: validation, optimistic update, server writes
+   *************************/
+  async function completeSale() {
+    // Gather rows
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    const saleItems = [];
+    let hasErrors = false;
+
+    rows.forEach((r, i) => {
+      const idx = i + 1;
+      const sel = document.getElementById(`product-${idx}`);
+      const qtyEl = document.getElementById(`qty-${idx}`);
+      const priceEl = document.getElementById(`price-${idx}`);
+      const unitEl = document.getElementById(`unit-${idx}`);
+      const sizeEl = document.getElementById(`size-${idx}`);
+      const totalEl = document.getElementById(`total-${idx}`);
+
+      if (!sel) return;
+      // determine if row is filled: product selected or marked custom
+      const isCustomRow = r.dataset.custom === 'true' || (sel.value && sel.value.startsWith('CUSTOM_'));
+      if (!sel.value && !isCustomRow) return; // skip empty
+
+      const quantity = Number(qtyEl?.value || 0);
+      if (!quantity || quantity <= 0) {
+        alert(`❌ Row ${idx}: Please enter a valid quantity`);
+        hasErrors = true; return;
+      }
+      const maxStock = Number(qtyEl.max || Infinity);
+      if (!isCustomRow && quantity > maxStock) {
+        alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`);
+        hasErrors = true; return;
+      }
+
+      // Determine product data
+      let productId = null;
+      let productName = '';
+      let size = sizeEl?.value || 'N/A';
+      let unitType = unitEl?.value || '';
+      let unitPrice = Number(priceEl?.value || 0);
+      let isCustomProduct = false;
+
+      if (isCustomRow) {
+        isCustomProduct = true;
+        productId = null;
+        productName = sel.options[sel.selectedIndex]?.text || `Custom`;
+        // custom total uses provided data
+      } else {
+        productId = sel.value;
+        const product = (cachedProducts || []).find(p => p.id === productId);
+        if (!product) { alert(`❌ Row ${idx}: Product not found`); hasErrors = true; return; }
+        productName = product.name;
+        size = product.size || size;
+        unitType = product.unitType || unitType;
+        unitPrice = product.price || unitPrice;
+      }
+
+      const lineTotal = quantity * unitPrice;
+      saleItems.push({
+        productId: productId,
+        productName: productName,
+        size: size,
+        quantity: quantity,
+        unitType: unitType,
+        unitPrice: unitPrice,
+        totalAmount: lineTotal,
+        isCustomProduct: isCustomProduct
+      });
+    });
+
+    if (hasErrors) return;
+    if (saleItems.length === 0) { alert('❌ Please add at least one product to the sale'); return; }
+
+    // All validation passed. Create saleId and optimistic update stock locally.
+    const saleId = 'SALE_' + Date.now();
+    // Optimistic stock deduction for non-custom items
+    const stockChanges = []; // to revert if needed
+    saleItems.forEach(item => {
+      if (!item.isCustomProduct && item.productId) {
+        const pIndex = (cachedProducts || []).findIndex(p => p.id === item.productId);
+        if (pIndex !== -1) {
+          const prevStock = Number(cachedProducts[pIndex].stock || 0);
+          cachedProducts[pIndex].stock = prevStock - Number(item.quantity);
+          stockChanges.push({ index: pIndex, prevStock: prevStock });
+        }
+      }
+    });
     renderProducts(); renderSales();
 
-    const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal')); if (modal) modal.hide();
-    showSyncIndicator('Saving sale...', 'syncing');
-    const resp = await saveSaleToSheet(sale);
-    if (resp && resp.success) {
-      showSyncIndicator('Saved', 'success'); setTimeout(()=> alert(`✅ Sale recorded: ₹${totalAmount.toFixed(2)}`), 300);
-    } else {
-      // revert
-      cachedSales = cachedSales.filter(s=>s.id!==sale.id);
-      const prod = (cachedProducts||[]).find(p=>p.id===pid);
-      if (prod) prod.stock += qty;
-      renderProducts(); renderSales();
-      alert('❌ Sale save failed — reverted locally.');
+    // Send each item to server sequentially (grouped by saleId). If any fails, revert previous successful ones? We'll attempt best-effort and revert local optimistic changes on failure.
+    try {
+      showSyncIndicator('Saving sale...');
+      for (const item of saleItems) {
+        const payload = {
+          saleId: saleId,
+          productId: item.productId || '',
+          productName: item.productName,
+          size: item.size,
+          quantity: item.quantity,
+          unitType: item.unitType,
+          unitPrice: item.unitPrice,
+          totalAmount: item.totalAmount,
+          isCustomProduct: item.isCustomProduct || false
+        };
+        const resp = await saveSaleToSheet(payload);
+        if (!resp || resp.success === false) {
+          throw new Error('Server save error: ' + (resp && resp.error ? resp.error : 'unknown'));
+        }
+      }
+
+      // All saved successfully
+      showSyncIndicator('Saved', 1000);
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+      if (modal) modal.hide();
+
+      // Refresh from server to get canonical state
+      await syncFromGoogleSheets();
+
+      const grandTotal = saleItems.reduce((s, it) => s + Number(it.totalAmount || 0), 0);
+      alert(`✅ Sale completed!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}`);
+
+    } catch (err) {
+      console.error('completeSale error:', err);
+      // revert optimistic stock updates
+      stockChanges.forEach(sc => {
+        if (cachedProducts[sc.index]) cachedProducts[sc.index].stock = sc.prevStock;
+      });
+      renderProducts();
+      alert('❌ Error completing sale: ' + (err.message || err));
+    } finally {
+      hideSyncIndicator();
     }
   }
 
   /*************************
-   * Search / Export / Import
+   * Init + small utilities
    *************************/
-  function searchProducts(){
-    const term = (document.getElementById('searchInput').value||'').toLowerCase();
-    const filtered = (cachedProducts||[]).filter(p=> (p.name||'').toLowerCase().includes(term) || (p.brand||'').toLowerCase().includes(term) || (p.size||'').toLowerCase().includes(term) || (p.category||'').toLowerCase().includes(term));
-    // temporarily render filtered arrays (desktop + mobile)
-    const origProducts = cachedProducts;
-    cachedProducts = filtered;
+  function initOnLoad() {
+    // initial empty render placeholders
     renderProducts();
-    cachedProducts = origProducts; // restore
+    renderSales();
+    // initial one-time load
+    syncFromGoogleSheets();
   }
 
-  function exportData(){
+  // Export / import backups
+  function exportData() {
     const data = { products: cachedProducts, sales: cachedSales, exportDate: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
     alert('✅ Backup downloaded');
   }
 
-  function importData(){ document.getElementById('fileInput').click(); }
-  function handleFileImport(e){ const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt){ try { const data = JSON.parse(evt.target.result); if (data.products) cachedProducts = data.products; if (data.sales) cachedSales = data.sales; hasInitialLoaded = true; renderProducts(); renderSales(); alert('✅ Data restored (local)'); } catch(err){ alert('❌ Invalid file'); } }; reader.readAsText(file); }
+  function importData() { document.getElementById('fileInput').click(); }
+  function handleFileImport(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.products) cachedProducts = data.products;
+        if (data.sales) cachedSales = data.sales;
+        hasInitialLoaded = true;
+        renderProducts(); renderSales();
+        alert('✅ Data restored (local)');
+      } catch (err) { alert('❌ Invalid file'); }
+    };
+    reader.readAsText(file);
+  }
 
-  /*************************
-   * Init - single manual-sync mode on load
-   *************************/
-  (function init(){
-    // placeholders
-    renderProducts();
-    renderSales();
-    // initial one-time load
-    syncFromGoogleSheets();
-    // don't auto-poll: manual-only
-  })();
-
+  // Attach listeners for custom modal inputs (ensure elements exist)
+  document.addEventListener('DOMContentLoaded', () => {
+    const customQty = document.getElementById('customQty');
+    const customPrice = document.getElementById('customPrice');
+    if (customQty) customQty.addEventListener('input', updateCustomTotalDisplay);
+    if (customPrice) customPrice.addEventListener('input', updateCustomTotalDisplay);
+    initOnLoad();
+  });
   </script>
 </body>
 </html>
-
