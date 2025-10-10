@@ -32,6 +32,11 @@
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory</span>
       <div>
+        <!-- Prominent Refresh button -->
+        <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()">
+          <i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
       </div>
@@ -106,10 +111,6 @@
    * Configuration
    *************************/
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNkvZW4g5Bp6JWuGGgcE55dbhbSCVZ7ioWwzKzgBm3FLn9tS_XNXHg2SJnyxUKtWf8/exec';
-  // Adjust these to tune behavior
-  const NORMAL_POLL_MS = 20000;      // normal polling interval
-  const FAST_POLL_MS = 8000;         // fast polling interval after a local change
-  const FAST_POLL_DURATION_MS = 80000; // how long to fast-poll after a change
 
   /*************************
    * State
@@ -118,10 +119,6 @@
   let cachedSales = [];
   let syncInProgress = false;
   let hasInitialLoaded = false;
-  let pollInterval = NORMAL_POLL_MS;
-  let pollTimer = null;
-  let lastLocalChangeAt = 0; // timestamp when this client last performed a write
-  let lastServerSignal = 0;  // server-side "bump" time (to detect remote changes quickly)
 
   /*************************
    * UI helpers
@@ -134,7 +131,7 @@
     el.style.display = 'block';
     if (type === 'success') setTimeout(()=> el.style.display='none', 1600);
   }
-  function hideSyncIndicator() { document.getElementById('syncIndicator').style.display='none'; }
+  function hideSyncIndicator(){ document.getElementById('syncIndicator').style.display='none'; }
 
   /*************************
    * Network helpers
@@ -153,29 +150,16 @@
   }
 
   /*************************
-   * Polling / Sync logic
-   *
-   * Approach:
-   * - Primary: call getAll (fast combined read).
-   * - If getAll times out -> fallback: fetch products quickly, then fetch sales in background.
-   * - Poll interval is NORMAL_POLL_MS. When a local write happens, we "fast poll" for FAST_POLL_DURATION_MS.
-   * - The server-side cache is invalidated on writes (Apps Script removes cache key). Clients will pick that up quickly.
+   * Combined getAll and fallback
    *************************/
   async function tryGetAll(timeoutMs=7000) {
     const url = `${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`;
-    try {
-      const res = await fetchWithTimeout(url, {}, timeoutMs);
-      if (!res.ok) throw new Error('Network response not ok: ' + res.status);
-      const data = await res.json();
-      return data;
-    } catch (err) {
-      // propagate
-      throw err;
-    }
+    const res = await fetchWithTimeout(url, {}, timeoutMs);
+    if (!res.ok) throw new Error('Network response not ok: ' + res.status);
+    return await res.json();
   }
 
   async function fallbackGetProductsAndSales() {
-    // Fetch products quickly
     try {
       const prodRes = await fetchWithTimeout(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`, {}, 5000);
       if (prodRes.ok) {
@@ -188,11 +172,8 @@
           loadProductsForSaleFromCache();
         }
       }
-    } catch(e){
-      console.warn('fallback products failed', e);
-    }
+    } catch(e){ console.warn('fallback products failed', e); }
 
-    // Background: fetch sales
     try {
       const salesRes = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSales&t=${Date.now()}`);
       if (salesRes.ok) {
@@ -204,9 +185,7 @@
           updateSummaryFromCache();
         }
       }
-    } catch(e){
-      console.warn('fallback sales failed', e);
-    }
+    } catch(e){ console.warn('fallback sales failed', e); }
   }
 
   async function syncFromGoogleSheets() {
@@ -215,14 +194,9 @@
     showSyncIndicator('Syncing...', 'syncing');
 
     try {
-      // Try combined endpoint first with modest timeout
       try {
         const data = await tryGetAll(7000);
         if (data && data.success) {
-          // if server sends a signal timestamp (optional) use it to detect remote changes
-          // (not required; left for extensibility)
-          if (data.signal) lastServerSignal = data.signal;
-
           const productsChanged = JSON.stringify(cachedProducts) !== JSON.stringify(data.products || []);
           const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(data.sales || []);
           if (productsChanged || salesChanged || !hasInitialLoaded) {
@@ -233,64 +207,43 @@
             displaySalesFromCache();
             updateSummaryFromCache();
             loadProductsForSaleFromCache();
-            showSyncIndicator('Synced!', 'success');
+            showSyncIndicator('✅ Synced!', 'success');
           } else {
             hideSyncIndicator();
           }
           return;
         } else {
-          // try fallback
           console.warn('getAll responded without success, falling back', data);
         }
       } catch (err) {
-        console.warn('getAll failed or timed out, falling back:', err.message || err);
+        console.warn('getAll failed or timed out, falling back:', err && err.message ? err.message : err);
       }
-
-      // fallback path
       await fallbackGetProductsAndSales();
+      showSyncIndicator('✅ Synced!', 'success');
     } catch (outer) {
       console.error('syncFromGoogleSheets outer error:', outer);
+      alert('❌ Refresh failed. Check your network or Apps Script deployment.');
     } finally {
       syncInProgress = false;
     }
   }
 
   /*************************
-   * Poll scheduler (adapts between normal & fast polling)
+   * Manual Refresh (button)
    *************************/
-  function schedulePolling() {
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(async () => {
-      // If we recently made a local change, use FAST poll for a while
-      const now = Date.now();
-      if (lastLocalChangeAt && now - lastLocalChangeAt <= FAST_POLL_DURATION_MS) {
-        // leave poll interval as FAST (we schedule intervals using setInterval, so just call sync)
-        await syncFromGoogleSheets();
-        return;
-      }
-      // Normal poll
+  async function manualRefresh() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = document.getElementById('refreshIcon');
+    try {
+      // disable button and show spinner
+      btn.disabled = true;
+      icon.className = 'bi bi-arrow-clockwise spinner-border spinner-border-sm';
       await syncFromGoogleSheets();
-    }, pollInterval);
-  }
-
-  function triggerFastPolling() {
-    lastLocalChangeAt = Date.now();
-    // temporarily set pollInterval to FAST and re-schedule
-    const old = pollInterval;
-    pollInterval = FAST_POLL_MS;
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    // use setInterval with FAST polling
-    pollTimer = setInterval(async () => {
-      const now = Date.now();
-      if (now - lastLocalChangeAt > FAST_POLL_DURATION_MS) {
-        // revert to normal polling
-        clearInterval(pollTimer);
-        pollInterval = NORMAL_POLL_MS;
-        schedulePolling();
-      } else {
-        await syncFromGoogleSheets();
-      }
-    }, pollInterval);
+    } finally {
+      // restore button
+      icon.className = 'bi bi-arrow-clockwise';
+      btn.disabled = false;
+    }
   }
 
   /*************************
@@ -381,13 +334,9 @@
 
   /*************************
    * CRUD operations (client side)
-   * - optimistic updates locally
-   * - write to Google Apps Script
-   * - trigger fast polling so other devices pick up quickly
    *************************/
   function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 
-  // Save product to Apps Script
   async function saveProductToSheet(product, isEdit=false) {
     try {
       const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit? 'updateProduct':'addProduct'}`, {
@@ -396,13 +345,8 @@
         body: JSON.stringify(product)
       });
       const parsed = await safeParseResponse(res);
-      if (parsed.json && parsed.json.success) {
-        // trigger server cache refresh detection for others by calling sync soon
-        // server invalidates getAll cache on write (Apps Script should do this)
-        return parsed.json;
-      } else {
-        throw new Error(parsed.text || 'Save failed');
-      }
+      if (parsed.json && parsed.json.success) return parsed.json;
+      else throw new Error(parsed.text || 'Save failed');
     } catch (err) {
       console.error('saveProductToSheet error', err);
       return null;
@@ -502,11 +446,9 @@
     // close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('productModal')); if (modal) modal.hide();
 
-    // write to server (fire & forget but we check response)
+    // write to server (fire & forget but with response check)
     showSyncIndicator('Saving...', 'syncing');
     const serverResp = await saveProductToSheet(product, !!editingProductId);
-    // trigger fast polling so other devices fetch the update quickly
-    triggerFastPolling();
 
     if (serverResp && serverResp.success) {
       // if server returned new id (for add), update local id
@@ -531,8 +473,6 @@
     cachedProducts = (cachedProducts||[]).filter(p=>p.id!==id);
     displayProductsFromCache(); updateSummaryFromCache(); loadProductsForSaleFromCache();
     showSyncIndicator('Deleting...', 'syncing');
-    // trigger fast polling (so other clients pick change quickly)
-    triggerFastPolling();
     deleteProductFromSheet(id).then(success => {
       if (success) { showSyncIndicator('Deleted', 'success'); setTimeout(()=> alert('✅ Deleted'), 300); }
       else { cachedProducts = prev; displayProductsFromCache(); updateSummaryFromCache(); loadProductsForSaleFromCache(); alert('❌ Delete failed — reverted locally.'); }
@@ -574,8 +514,6 @@
     const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal')); if (modal) modal.hide();
 
     showSyncIndicator('Saving sale...', 'syncing');
-    // fast poll so other devices pick up change quickly
-    triggerFastPolling();
     const resp = await saveSaleToSheet(sale);
     if (resp && resp.success) {
       showSyncIndicator('Saved', 'success'); setTimeout(()=> alert(`✅ Sale recorded: ₹${totalAmount.toFixed(2)}`), 300);
@@ -637,33 +575,17 @@
   /*************************
    * Initialization
    *************************/
-  // Start polling logic and initial sync
   (function init(){
-    // initial display placeholders
+    // initial placeholders
     displayProductsFromCache();
     displaySalesFromCache();
     updateSummaryFromCache();
 
-    // start polling (normal)
-    schedulePolling();
-    // run an immediate sync now
+    // perform a single sync now (initial load)
     syncFromGoogleSheets();
+    // NOTE: No auto-sync, no visibility-based sync. Manual refresh only.
   })();
 
-  // schedulePolling defined earlier, but we need to call it here (define now)
-  function schedulePolling() {
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(async () => {
-      // if within FAST_POLL_DURATION after local change, faster path is handled by triggerFastPolling
-      await syncFromGoogleSheets();
-    }, pollInterval);
-  }
-
-  // triggerFastPolling already defined
-
-  // visibility-based sync
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromGoogleSheets(); });
   </script>
 </body>
 </html>
-
