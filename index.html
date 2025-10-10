@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <!-- Clear Sales Modal -->
+  <!--  Sales Modal -->
 <div class="modal fade" id="clearSalesModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -259,242 +259,7 @@
 
 
 
-  function searchProducts() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    
-    // If empty, display all products
-    if (!searchTerm) {
-        displayAllProducts();
-        return;
-    }
-    
-    // Filter products
-    const filteredProducts = cachedProducts.filter(product => {
-        const name = (product.name || '').toLowerCase();
-        const category = (product.category || '').toLowerCase();
-        const brand = (product.brand || '').toLowerCase();
-        const size = (product.size || '').toLowerCase();
-        
-        return name.includes(searchTerm) ||
-               category.includes(searchTerm) ||
-               brand.includes(searchTerm) ||
-               size.includes(searchTerm);
-    });
-    
-    // Display filtered products
-    displayProducts(filteredProducts);
-}
 
-function displayProducts(products) {
-    const tbody = document.getElementById('productTableBody');
-    
-    if (products.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
-                    <i class="bi bi-search"></i>
-                    <p>No products found matching your search</p>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tbody.innerHTML = '';
-    
-    products.forEach(product => {
-        const stockClass = product.stock > product.minStock ? 'In Stock' : 
-                          product.stock > 0 ? 'Low' : 'Out of Stock';
-        const stockBadgeClass = product.stock > product.minStock ? 'bg-success' : 
-                               product.stock > 0 ? 'bg-warning' : 'bg-danger';
-        
-        const row = `
-            <tr>
-                <td><i class="bi bi-file-earmark text-primary"></i></td>
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>${product.brand || '-'}</td>
-                <td><strong>${product.size || 'N/A'}</strong></td>
-                <td><span class="badge ${stockBadgeClass}">${stockClass} (${product.stock})</span></td>
-                <td>₹${product.price.toFixed(2)}/${product.unitType}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="editProduct('${product.id}')">
-                        <i class="bi bi-pencil"></i> Edit
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </td>
-            </tr>
-        `;
-        
-        tbody.innerHTML += row;
-    });
-}
-
-function displayAllProducts() {
-    displayProducts(cachedProducts);
-}
-
-
-    // Open Clear Sales popup
-function openClearSalesPopup() {
-    // Set default dates (last 30 days to today)
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    document.getElementById('clearFromDate').value = formatDateForInput(thirtyDaysAgo);
-    document.getElementById('clearToDate').value = formatDateForInput(today);
-    
-    // Reset count display
-    document.getElementById('clearSalesCount').style.display = 'none';
-    
-    // Add event listeners to count on date change
-    document.getElementById('clearFromDate').addEventListener('change', updateClearSalesCount);
-    document.getElementById('clearToDate').addEventListener('change', updateClearSalesCount);
-    
-    // Open modal
-    const modal = new bootstrap.Modal(document.getElementById('clearSalesModal'));
-    modal.show();
-    
-    // Initial count
-    updateClearSalesCount();
-}
-
-// Format date for input field (YYYY-MM-DD)
-function formatDateForInput(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Update count of sales in selected date range
-function updateClearSalesCount() {
-    const fromDate = new Date(document.getElementById('clearFromDate').value);
-    const toDate = new Date(document.getElementById('clearToDate').value);
-    
-    if (!fromDate || !toDate) return;
-    
-    if (fromDate > toDate) {
-        alert('❌ "From Date" cannot be after "To Date"');
-        return;
-    }
-    
-    // Count sales in range
-    const salesInRange = cachedSales.filter(sale => {
-        const saleDate = new Date(sale.date);
-        return saleDate >= fromDate && saleDate <= toDate;
-    });
-    
-    // Display count
-    const countDiv = document.getElementById('clearSalesCount');
-    const countNumber = document.getElementById('salesCountNumber');
-    
-    countNumber.textContent = salesInRange.length;
-    countDiv.style.display = salesInRange.length > 0 ? 'block' : 'none';
-}
-
-// Clear sales in date range
-function clearSalesInDateRange() {
-    const fromDate = new Date(document.getElementById('clearFromDate').value);
-    const toDate = new Date(document.getElementById('clearToDate').value);
-    
-    if (!fromDate || !toDate) {
-        alert('❌ Please select both From and To dates');
-        return;
-    }
-    
-    if (fromDate > toDate) {
-        alert('❌ "From Date" cannot be after "To Date"');
-        return;
-    }
-    
-    // Count sales to be cleared
-    const salesInRange = cachedSales.filter(sale => {
-        const saleDate = new Date(sale.date);
-        return saleDate >= fromDate && saleDate <= toDate;
-    });
-    
-    if (salesInRange.length === 0) {
-        alert('ℹ️ No sales found in the selected date range');
-        return;
-    }
-    
-    // Confirm deletion
-    const fromStr = fromDate.toLocaleDateString('en-IN');
-    const toStr = toDate.toLocaleDateString('en-IN');
-    const confirmMsg = `Are you sure you want to clear ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\n⚠️ This action cannot be undone (in webapp only).`;
-    
-    if (!confirm(confirmMsg)) return;
-    
-    // Filter out sales in the date range
-    cachedSales = cachedSales.filter(sale => {
-        const saleDate = new Date(sale.date);
-        return saleDate < fromDate || saleDate > toDate;
-    });
-    
-    // Update display
-    displaySalesFromCache();
-    updateSummaryFromCache();
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('clearSalesModal'));
-    modal.hide();
-    
-    // Show success message
-    alert(`✅ Successfully cleared ${salesInRange.length} sales records!\n\nNote: Google Sheets data is unchanged. Click Refresh to restore from server.`);
-}
-
-    function displaySalesFromCache() {
-    const salesList = document.getElementById('salesList');
-    
-    if (cachedSales.length === 0) {
-        salesList.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                    No sales recorded yet
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    salesList.innerHTML = '';
-    
-    // Show only last 50 sales (most recent)
-    const recentSales = cachedSales.slice(0, 50);
-    
-    recentSales.forEach(sale => {
-        const date = new Date(sale.date);
-        const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
-                             date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
-        
-        const row = `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${sale.productName}</td>
-                <td>${sale.quantity}</td>
-                <td>${sale.unitType}</td>
-                <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
-            </tr>
-        `;
-        
-        salesList.innerHTML += row;
-    });
-    
-    // Show count if more sales exist
-    if (cachedSales.length > 50) {
-        salesList.innerHTML += `
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    <small>Showing 50 most recent sales. Total: ${cachedSales.length} sales</small>
-                </td>
-            </tr>
-        `;
-    }
-}
 
 
 
@@ -1245,6 +1010,243 @@ function clearSalesInDateRange() {
   function importData(){ document.getElementById('fileInput').click(); }
   function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('✅ Data restored (local)'); }catch(err){ alert('❌ Invalid file'); } }; reader.readAsText(file); }
 
+      function searchProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    
+    // If empty, display all products
+    if (!searchTerm) {
+        displayAllProducts();
+        return;
+    }
+    
+    // Filter products
+    const filteredProducts = cachedProducts.filter(product => {
+        const name = (product.name || '').toLowerCase();
+        const category = (product.category || '').toLowerCase();
+        const brand = (product.brand || '').toLowerCase();
+        const size = (product.size || '').toLowerCase();
+        
+        return name.includes(searchTerm) ||
+               category.includes(searchTerm) ||
+               brand.includes(searchTerm) ||
+               size.includes(searchTerm);
+    });
+    
+    // Display filtered products
+    displayProducts(filteredProducts);
+}
+
+function displayProducts(products) {
+    const tbody = document.getElementById('productTableBody');
+    
+    if (products.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4 text-muted">
+                    <i class="bi bi-search"></i>
+                    <p>No products found matching your search</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    products.forEach(product => {
+        const stockClass = product.stock > product.minStock ? 'In Stock' : 
+                          product.stock > 0 ? 'Low' : 'Out of Stock';
+        const stockBadgeClass = product.stock > product.minStock ? 'bg-success' : 
+                               product.stock > 0 ? 'bg-warning' : 'bg-danger';
+        
+        const row = `
+            <tr>
+                <td><i class="bi bi-file-earmark text-primary"></i></td>
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>${product.brand || '-'}</td>
+                <td><strong>${product.size || 'N/A'}</strong></td>
+                <td><span class="badge ${stockBadgeClass}">${stockClass} (${product.stock})</span></td>
+                <td>₹${product.price.toFixed(2)}/${product.unitType}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editProduct('${product.id}')">
+                        <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+        
+        tbody.innerHTML += row;
+    });
+}
+
+function displayAllProducts() {
+    displayProducts(cachedProducts);
+}
+
+
+    // Open Clear Sales popup
+function openClearSalesPopup() {
+    // Set default dates (last 30 days to today)
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    document.getElementById('clearFromDate').value = formatDateForInput(thirtyDaysAgo);
+    document.getElementById('clearToDate').value = formatDateForInput(today);
+    
+    // Reset count display
+    document.getElementById('clearSalesCount').style.display = 'none';
+    
+    // Add event listeners to count on date change
+    document.getElementById('clearFromDate').addEventListener('change', updateClearSalesCount);
+    document.getElementById('clearToDate').addEventListener('change', updateClearSalesCount);
+    
+    // Open modal
+    const modal = new bootstrap.Modal(document.getElementById('clearSalesModal'));
+    modal.show();
+    
+    // Initial count
+    updateClearSalesCount();
+}
+
+// Format date for input field (YYYY-MM-DD)
+function formatDateForInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Update count of sales in selected date range
+function updateClearSalesCount() {
+    const fromDate = new Date(document.getElementById('clearFromDate').value);
+    const toDate = new Date(document.getElementById('clearToDate').value);
+    
+    if (!fromDate || !toDate) return;
+    
+    if (fromDate > toDate) {
+        alert('❌ "From Date" cannot be after "To Date"');
+        return;
+    }
+    
+    // Count sales in range
+    const salesInRange = cachedSales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        return saleDate >= fromDate && saleDate <= toDate;
+    });
+    
+    // Display count
+    const countDiv = document.getElementById('clearSalesCount');
+    const countNumber = document.getElementById('salesCountNumber');
+    
+    countNumber.textContent = salesInRange.length;
+    countDiv.style.display = salesInRange.length > 0 ? 'block' : 'none';
+}
+
+// Clear sales in date range
+function clearSalesInDateRange() {
+    const fromDate = new Date(document.getElementById('clearFromDate').value);
+    const toDate = new Date(document.getElementById('clearToDate').value);
+    
+    if (!fromDate || !toDate) {
+        alert('❌ Please select both From and To dates');
+        return;
+    }
+    
+    if (fromDate > toDate) {
+        alert('❌ "From Date" cannot be after "To Date"');
+        return;
+    }
+    
+    // Count sales to be cleared
+    const salesInRange = cachedSales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        return saleDate >= fromDate && saleDate <= toDate;
+    });
+    
+    if (salesInRange.length === 0) {
+        alert('ℹ️ No sales found in the selected date range');
+        return;
+    }
+    
+    // Confirm deletion
+    const fromStr = fromDate.toLocaleDateString('en-IN');
+    const toStr = toDate.toLocaleDateString('en-IN');
+    const confirmMsg = `Are you sure you want to clear ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\n⚠️ This action cannot be undone (in webapp only).`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    // Filter out sales in the date range
+    cachedSales = cachedSales.filter(sale => {
+        const saleDate = new Date(sale.date);
+        return saleDate < fromDate || saleDate > toDate;
+    });
+    
+    // Update display
+    displaySalesFromCache();
+    updateSummaryFromCache();
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('clearSalesModal'));
+    modal.hide();
+    
+    // Show success message
+    alert(`✅ Successfully cleared ${salesInRange.length} sales records!\n\nNote: Google Sheets data is unchanged. Click Refresh to restore from server.`);
+}
+
+    function displaySalesFromCache() {
+    const salesList = document.getElementById('salesList');
+    
+    if (cachedSales.length === 0) {
+        salesList.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    No sales recorded yet
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    salesList.innerHTML = '';
+    
+    // Show only last 50 sales (most recent)
+    const recentSales = cachedSales.slice(0, 50);
+    
+    recentSales.forEach(sale => {
+        const date = new Date(sale.date);
+        const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
+                             date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
+        
+        const row = `
+            <tr>
+                <td>${formattedDate}</td>
+                <td>${sale.productName}</td>
+                <td>${sale.quantity}</td>
+                <td>${sale.unitType}</td>
+                <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
+            </tr>
+        `;
+        
+        salesList.innerHTML += row;
+    });
+    
+    // Show count if more sales exist
+    if (cachedSales.length > 50) {
+        salesList.innerHTML += `
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    <small>Showing 50 most recent sales. Total: ${cachedSales.length} sales</small>
+                </td>
+            </tr>
+        `;
+    }
+}
+
   /***********************
    * Init
    ***********************/
@@ -1254,7 +1256,10 @@ function clearSalesInDateRange() {
     renderSales();
     syncFromGoogleSheets();
   });
+
+    
   </script>
 </body>
 </html>
+
 
