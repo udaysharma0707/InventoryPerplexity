@@ -254,6 +254,16 @@
     </div>
 
     <div class="modal-body">
+
+      <!-- ✅ NEW: Buttons at TOP -->
+  <div class="mb-3 text-end">
+    <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()">
+      <i class="bi bi-plus-circle"></i> Add More Rows
+    </button>
+    <button class="btn btn-outline-success btn-sm" onclick="openCustomProductPopup()">
+      <i class="bi bi-pencil-square"></i> Add Custom Product
+    </button>
+  </div>
       <div class="table-responsive">
         <table class="table table-sm grid-table mb-0">
           <thead><tr><th class="grid-row-number">#</th><th>Product Name</th><th style="width:130px">Size</th><th style="width:90px">Qty</th><th style="width:110px">Unit</th><th style="width:120px">Price</th><th style="width:140px">Total</th><th style="width:60px"></th></tr></thead>
@@ -677,7 +687,8 @@ try {
         </select>
       </td>
       <td><input type="text" class="form-control size-input readonly-input" id="size-${index}" readonly /></td>
-      <td><input type="number" class="form-control qty-input" id="qty-${index}" min="1" disabled oninput="onQtyChange(${index})" /></td>
+      <td><input type="number" class="form-control qty-input" id="qty-${index}" min="1" disabled placeholder="Enter quantity" oninput="onQtyChange(${index})"></td>
+
       <td><input type="text" class="form-control unit-input readonly-input" id="unit-${index}" readonly /></td>
       <td><input type="number" class="form-control price-input readonly-input" id="price-${index}" readonly /></td>
       <td><div id="total-${index}" class="fw-bold">₹0.00</div></td>
@@ -693,18 +704,54 @@ try {
     updateRowNumbers();
   }
 
-  function removeRow(btn){
-    const tr = btn.closest('tr');
-    if(!tr) return;
-    // if custom product in this row, remove from customProductsInSale as well
-    const select = tr.querySelector('.product-select');
-    if(select && select.value && select.value.startsWith('CUST_TMP_')){
-      customProductsInSale = customProductsInSale.filter(c => c.tempId !== select.value);
-    }
-    tr.remove();
-    updateRowNumbers();
-    updateGrandTotal();
+ function removeRow(btn) {
+  const tr = btn.closest('tr')
+  if(!tr) return
+  
+  // ✅ FIX: Don't actually delete the row - just clear/reset it
+  const select = tr.querySelector('.product-select')
+  const sizeEl = tr.querySelector('.size-input')
+  const qtyEl = tr.querySelector('.qty-input')
+  const unitEl = tr.querySelector('.unit-input')
+  const priceEl = tr.querySelector('.price-input')
+  const totalEl = tr.querySelector('[id^="total-"]')
+  
+  // If custom product, remove from array
+  if(select && select.value && select.value.startsWith('CUST_TMP_')) {
+    customProductsInSale = customProductsInSale.filter(c => c.tempId !== select.value)
   }
+  
+  // Reset all fields to empty/default state
+  if(select) {
+    select.value = ''
+    select.disabled = false
+  }
+  if(sizeEl) sizeEl.value = ''
+  if(unitEl) unitEl.value = ''
+  if(priceEl) priceEl.value = ''
+  if(qtyEl) {
+    qtyEl.value = ''
+    qtyEl.disabled = true // Disable until product selected
+    qtyEl.removeAttribute('max')
+  }
+  if(totalEl) totalEl.textContent = formatCurrency(0)
+  
+  // ✅ CRITICAL: Get row index and re-attach event listener
+  const rowIndex = Array.from(tr.parentNode.children).indexOf(tr) + 1;
+  
+  if(select) {
+    // Re-populate select options
+    populateProductSelectForRow(rowIndex);
+    
+    // Re-attach onchange handler
+    select.onchange = function() {
+      onProductSelect(rowIndex);
+    };
+  }
+  
+  updateGrandTotal()
+}
+
 
   function updateRowNumbers(){
     const rows = document.querySelectorAll('#product-grid-body .product-row');
@@ -1440,6 +1487,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
