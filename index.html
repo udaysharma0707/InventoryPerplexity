@@ -258,6 +258,20 @@
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
+
+let deletedSaleIds = []; // NEW: Track manually deleted sales
+
+// NEW: Load deleted IDs from localStorage on page load
+try {
+    const stored = localStorage.getItem('deletedSaleIds');
+    if (stored) {
+        deletedSaleIds = JSON.parse(stored);
+        console.log('📝 Loaded', deletedSaleIds.length, 'deleted sale IDs from localStorage');
+    }
+} catch (e) {
+    console.warn('Could not load deletedSaleIds from localStorage', e);
+}
+    
   let hasInitialLoaded = false;
 
   // Keep custom products added into the current sale (persist across grid re-builds)
@@ -296,28 +310,32 @@
   async function syncFromGoogleSheets() {
     showSyncIndicator('Refreshing...');
     try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
-      if (!res.ok) throw new Error('Network ' + res.status);
-      const data = await res.json();
-      if (data && data.success) {
-        const prodChanged = JSON.stringify(cachedProducts) !== JSON.stringify(data.products || []);
-        const salesChanged = JSON.stringify(cachedSales) !== JSON.stringify(data.sales || []);
-        if (prodChanged || salesChanged || !hasInitialLoaded) {
-          cachedProducts = data.products || [];
-          cachedSales = data.sales || [];
-          hasInitialLoaded = true;
-          renderProducts();
-          renderSales();
-          showSyncIndicator('✅ Synced!', 900);
-        } else hideSyncIndicator();
-      } else {
-        await fallbackGetProductsAndSales();
-      }
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
+        if (!res.ok) throw new Error(`Network ${res.status}`);
+        const data = await res.json();
+        
+        if (data && data.success) {
+            cachedProducts = data.products || [];
+            let allSales = data.sales || [];
+            
+            // ✅ FIX 1: Filter out manually deleted sales
+            cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
+            console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+            
+            // ✅ FIX 2: Sort sales by date (newest first)
+            sortSalesByDateDescending();
+            
+            hasInitialLoaded = true;
+            renderProducts();
+            renderSales();
+            showSyncIndicator('Synced!', 900);
+        }
     } catch (err) {
-      console.error('sync error', err);
-      hideSyncIndicator();
+        console.error('sync error', err);
+        hideSyncIndicator();
     }
-  }
+}
+
   async function fallbackGetProductsAndSales() {
     try { const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`); if(p.ok){ const pj=await p.json(); if(pj && pj.products) cachedProducts=pj.products; } }
     catch(e){ console.warn('fallback products failed', e); }
@@ -639,6 +657,17 @@
     });
   }
 
+
+    // ========== NEW: Sort sales by date (newest first) ==========
+function sortSalesByDateDescending() {
+    cachedSales.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA; // Newest first
+    });
+    console.log('🔄 Sales sorted: newest first');
+}
+
   /***********************
    * Row interactions
    ***********************/
@@ -948,6 +977,9 @@
         }
       }
     });
+
+      // ✅ NEW: Sort sales by date after adding new sales
+    sortSalesByDateDescending();
     renderProducts();
     renderSales();
 
@@ -1202,12 +1234,16 @@ function clearSalesInDateRange() {
         return;
     }
     
+    // Set time to start/end of day for accurate comparison
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+    
     if (fromDate > toDate) {
         alert('❌ "From Date" cannot be after "To Date"');
         return;
     }
     
-    // Count sales to be cleared
+    // Find sales in date range
     const salesInRange = cachedSales.filter(sale => {
         const saleDate = new Date(sale.date);
         return saleDate >= fromDate && saleDate <= toDate;
@@ -1221,9 +1257,24 @@ function clearSalesInDateRange() {
     // Confirm deletion
     const fromStr = fromDate.toLocaleDateString('en-IN');
     const toStr = toDate.toLocaleDateString('en-IN');
-    const confirmMsg = `Are you sure you want to clear ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\n⚠️ This action cannot be undone (in webapp only).`;
+    const confirmMsg = `Are you sure you want to hide ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\n⚠️ This will hide them from display only.\nGoogle Sheets data remains unchanged.\n\nYou can restore them later by clearing browser data.`;
     
     if (!confirm(confirmMsg)) return;
+    
+    // ✅ FIX: Store deleted IDs persistently
+    salesInRange.forEach(sale => {
+        if (sale.id && !deletedSaleIds.includes(sale.id)) {
+            deletedSaleIds.push(sale.id);
+        }
+    });
+    
+    // Save to localStorage for persistence across sessions and page reloads
+    try {
+        localStorage.setItem('deletedSaleIds', JSON.stringify(deletedSaleIds));
+        console.log('💾 Saved', deletedSaleIds.length, 'deleted sale IDs to localStorage');
+    } catch (e) {
+        console.warn('Could not save deletedSaleIds to localStorage', e);
+    }
     
     // Filter out sales in the date range
     cachedSales = cachedSales.filter(sale => {
@@ -1240,8 +1291,9 @@ function clearSalesInDateRange() {
     modal.hide();
     
     // Show success message
-    alert(`✅ Successfully cleared ${salesInRange.length} sales records!\n\nNote: Google Sheets data is unchanged. Click Refresh to restore from server.`);
+    alert(`✅ Successfully cleared ${salesInRange.length} sales records!\n\nNote: They're hidden from display only. Google Sheets data is unchanged.\n\nTo restore: Clear browser data or use developer console to run:\nlocalStorage.removeItem('deletedSaleIds')`);
 }
+
 
     function displaySalesFromCache() {
     const salesList = document.getElementById('salesList');
@@ -1306,6 +1358,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
