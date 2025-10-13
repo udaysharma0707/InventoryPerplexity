@@ -136,7 +136,7 @@
     <!-- Search -->
     <div class="row mb-3">
       <div class="col-md-6 mx-auto">
-        <input id="searchInput" class="form-control form-control-lg" placeholder="ðŸ” Search products by name, brand or size..." onkeyup="searchProducts()">
+        <input id="searchInput" class="form-control form-control-lg" placeholder="🔍Search products by name, brand or size..." onkeyup="searchProducts()">
       </div>
     </div>
 
@@ -502,10 +502,14 @@ try {
 
   function renderSales(){
     const tbody = document.getElementById('salesList');
+    
     if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading salesâ€¦</div></td></tr>`; return; }
+    
     if(!cachedSales || cachedSales.length===0){ tbody.innerHTML=`<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>`; return; }
+    
     let html = '';
-    const recent = (cachedSales || []).slice(0,10);
+    
+    const recent = (cachedSales || []).slice(0,100);
     recent.forEach(sale => {
       const d = new Date(sale.date||'');
       const formatted = d && !isNaN(d) ? (d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) : sale.date;
@@ -1424,53 +1428,55 @@ function clearSalesInDateRange() {
 }
 
 
-    function displaySalesFromCache() {
-    const salesList = document.getElementById('salesList');
+   function displaySalesFromCache() {
+  const salesList = document.getElementById('salesList');
+  
+  if (cachedSales.length === 0) {
+    salesList.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted py-4">
+          No sales recorded yet
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  salesList.innerHTML = '';
+  
+  // ✅ FIX: Show only last 100 sales (most recent)
+  const recentSales = cachedSales.slice(0, 100);
+  
+  recentSales.forEach(sale => {
+    const date = new Date(sale.date);
+    const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
+                         date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
     
-    if (cachedSales.length === 0) {
-        salesList.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-muted py-4">
-                    No sales recorded yet
-                </td>
-            </tr>
-        `;
-        return;
-    }
+    const row = `
+      <tr>
+        <td>${formattedDate}</td>
+        <td>${sale.productName}</td>
+        <td>${sale.quantity}</td>
+        <td>${sale.unitType}</td>
+        <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
+      </tr>
+    `;
     
-    salesList.innerHTML = '';
-    
-    // Show only last 100 sales (most recent)
-    const recentSales = cachedSales.slice(0, 100);
-    
-    recentSales.forEach(sale => {
-        const date = new Date(sale.date);
-        const formattedDate = date.toLocaleDateString('en-IN') + ' ' + 
-                             date.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
-        
-        const row = `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${sale.productName}</td>
-                <td>${sale.quantity}</td>
-                <td>${sale.unitType}</td>
-                <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
-            </tr>
-        `;
-        
-        salesList.innerHTML += row;
-    });
-    
-    // Show count if more sales exist
-    if (cachedSales.length > 100) {
-        salesList.innerHTML += `
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    <small>Showing 50 most recent sales. Total: ${cachedSales.length} sales</small>
-                </td>
-            </tr>
-        `;
-    }
+    salesList.innerHTML += row;
+  });
+  
+  // ✅ FIX: Show count if more than 100 sales exist
+  if (cachedSales.length > 100) {
+    salesList.innerHTML += `
+      <tr>
+        <td colspan="5" class="text-center text-muted">
+          <small>Showing 100 most recent sales. Total: ${cachedSales.length} sales</small>
+        </td>
+      </tr>
+    `;
+  }
+}
+
 }
 
   /***********************
@@ -1487,6 +1493,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
