@@ -938,12 +938,21 @@ function sortSalesByDateDescending() {
     document.getElementById(`size-${rowIndex}`).value = cp.size;
     document.getElementById(`unit-${rowIndex}`).value = cp.unitType;
     document.getElementById(`price-${rowIndex}`).value = cp.price;
-    const qtyEl = document.getElementById(`qty-${rowIndex}`);
-    qtyEl.disabled = false;
-    qtyEl.value = cp.quantity;
-    qtyEl.max = cp.quantity;
-    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(cp.price * cp.quantity);
-  }
+    const qtyEl = document.getElementById(`qty-${rowIndex}`)
+qtyEl.disabled = false  // ✅ Ensure editable
+qtyEl.readOnly = false  // ✅ Ensure editable
+qtyEl.value = cp.quantity
+qtyEl.max = cp.quantity
+
+// ✅ FIX: Allow quantity to be edited and update total
+qtyEl.addEventListener('input', function() {
+    const newQty = parseFloat(this.value) || 0;
+    const price = parseFloat(document.getElementById(`price-${rowIndex}`).value) || 0;
+    const total = newQty * price;
+    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(total);
+    updateGrandTotal();
+});
+
 
   function findFirstEmptyRowIndex(){
     const rows = document.querySelectorAll('#product-grid-body .product-row');
@@ -1424,6 +1433,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
