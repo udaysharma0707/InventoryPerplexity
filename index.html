@@ -917,7 +917,7 @@ function sortSalesByDateDescending() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal')); if(modal) modal.hide();
   }
 
-  function populateRowWithCustom(rowIndex, cp){
+function populateRowWithCustom(rowIndex, cp){
     const sel = document.getElementById(`product-${rowIndex}`);
     if(!sel) return;
     // ensure select contains this option (populateProductSelectForRow will add it)
@@ -938,20 +938,27 @@ function sortSalesByDateDescending() {
     document.getElementById(`size-${rowIndex}`).value = cp.size;
     document.getElementById(`unit-${rowIndex}`).value = cp.unitType;
     document.getElementById(`price-${rowIndex}`).value = cp.price;
-    const qtyEl = document.getElementById(`qty-${rowIndex}`)
-qtyEl.disabled = false  // ✅ Ensure editable
-qtyEl.readOnly = false  // ✅ Ensure editable
-qtyEl.value = cp.quantity
-qtyEl.max = cp.quantity
+    
+    // ✅ FIX: Make quantity editable for custom products
+    const qtyEl = document.getElementById(`qty-${rowIndex}`);
+    qtyEl.disabled = false;  // ✅ Keep enabled
+    qtyEl.readOnly = false;  // ✅ Not read-only
+    qtyEl.value = cp.quantity;
+    qtyEl.max = cp.quantity; // Can increase up to this amount
+    
+    // ✅ NEW: Add event listener to update total when quantity changes
+    qtyEl.addEventListener('input', function() {
+        const newQty = parseFloat(this.value) || 0;
+        const price = parseFloat(document.getElementById(`price-${rowIndex}`).value) || 0;
+        const total = newQty * price;
+        document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(total);
+        updateGrandTotal();
+    });
+    
+    // Set initial total
+    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(cp.price * cp.quantity);
+}
 
-// ✅ FIX: Allow quantity to be edited and update total
-qtyEl.addEventListener('input', function() {
-    const newQty = parseFloat(this.value) || 0;
-    const price = parseFloat(document.getElementById(`price-${rowIndex}`).value) || 0;
-    const total = newQty * price;
-    document.getElementById(`total-${rowIndex}`).textContent = formatCurrency(total);
-    updateGrandTotal();
-});
 
 
   function findFirstEmptyRowIndex(){
@@ -1433,6 +1440,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
