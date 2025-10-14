@@ -1942,6 +1942,7 @@ function clearSalesInDateRange() {
 let invoiceCounter = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
 
 function generateInvoice() {
+  alert('Generate Invoice button clicked!'); // ← ADD THIS LINE
   // Collect products from sale grid
   const rows = document.querySelectorAll('#product-grid-body .product-row');
   const items = [];
@@ -2355,6 +2356,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
