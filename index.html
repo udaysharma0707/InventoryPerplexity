@@ -372,25 +372,173 @@
 </div>
 
 
-  <!-- SIMPLE INVOICE MODAL TEST -->
+  <!-- INVOICE MODAL -->
 <div class="modal fade" id="invoiceModal" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Invoice Generator</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-receipt"></i> Create Invoice
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
+      
       <div class="modal-body">
-        <input type="text" class="form-control" id="invoiceNumber" placeholder="Invoice Number">
-        <input type="date" class="form-control mt-2" id="invoiceDate">
-        <input type="date" class="form-control mt-2" id="invoiceDueDate">
-        <div id="invoiceItemsBody"></div>
-        <textarea class="form-control mt-2" id="invoiceNotes"></textarea>
-        <textarea class="form-control mt-2" id="invoiceTerms"></textarea>
+        <form id="invoiceForm">
+          
+          <!-- Customer Name -->
+          <div class="mb-3">
+            <label class="form-label">Customer Name *</label>
+            <input type="text" class="form-control" id="invoiceCustomerName" 
+                   required placeholder="Enter customer name">
+          </div>
+          
+          <!-- Invoice Details Row -->
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <label class="form-label">Invoice Number *</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="invoiceNumber" required readonly>
+                <button class="btn btn-outline-secondary" type="button" 
+                        onclick="regenerateInvoiceNumber()" title="Regenerate">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+              <label class="form-label">Invoice Date *</label>
+              <input type="date" class="form-control" id="invoiceDate" required>
+            </div>
+            
+            <div class="col-md-3">
+              <label class="form-label">Payment Terms</label>
+              <select class="form-select" id="paymentTerms" onchange="calculateDueDate()">
+                <option value="0">Due on Receipt</option>
+                <option value="7">Net 7</option>
+                <option value="15" selected>Net 15</option>
+                <option value="30">Net 30</option>
+                <option value="45">Net 45</option>
+                <option value="60">Net 60</option>
+              </select>
+            </div>
+            
+            <div class="col-md-3">
+              <label class="form-label">Due Date</label>
+              <input type="date" class="form-control" id="invoiceDueDate">
+            </div>
+          </div>
+          
+          <!-- Items Table -->
+          <div class="mb-3">
+            <h6 class="border-bottom pb-2">Invoice Items</h6>
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 40%">Item Details</th>
+                    <th style="width: 12%" class="text-center">Quantity</th>
+                    <th style="width: 15%" class="text-end">Rate (₹)</th>
+                    <th style="width: 18%" class="text-end">Amount (₹)</th>
+                    <th style="width: 5%"></th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceItemsBody">
+                  <!-- Populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addInvoiceRow()">
+              <i class="bi bi-plus-circle"></i> Add Row
+            </button>
+          </div>
+          
+          <!-- Totals Section -->
+          <div class="row">
+            <div class="col-md-6"></div>
+            <div class="col-md-6">
+              <table class="table table-sm">
+                <tr>
+                  <td class="text-end"><strong>Sub Total:</strong></td>
+                  <td class="text-end" style="width: 150px" id="invoiceSubtotal">₹0.00</td>
+                </tr>
+                <tr>
+                  <td class="text-end">
+                    <span class="me-2">Discount:</span>
+                    <input type="number" class="form-control form-control-sm d-inline-block" 
+                           style="width: 70px" id="invoiceDiscount" value="0" min="0" 
+                           oninput="calculateInvoiceTotal()">
+                    <select class="form-select form-select-sm d-inline-block" 
+                            style="width: 60px" id="invoiceDiscountType" 
+                            onchange="calculateInvoiceTotal()">
+                      <option value="amount">₹</option>
+                      <option value="percent">%</option>
+                    </select>
+                  </td>
+                  <td class="text-end text-danger" id="invoiceDiscountAmount">-₹0.00</td>
+                </tr>
+                <tr>
+                  <td class="text-end">
+                    <span class="me-2">Tax (GST):</span>
+                    <select class="form-select form-select-sm d-inline-block" 
+                            style="width: 90px" id="invoiceTaxRate" 
+                            onchange="calculateInvoiceTotal()">
+                      <option value="0">No Tax</option>
+                      <option value="5">5%</option>
+                      <option value="12">12%</option>
+                      <option value="18" selected>18%</option>
+                      <option value="28">28%</option>
+                    </select>
+                  </td>
+                  <td class="text-end" id="invoiceTaxAmount">₹0.00</td>
+                </tr>
+                <tr class="table-success fw-bold">
+                  <td class="text-end"><h5 class="mb-0">Total (₹):</h5></td>
+                  <td class="text-end"><h5 class="mb-0" id="invoiceGrandTotal">₹0.00</h5></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Customer Notes -->
+          <div class="mb-3">
+            <label class="form-label">Customer Notes</label>
+            <textarea class="form-control" id="invoiceNotes" rows="2" 
+                      placeholder="Add notes for customer (e.g., delivery instructions, thank you message)">Thanks for your business.</textarea>
+            <small class="text-muted">Optional message to include on the invoice</small>
+          </div>
+          
+          <!-- Terms & Conditions -->
+          <div class="mb-3">
+            <label class="form-label">
+              Terms & Conditions
+              <button type="button" class="btn btn-sm btn-link p-0" onclick="loadDefaultTerms()">
+                <i class="bi bi-arrow-clockwise"></i> Use Default
+              </button>
+            </label>
+            <textarea class="form-control" id="invoiceTerms" rows="4" 
+                      placeholder="Enter payment terms and conditions"></textarea>
+          </div>
+          
+        </form>
       </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+        <button type="button" class="btn btn-info" onclick="previewInvoice()">
+          <i class="bi bi-eye"></i> Preview
+        </button>
+        <button type="button" class="btn btn-success" onclick="saveInvoice()">
+          <i class="bi bi-save"></i> Save Invoice
+        </button>
+      </div>
+      
     </div>
   </div>
 </div>
+
 
 
   <!-- Add/Edit Product Modal (image removed) -->
@@ -2419,6 +2567,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
