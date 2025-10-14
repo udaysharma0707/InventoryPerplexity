@@ -268,6 +268,13 @@
         <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()"><i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh</button>
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
+
+        <!-- ✅ NEW: View Invoices Button -->
+      <button class="btn btn-success btn-sm" onclick="viewSavedInvoices()">
+        <i class="bi bi-receipt-cutoff"></i> View Invoices
+      </button>
+    </div>
+  </div>
       </div>
     </div>
   </nav>
@@ -2131,7 +2138,11 @@ function generateInvoice() {
       return; // Continue to next iteration
     }
     
-    const productName = sel.options[sel.selectedIndex]?.text || 'Product';
+    // Get clean product name without stock info
+let productName = sel.options[sel.selectedIndex]?.text || 'Product';
+// Remove stock information (e.g., "(Stock: 147 Box)")
+productName = productName.replace(/\(Stock:.*?\)/g, '').trim();
+
     const quantity = Number(qtyEl.value);
     const rate = Number(priceEl.value || 0);
     const size = sizeEl.value || '';
@@ -2562,11 +2573,118 @@ function generateInvoiceHTML(data) {
 }
             
 
+// ==========================================
+// VIEW SAVED INVOICES FEATURE
+// ==========================================
+
+function viewSavedInvoices() {
+  const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+  
+  const container = document.getElementById('invoicesListContainer');
+  
+  if (invoices.length === 0) {
+    container.innerHTML = `
+      <div class="alert alert-info text-center">
+        <i class="bi bi-info-circle"></i> No saved invoices found
+      </div>
+    `;
+  } else {
+    let html = `
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 15%">Invoice No</th>
+              <th style="width: 20%">Customer Name</th>
+              <th style="width: 12%">Date</th>
+              <th style="width: 12%">Due Date</th>
+              <th style="width: 10%" class="text-end">Total</th>
+              <th style="width: 18%">Items</th>
+              <th style="width: 13%" class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    invoices.forEach((inv, index) => {
+      const itemsCount = inv.items ? inv.items.length : 0;
+      const itemsSummary = inv.items ? inv.items.slice(0, 2).map(i => i.name).join(', ') : '';
+      const moreItems = itemsCount > 2 ? ` +${itemsCount - 2} more` : '';
+      
+      html += `
+        <tr>
+          <td><strong>${inv.invoiceNumber}</strong></td>
+          <td>${escapeHtml(inv.customerName)}</td>
+          <td>${new Date(inv.invoiceDate).toLocaleDateString('en-IN')}</td>
+          <td>${new Date(inv.dueDate).toLocaleDateString('en-IN')}</td>
+          <td class="text-end"><strong>₹${inv.total.toFixed(2)}</strong></td>
+          <td><small>${escapeHtml(itemsSummary)}${moreItems}</small></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-info" onclick="previewSavedInvoice(${index})" title="Preview">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteSavedInvoice(${index})" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-success">
+        <strong>Total Invoices:</strong> ${invoices.length}
+      </div>
+    `;
+    
+    container.innerHTML = html;
+  }
+  
+  // Show modal
+  new bootstrap.Modal(document.getElementById('viewInvoicesModal')).show();
+}
+
+function previewSavedInvoice(index) {
+  const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+  const invoice = invoices[index];
+  
+  if (!invoice) {
+    alert('Invoice not found');
+    return;
+  }
+  
+  // Generate and show preview
+  const invoiceHTML = generateInvoiceHTML(invoice);
+  const previewWindow = window.open('', 'Invoice Preview', 'width=800,height=600');
+  previewWindow.document.write(invoiceHTML);
+  previewWindow.document.close();
+}
+
+function deleteSavedInvoice(index) {
+  if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+    return;
+  }
+  
+  const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+  const deletedInvoice = invoices[index];
+  
+  invoices.splice(index, 1);
+  localStorage.setItem('invoices', JSON.stringify(invoices));
+  
+  alert(`✅ Invoice ${deletedInvoice.invoiceNumber} deleted successfully`);
+  
+  // Refresh the list
+  viewSavedInvoices();
+}
 
     
   </script>
 </body>
 </html>
+
 
 
 
