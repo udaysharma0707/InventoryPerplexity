@@ -1941,7 +1941,6 @@ function clearSalesInDateRange() {
 // Global variable to store invoice number counter
 let invoiceCounter = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
 
-// Generate Invoice from Sale
 function generateInvoice() {
   // Collect products from sale grid
   const rows = document.querySelectorAll('#product-grid-body .product-row');
@@ -1954,7 +1953,10 @@ function generateInvoice() {
     const priceEl = document.getElementById(`price-${idx}`);
     const sizeEl = document.getElementById(`size-${idx}`);
     
-    if (!sel || !sel.value || !qtyEl.value) return;
+    // Skip if no product selected or no quantity
+    if (!sel || !sel.value || !qtyEl || !qtyEl.value || Number(qtyEl.value) <= 0) {
+      return; // Continue to next iteration
+    }
     
     const productName = sel.options[sel.selectedIndex]?.text || 'Product';
     const quantity = Number(qtyEl.value);
@@ -1975,12 +1977,15 @@ function generateInvoice() {
     return;
   }
   
+  console.log('Invoice items collected:', items); // Debug log
+  
   // Store items temporarily
   window.tempInvoiceItems = items;
   
   // Open invoice modal
   openInvoiceModal();
 }
+
 
 // Open Invoice Modal
 function openInvoiceModal() {
@@ -2338,6 +2343,11 @@ function generateInvoiceHTML(data) {
           Print Invoice
         </button>
       </div>
+
+     </body>
+    </html>
+  `;
+}
             
 
 
@@ -2345,6 +2355,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
