@@ -546,6 +546,31 @@
   </div>
 </div>
 
+<!-- VIEW INVOICES MODAL -->
+<div class="modal fade" id="viewInvoicesModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-receipt-cutoff"></i> Saved Invoices
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div id="invoicesListContainer">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 
   <!-- Add/Edit Product Modal (image removed) -->
@@ -2118,11 +2143,11 @@ function clearSalesInDateRange() {
 let invoiceCounter = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
 
 function generateInvoice() {
-  alert('Step 1: Generate Invoice button clicked!');
+  
   
   // Collect products from sale grid
   const rows = document.querySelectorAll('#product-grid-body .product-row');
-  alert('Step 2: Found ' + rows.length + ' rows');
+ 
   
   const items = [];
   
@@ -2156,47 +2181,43 @@ productName = productName.replace(/\(Stock:.*?\)/g, '').trim();
     });
   });
   
-  alert('Step 3: Collected ' + items.length + ' items');
   
   if (items.length === 0) {
-    alert('❌ Please add at least one product before generating invoice');
+    
     return;
   }
   
-  alert('Step 4: About to store items');
+
   
   // Store items temporarily
   window.tempInvoiceItems = items;
   
-  alert('Step 5: About to open modal');
+  
   
   // Open invoice modal
   openInvoiceModal();
   
-  alert('Step 6: Modal function called');
 }
 
 
 function openInvoiceModal() {
-  alert('openInvoiceModal called');
+
   
   // Check if modal exists
   const modalEl = document.getElementById('invoiceModal');
-  alert('Modal element: ' + (modalEl ? 'FOUND' : 'NOT FOUND'));
+  
   
   if (!modalEl) {
-    alert('❌ ERROR: Invoice modal HTML is missing from your page!');
+    
     return;
   }
   
-  alert('About to generate invoice number');
   
   // Generate invoice number
   invoiceCounter++;
   const invoiceNo = 'INV-' + String(invoiceCounter).padStart(6, '0');
   
   const invoiceNumEl = document.getElementById('invoiceNumber');
-  alert('Invoice number field: ' + (invoiceNumEl ? 'FOUND' : 'NOT FOUND'));
   
   if (invoiceNumEl) {
     invoiceNumEl.value = invoiceNo;
@@ -2204,8 +2225,7 @@ function openInvoiceModal() {
   
   localStorage.setItem('lastInvoiceNumber', invoiceCounter);
   
-  alert('About to set dates');
-  
+ 
   // Set today's date
   const today = new Date().toISOString().split('T')[0];
   const dateEl = document.getElementById('invoiceDate');
@@ -2213,24 +2233,18 @@ function openInvoiceModal() {
     dateEl.value = today;
   }
   
-  alert('About to calculate due date');
+
   calculateDueDate();
-  
-  alert('About to populate items');
   populateInvoiceItems();
-  
-  alert('About to load default terms');
   loadDefaultTerms();
-  
-  alert('About to show modal with Bootstrap');
   
   // Show modal
   try {
     const bsModal = new bootstrap.Modal(modalEl);
     bsModal.show();
-    alert('Modal.show() called successfully');
+ 
   } catch (error) {
-    alert('ERROR showing modal: ' + error.message);
+    
   }
 }
 
@@ -2684,6 +2698,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
