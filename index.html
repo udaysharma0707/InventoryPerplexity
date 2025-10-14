@@ -18,7 +18,7 @@
     .mobile-item{background:#fff;padding:.75rem;border-radius:.5rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
     .btn-action-sm{padding:.25rem .5rem;font-size:.85rem}
     .sync-indicator{position:fixed;top:70px;left:20px;background:#fff;padding:8px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none;z-index:1000}
-    /* Sales grid mobile transforms */
+   /* Sales grid mobile transforms */
 @media (max-width:768px) {
   .desktop-table { display:none !important; }
   .mobile-list { display:block !important; }
@@ -34,6 +34,109 @@
   .modal-body { max-height: calc(100vh - 200px); overflow-y:auto; -webkit-overflow-scrolling: touch; }
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
+
+/* ✅ NEW: Additional mobile fixes for Record Sale modal */
+@media (max-width: 768px) {
+    /* Specific fixes for salesModal only */
+    #salesModal .modal-dialog {
+        margin: 0.25rem;
+        max-width: calc(100% - 0.5rem);
+    }
+    
+    #salesModal .modal-body {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Smaller font for sales grid on mobile */
+    #salesModal .grid-table {
+        font-size: 0.85rem;
+    }
+    
+    /* Add labels before each field for clarity */
+    #salesModal .grid-table td:nth-child(2)::before { 
+        content: "Product: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    #salesModal .grid-table td:nth-child(3)::before { 
+        content: "Size: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    #salesModal .grid-table td:nth-child(4)::before { 
+        content: "Qty: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    #salesModal .grid-table td:nth-child(5)::before { 
+        content: "Unit: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    #salesModal .grid-table td:nth-child(6)::before { 
+        content: "Price: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    #salesModal .grid-table td:nth-child(7)::before { 
+        content: "Total: "; 
+        font-weight: bold; 
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+    
+    /* Hide row number on mobile */
+    #salesModal .grid-table td:nth-child(1) {
+        display: none;
+    }
+    
+    /* Make total more prominent */
+    #salesModal .grid-table td:nth-child(7) {
+        font-size: 1.1rem;
+        color: #28a745;
+        font-weight: bold;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 2px solid #28a745;
+    }
+    
+    /* Ensure inputs are touch-friendly */
+    #salesModal .product-select,
+    #salesModal .qty-input {
+        width: 100% !important;
+        font-size: 16px !important;
+        height: 44px;
+        margin-top: 4px;
+    }
+    
+    /* Multi-select dropdown smaller on mobile */
+    .multi-select-options {
+        max-height: 200px;
+    }
+    
+    /* Stack modal footer buttons vertically */
+    #salesModal .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    #salesModal .modal-footer button {
+        width: 100%;
+        margin: 0;
+    }
+    
+    /* Smaller buttons on mobile */
+    #salesModal .btn-sm {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
 
 /* ✅ NEW: Mobile Recent Sales Table Optimization */
 @media (max-width: 768px) {
@@ -98,6 +201,58 @@
         max-width: 80px;
     }
 }
+
+
+    /* Multi-Select Dropdown Styles */
+.multi-select-dropdown {
+    position: relative;
+}
+
+.multi-select-toggle {
+    cursor: pointer;
+}
+
+.multi-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1050;
+    padding: 10px;
+    display: none;
+}
+
+.multi-select-options.show {
+    display: block;
+}
+
+.multi-select-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.multi-select-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.multi-select-item:hover {
+    background-color: #f8f9fa;
+}
+
+.multi-select-item label {
+    cursor: pointer;
+    margin-bottom: 0;
+    width: 100%;
+}
+
 
   </style>
 </head>
@@ -255,6 +410,32 @@
 
     <div class="modal-body">
 
+      <!-- ✅ NEW: Multi-Select Product Picker -->
+  <div class="mb-3">
+    <label class="form-label fw-bold">
+      <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Add Products (Multi-Select)
+    </label>
+    <div class="multi-select-dropdown">
+      <button type="button" class="form-control text-start multi-select-toggle" id="multiSelectToggle" onclick="toggleMultiSelect()">
+        <span id="multiSelectLabel">Click to select multiple products...</span>
+        <i class="bi bi-chevron-down float-end"></i>
+      </button>
+      <div class="multi-select-options" id="multiSelectOptions">
+        <input type="text" class="form-control form-control-sm mb-2" 
+               placeholder="🔍 Search products..." 
+               id="multiSelectSearch" 
+               oninput="filterMultiSelectOptions()">
+        <div class="multi-select-list" id="multiSelectList">
+          <!-- Checkboxes populated by JS -->
+        </div>
+      </div>
+    </div>
+    <small class="text-muted">Select multiple products to auto-fill rows below</small>
+  </div>
+
+
+
+      
       <!-- ✅ NEW: Buttons at TOP -->
   <div class="mb-3 text-end">
     <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()">
@@ -669,7 +850,118 @@ try {
   /***********************
    * SALES GRID: create rows, populate selects, mobile behavior
    ***********************/
-  function openSalesModal(){ initSalesGrid(); new bootstrap.Modal(document.getElementById('salesModal')).show(); }
+  function openSalesModal(){
+  initSalesGrid();
+  populateMultiSelect(); // ✅ NEW: Populate multi-select
+  new bootstrap.Modal(document.getElementById('salesModal')).show();
+}
+
+// ✅ NEW: Multi-Select Functions
+function populateMultiSelect() {
+    const container = document.getElementById('multiSelectList');
+    if (!container) return;
+    
+    let html = '';
+    
+    cachedProducts.filter(p => p.stock > 0).forEach(product => {
+        html += `
+            <div class="multi-select-item">
+                <div class="form-check">
+                    <input class="form-check-input multi-select-checkbox" type="checkbox" 
+                           id="multi-${product.id}" 
+                           value="${product.id}"
+                           onchange="onMultiSelectChange()">
+                    <label class="form-check-label" for="multi-${product.id}">
+                        ${escapeHtml(product.name)} 
+                        <small class="text-muted">(Stock: ${product.stock} ${product.unitType})</small>
+                    </label>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html || '<small class="text-muted">No products available</small>';
+}
+
+function toggleMultiSelect() {
+    const options = document.getElementById('multiSelectOptions');
+    options.classList.toggle('show');
+}
+
+function filterMultiSelectOptions() {
+    const searchTerm = document.getElementById('multiSelectSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.multi-select-item');
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function onMultiSelectChange() {
+    const checkedProducts = [];
+    
+    // Get all checked checkboxes
+    document.querySelectorAll('.multi-select-checkbox:checked').forEach(checkbox => {
+        const productId = checkbox.value;
+        const product = cachedProducts.find(p => p.id === productId);
+        if (product) {
+            checkedProducts.push(product);
+        }
+    });
+    
+    // Update label
+    const label = document.getElementById('multiSelectLabel');
+    if (checkedProducts.length === 0) {
+        label.innerHTML = 'Click to select multiple products...';
+    } else {
+        label.innerHTML = `<strong>${checkedProducts.length} product${checkedProducts.length > 1 ? 's' : ''} selected</strong>`;
+    }
+    
+    // Auto-populate rows
+    ensureEnoughRows(checkedProducts.length);
+    populateRowsWithSelectedProducts(checkedProducts);
+}
+
+function ensureEnoughRows(needed) {
+    const currentRows = document.querySelectorAll('#product-grid-body tr').length;
+    if (needed > currentRows) {
+        const rowsToAdd = needed - currentRows;
+        for (let i = 0; i < rowsToAdd; i++) {
+            const currentCount = document.querySelectorAll('#product-grid-body tr').length;
+            appendEmptyRow(currentCount + 1);
+        }
+        updateRowNumbers();
+    }
+}
+
+function populateRowsWithSelectedProducts(products) {
+    products.forEach((product, index) => {
+        const rowIndex = index + 1;
+        
+        // Select product in dropdown
+        const select = document.getElementById(`product-${rowIndex}`);
+        if (select) {
+            select.value = product.id;
+            onProductSelect(rowIndex); // Trigger auto-fill
+        }
+    });
+    
+    updateGrandTotal();
+}
+
+// Close multi-select when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.querySelector('.multi-select-dropdown');
+    const options = document.getElementById('multiSelectOptions');
+    if (dropdown && !dropdown.contains(e.target) && options) {
+        options.classList.remove('show');
+    }
+});
+
+
+
+    
   function initSalesGrid(){
     const body = document.getElementById('product-grid-body');
     body.innerHTML = '';
@@ -920,49 +1212,88 @@ function sortSalesByDateDescending() {
     const cp = { tempId, name, size, unitType, price, quantity: qty, addToInventory, currentStock, persistedId: null };
     customProductsInSale.push(cp);
 
-    // If adding to inventory: create product object locally and save in background
-    if(addToInventory && currentStock > 0){
-      const newProduct = {
-        id: tempId, // use temp id locally; will replace when server returns id
-        name: name,
-        category: 'Custom',
-        brand: '',
-        size: size,
-        unitType: unitType,
-        piecesPerBox: 1,
-        sftPerBox: 0,
-        price: price,
-        stock: currentStock - qty, // deduct sale quantity
-        minStock: 5,
-        imageUrl: ''
-      };
-      // add to cached products so select options include it immediately
-      cachedProducts.push(newProduct);
+  // If adding to inventory, create product object locally and save in background
+if(addInventory && currentStock > 0){
+  const newProduct = {
+    id: tempId,
+    name: name,
+    category: 'Custom',
+    brand: '',
+    size: size,
+    unitType: unitType,
+    piecesPerBox: 1,
+    sftPerBox: 0,
+    price: price,
+    stock: currentStock, // ✅ FIX: Keep full stock until sale completes
+    minStock: 5,
+    imageUrl: ''
+  };
+  
+  // add to cached products
+  cachedProducts.push(newProduct);
+  renderProducts();
+  
+  // background save
+  saveProductToSheet(Object.assign({}, newProduct)).then(resp => {
+    if(resp && resp.success && resp.id){
+      // replace tempId in cachedProducts
+      const idx = cachedProducts.findIndex(p => p.id === tempId);
+      if(idx !== -1){
+        cachedProducts[idx].id = resp.id;
+      }
       renderProducts();
-      // background save - when server returns id, patch local cachedProducts & replace temp ids
-      saveProductToSheet(Object.assign({}, newProduct)).then(resp=>{
-        if(resp && resp.success && resp.id){
-          // replace tempId in cachedProducts & customProductsInSale
-          const idx = cachedProducts.findIndex(p=>p.id===tempId);
-          if(idx!==-1) cachedProducts[idx].id = resp.id;
-          customProductsInSale.forEach(c=>{
-            if(c.tempId === tempId){ c.persistedId = resp.id; }
-          });
-          renderProducts();
-        }
-      }).catch(e=>{ console.error('add custom->inventory failed', e); });
     }
+  }).catch(e => console.error('add custom-inventory failed', e));
+  
+  // ✅ FIX: Use permanent product in sales grid (not temp custom product)
+  // Find first empty row
+  let idx = findFirstEmptyRowIndex();
+  if(!idx){
+    const count = document.querySelectorAll('#product-grid-body .product-row').length;
+    appendEmptyRow(count + 1);
+    updateRowNumbers();
+    idx = count + 1;
+  }
+  
+  // Select the new permanent product
+  const sel = document.getElementById(`product-${idx}`);
+  if(sel){
+    populateProductSelectForRow(idx);
+    sel.value = newProduct.id; // Use permanent ID
+    onProductSelect(idx);
+    
+    // Set quantity
+    document.getElementById(`qty-${idx}`).value = qty;
+    updateRowTotal(idx);
+  }
+  
+} else {
+  // Original behavior for non-inventory custom products
+  const cp = {
+    tempId: tempId,
+    name: name,
+    size: size,
+    unitType: unitType,
+    price: price,
+    quantity: qty,
+    addToInventory: false,
+    currentStock: 0,
+    persistedId: null
+  };
+  
+  customProductsInSale.push(cp);
+  
+  let idx = findFirstEmptyRowIndex();
+  if(!idx){
+    const count = document.querySelectorAll('#product-grid-body .product-row').length;
+    appendEmptyRow(count + 1);
+    updateRowNumbers();
+    idx = count + 1;
+  }
+  
+  populateRowWithCustom(idx, cp);
+}
 
-    // Add custom item to first empty row (or append)
-    let idx = findFirstEmptyRowIndex();
-    if(!idx){
-      const count = document.querySelectorAll('#product-grid-body .product-row').length;
-      appendEmptyRow(count+1);
-      updateRowNumbers();
-      idx = count+1;
-    }
-    // populate row with custom data
-    populateRowWithCustom(idx, cp);
     updateGrandTotal();
     // close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal')); if(modal) modal.hide();
@@ -1493,6 +1824,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
