@@ -372,6 +372,27 @@
 </div>
 
 
+  <!-- SIMPLE INVOICE MODAL TEST -->
+<div class="modal fade" id="invoiceModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Invoice Generator</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control" id="invoiceNumber" placeholder="Invoice Number">
+        <input type="date" class="form-control mt-2" id="invoiceDate">
+        <input type="date" class="form-control mt-2" id="invoiceDueDate">
+        <div id="invoiceItemsBody"></div>
+        <textarea class="form-control mt-2" id="invoiceNotes"></textarea>
+        <textarea class="form-control mt-2" id="invoiceTerms"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+
   <!-- Add/Edit Product Modal (image removed) -->
   <div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header bg-primary text-white"><h5 id="modalTitle" class="modal-title">Add New Product</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
@@ -2398,6 +2419,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
