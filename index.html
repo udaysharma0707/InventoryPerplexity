@@ -1997,30 +1997,63 @@ function generateInvoice() {
 }
 
 
-// Open Invoice Modal
 function openInvoiceModal() {
+  alert('openInvoiceModal called');
+  
+  // Check if modal exists
+  const modalEl = document.getElementById('invoiceModal');
+  alert('Modal element: ' + (modalEl ? 'FOUND' : 'NOT FOUND'));
+  
+  if (!modalEl) {
+    alert('❌ ERROR: Invoice modal HTML is missing from your page!');
+    return;
+  }
+  
+  alert('About to generate invoice number');
+  
   // Generate invoice number
   invoiceCounter++;
   const invoiceNo = 'INV-' + String(invoiceCounter).padStart(6, '0');
-  document.getElementById('invoiceNumber').value = invoiceNo;
+  
+  const invoiceNumEl = document.getElementById('invoiceNumber');
+  alert('Invoice number field: ' + (invoiceNumEl ? 'FOUND' : 'NOT FOUND'));
+  
+  if (invoiceNumEl) {
+    invoiceNumEl.value = invoiceNo;
+  }
+  
   localStorage.setItem('lastInvoiceNumber', invoiceCounter);
+  
+  alert('About to set dates');
   
   // Set today's date
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('invoiceDate').value = today;
+  const dateEl = document.getElementById('invoiceDate');
+  if (dateEl) {
+    dateEl.value = today;
+  }
   
-  // Calculate due date (default: Net 15)
+  alert('About to calculate due date');
   calculateDueDate();
   
-  // Populate items table
+  alert('About to populate items');
   populateInvoiceItems();
   
-  // Load default terms
+  alert('About to load default terms');
   loadDefaultTerms();
   
+  alert('About to show modal with Bootstrap');
+  
   // Show modal
-  new bootstrap.Modal(document.getElementById('invoiceModal')).show();
+  try {
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+    alert('Modal.show() called successfully');
+  } catch (error) {
+    alert('ERROR showing modal: ' + error.message);
+  }
 }
+
 
 // Regenerate Invoice Number
 function regenerateInvoiceNumber() {
@@ -2365,6 +2398,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
