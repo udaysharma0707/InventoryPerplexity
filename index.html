@@ -1942,9 +1942,12 @@ function clearSalesInDateRange() {
 let invoiceCounter = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
 
 function generateInvoice() {
-  alert('Generate Invoice button clicked!'); // ← ADD THIS LINE
+  alert('Step 1: Generate Invoice button clicked!');
+  
   // Collect products from sale grid
   const rows = document.querySelectorAll('#product-grid-body .product-row');
+  alert('Step 2: Found ' + rows.length + ' rows');
+  
   const items = [];
   
   rows.forEach((r, i) => {
@@ -1973,18 +1976,24 @@ function generateInvoice() {
     });
   });
   
+  alert('Step 3: Collected ' + items.length + ' items');
+  
   if (items.length === 0) {
     alert('❌ Please add at least one product before generating invoice');
     return;
   }
   
-  console.log('Invoice items collected:', items); // Debug log
+  alert('Step 4: About to store items');
   
   // Store items temporarily
   window.tempInvoiceItems = items;
   
+  alert('Step 5: About to open modal');
+  
   // Open invoice modal
   openInvoiceModal();
+  
+  alert('Step 6: Modal function called');
 }
 
 
@@ -2356,6 +2365,7 @@ function generateInvoiceHTML(data) {
   </script>
 </body>
 </html>
+
 
 
 
