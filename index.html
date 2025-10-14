@@ -487,12 +487,6 @@
         <div class="mb-3"><label class="form-label">Unit Price *</label><input id="customPrice" type="number" class="form-control" min="0.01" step="0.01" value="0"/></div>
          <div class="col-md-6 mb-3"><label class="form-label">Quantity (for this sale) *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
 
-        <!-- New optional fields -->
-        <div class="mb-3"><label class="form-label">Current Stock (optional)</label><input id="customStock" type="number" class="form-control" min="1" placeholder="If you want to save this product to inventory"/></div>
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" id="addToInventory">
-          <label class="form-check-label" for="addToInventory">Add product to inventory (if checked)</label>
-        </div>
 
         <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">₹0.00</div></div>
       </form>
@@ -792,7 +786,7 @@ try {
   function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show(); }
   function editProduct(id){
     const p = (cachedProducts||[]).find(x=>x.id===id);
-    if(!p){ alert('âŒ Product not found'); return; }
+    if(!p){ alert('❌ Product not found'); return; }
     editingProductId = id;
     document.getElementById('modalTitle').textContent='Edit Product';
     document.getElementById('productId').value = p.id;
@@ -820,7 +814,7 @@ try {
     const price = parseFloat(document.getElementById('price').value);
     const stock = parseInt(document.getElementById('stock').value);
     const minStock = parseInt(document.getElementById('minStock').value)||5;
-    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('âŒ Fill required fields'); return; }
+    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('❌ Fill required fields'); return; }
     const product = { id: editingProductId || (Date.now().toString(36)+Math.random().toString(36).substr(2)), name, category, brand, size, unitType, piecesPerBox, sftPerBox, price, stock, minStock };
     const idx = (cachedProducts||[]).findIndex(p=>p.id===product.id);
     const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
@@ -835,7 +829,7 @@ try {
         if(localIdx!==-1){ cachedProducts[localIdx].id = resp.id; renderProducts(); }
       }
       showSyncIndicator('Saved',900);
-    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('âŒ Save failed - reverted locally.'); });
+    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('❌ Save failed - reverted locally.'); });
   }
 
   function deleteProduct(id){
@@ -844,7 +838,7 @@ try {
     cachedProducts = (cachedProducts||[]).filter(p=>p.id!==id);
     renderProducts();
     showSyncIndicator('Deleting...');
-    deleteProductFromSheet(id).then(success=>{ if(success) showSyncIndicator('Deleted',900); else { cachedProducts = prev; renderProducts(); alert('âŒ Delete failed - reverted locally.'); } });
+    deleteProductFromSheet(id).then(success=>{ if(success) showSyncIndicator('Deleted',900); else { cachedProducts = prev; renderProducts(); alert('❌ Delete failed - reverted locally.'); } });
   }
 
   /***********************
@@ -1127,7 +1121,7 @@ function sortSalesByDateDescending() {
     const qty = Number(qtyEl.value || 0);
     const max = Number(qtyEl.max || Infinity);
     if(qty > max){
-      alert(`âŒ Quantity exceeds available stock (${max}). Adjusting to max.`);
+      alert(`❌ Quantity exceeds available stock (${max}). Adjusting to max.`);
       qtyEl.value = max;
     }
     updateRowTotal(rowIndex);
@@ -1165,13 +1159,12 @@ function sortSalesByDateDescending() {
   /***********************
    * CUSTOM PRODUCT: open, validate, add to grid (and optionally inventory)
    ***********************/
-  function openCustomProductPopup(){
-    document.getElementById('customProductForm').reset();
-    document.getElementById('customTotal').textContent = formatCurrency(0);
-    document.getElementById('addToInventory').checked = false;
-    new bootstrap.Modal(document.getElementById('customProductModal'), { backdrop:'static' }).show();
-    setTimeout(()=> document.getElementById('customName').focus(), 200);
-  }
+function openCustomProductPopup() {
+  document.getElementById('customProductForm').reset();
+  document.getElementById('customTotal').textContent = '₹0.00';
+  new bootstrap.Modal(document.getElementById('customProductModal'), {backdrop: 'static'}).show();
+  setTimeout(() => document.getElementById('customName').focus(), 200);
+}
 
   function updateCustomTotalDisplay(){
     const qty = Number(document.getElementById('customQty').value || 0);
@@ -1183,121 +1176,74 @@ function sortSalesByDateDescending() {
     if(e.target && (e.target.id==='customQty' || e.target.id==='customPrice')) updateCustomTotalDisplay();
   });
 
-  function validateCustomProduct(){
-    const name = (document.getElementById('customName').value||'').trim();
-    const qty = Number(document.getElementById('customQty').value || 0);
-    const price = Number(document.getElementById('customPrice').value || 0);
-    const addInventory = document.getElementById('addToInventory').checked;
-    const stock = Number(document.getElementById('customStock').value || 0);
-    if(!name || name.length < 2){ alert('âŒ Product name required (min 2 chars)'); return false; }
-    if(!qty || qty < 1){ alert('âŒ Quantity must be at least 1'); return false; }
-    if(!price || price <= 0){ alert('âŒ Unit price must be greater than 0'); return false; }
-    if(addInventory && (!stock || stock < 1)){ alert('âŒ Please provide Current Stock to add to inventory'); return false; }
-    if(stock && stock < qty){ alert('âŒ Current stock cannot be less than sale quantity'); return false; }
-    return true;
-  }
-
-  function addCustomProductToGrid(){
-    if(!validateCustomProduct()) return;
-    const name = document.getElementById('customName').value.trim();
-    const size = document.getElementById('customSize').value.trim() || 'N/A';
-    const qty = Number(document.getElementById('customQty').value || 0);
-    const unitType = document.getElementById('customUnit').value || 'Box';
-    const price = Number(document.getElementById('customPrice').value || 0);
-    const addInventory = document.getElementById('addToInventory').checked;
-    const currentStock = Number(document.getElementById('customStock').value || 0);
-
-    const tempId = 'CUST_TMP_' + Date.now().toString(36); // unique temp id for select
-    // store in persistent array
-    const cp = { tempId, name, size, unitType, price, quantity: qty, addToInventory, currentStock, persistedId: null };
-    customProductsInSale.push(cp);
-
-  // If adding to inventory, create product object locally and save in background
-if(addInventory && currentStock > 0){
-  const newProduct = {
-    id: tempId,
-    name: name,
-    category: 'Custom',
-    brand: '',
-    size: size,
-    unitType: unitType,
-    piecesPerBox: 1,
-    sftPerBox: 0,
-    price: price,
-    stock: currentStock, // ✅ FIX: Keep full stock until sale completes
-    minStock: 5,
-    imageUrl: ''
-  };
+function validateCustomProduct() {
+  const name = document.getElementById('customName').value.trim();
+  const qty = Number(document.getElementById('customQty').value || 0);
+  const price = Number(document.getElementById('customPrice').value || 0);
   
-  // add to cached products
-  cachedProducts.push(newProduct);
-  renderProducts();
-  
-  // background save
-  saveProductToSheet(Object.assign({}, newProduct)).then(resp => {
-    if(resp && resp.success && resp.id){
-      // replace tempId in cachedProducts
-      const idx = cachedProducts.findIndex(p => p.id === tempId);
-      if(idx !== -1){
-        cachedProducts[idx].id = resp.id;
-      }
-      renderProducts();
-    }
-  }).catch(e => console.error('add custom-inventory failed', e));
-  
-  // ✅ FIX: Use permanent product in sales grid (not temp custom product)
-  // Find first empty row
-  let idx = findFirstEmptyRowIndex();
-  if(!idx){
-    const count = document.querySelectorAll('#product-grid-body .product-row').length;
-    appendEmptyRow(count + 1);
-    updateRowNumbers();
-    idx = count + 1;
+  if (!name || name.length < 2) {
+    alert('❌ Product name required (min 2 chars)');
+    return false;
   }
   
-  // Select the new permanent product
-  const sel = document.getElementById(`product-${idx}`);
-  if(sel){
-    populateProductSelectForRow(idx);
-    sel.value = newProduct.id; // Use permanent ID
-    onProductSelect(idx);
-    
-    // Set quantity
-    document.getElementById(`qty-${idx}`).value = qty;
-    updateRowTotal(idx);
+  if (!qty || qty < 1) {
+    alert('❌ Quantity must be at least 1');
+    return false;
   }
   
-} else {
-  // Original behavior for non-inventory custom products
+  if (!price || price <= 0) {
+    alert('❌ Unit price must be greater than 0');
+    return false;
+  }
+  
+  return true;
+}
+
+
+function addCustomProductToGrid() {
+  if (!validateCustomProduct()) return;
+  
+  const name = document.getElementById('customName').value.trim();
+  const size = document.getElementById('customSize').value.trim() || 'N/A';
+  const qty = Number(document.getElementById('customQty').value || 0);
+  const unitType = document.getElementById('customUnit').value || 'Box';
+  const price = Number(document.getElementById('customPrice').value || 0);
+  
+  const tempId = 'CUST_TMP_' + Date.now().toString(36); // Unique temp id
+  
+  // Store in persistent array
   const cp = {
     tempId: tempId,
     name: name,
     size: size,
     unitType: unitType,
     price: price,
-    quantity: qty,
-    addToInventory: false,
-    currentStock: 0,
-    persistedId: null
+    quantity: qty
   };
   
   customProductsInSale.push(cp);
   
+  // Find first empty row or append new row
   let idx = findFirstEmptyRowIndex();
-  if(!idx){
+  if (!idx) {
     const count = document.querySelectorAll('#product-grid-body .product-row').length;
     appendEmptyRow(count + 1);
     updateRowNumbers();
     idx = count + 1;
   }
   
+  // Populate row with custom data
   populateRowWithCustom(idx, cp);
+  updateGrandTotal();
+  
+  // Close modal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal'));
+  if (modal) modal.hide();
+  
+  // Show success
+  alert(`✅ Custom product "${name}" added to sale!`);
 }
 
-    updateGrandTotal();
-    // close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('customProductModal')); if(modal) modal.hide();
-  }
 
 function populateRowWithCustom(rowIndex, cp){
     const sel = document.getElementById(`product-${rowIndex}`);
@@ -1373,9 +1319,9 @@ function populateRowWithCustom(rowIndex, cp){
       if(!sel.value) return;
 
       const qty = Number(qtyEl.value || 0);
-      if(!qty || qty <= 0){ alert(`âŒ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
+      if(!qty || qty <= 0){ alert(`❌ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
       const maxStock = Number(qtyEl.max || Infinity);
-      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`âŒ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
+      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
 
       // Determine if custom (temp) or normal product
       let isCustom = sel.value.startsWith('CUST_TMP_');
@@ -1391,7 +1337,7 @@ function populateRowWithCustom(rowIndex, cp){
         productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
       } else {
         const prod = (cachedProducts||[]).find(p => p.id === productId);
-        if(!prod){ alert(`âŒ Row ${idx}: Product not found`); hasErrors = true; return; }
+        if(!prod){ alert(`❌ Row ${idx}: Product not found`); hasErrors = true; return; }
         productName = prod.name;
         size = prod.size || size;
         unitType = prod.unitType || unitType;
@@ -1411,7 +1357,7 @@ function populateRowWithCustom(rowIndex, cp){
     });
 
     if(hasErrors) return;
-    if(saleItems.length === 0){ alert('âŒ Please add at least one product to the sale'); return; }
+    if(saleItems.length === 0){ alert('❌ Please add at least one product to the sale'); return; }
 
     // OPTIMISTIC: update local cache & UI immediately
     const saleId = 'SALE_' + Date.now();
@@ -1510,7 +1456,7 @@ function populateRowWithCustom(rowIndex, cp){
     alert('âœ… Backup downloaded');
   }
   function importData(){ document.getElementById('fileInput').click(); }
-  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('âœ… Data restored (local)'); }catch(err){ alert('âŒ Invalid file'); } }; reader.readAsText(file); }
+  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('âœ… Data restored (local)'); }catch(err){ alert('❌ Invalid file'); } }; reader.readAsText(file); }
 
       function searchProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -1670,7 +1616,7 @@ function updateClearSalesCount() {
     if (!fromDate || !toDate) return;
     
     if (fromDate > toDate) {
-        alert('âŒ "From Date" cannot be after "To Date"');
+        alert('❌ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -1694,7 +1640,7 @@ function clearSalesInDateRange() {
     const toDate = new Date(document.getElementById('clearToDate').value);
     
     if (!fromDate || !toDate) {
-        alert('âŒ Please select both From and To dates');
+        alert('❌ Please select both From and To dates');
         return;
     }
     
@@ -1703,7 +1649,7 @@ function clearSalesInDateRange() {
     toDate.setHours(23, 59, 59, 999);
     
     if (fromDate > toDate) {
-        alert('âŒ "From Date" cannot be after "To Date"');
+        alert('❌ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -1824,6 +1770,7 @@ function clearSalesInDateRange() {
   </script>
 </body>
 </html>
+
 
 
 
