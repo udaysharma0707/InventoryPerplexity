@@ -2082,144 +2082,197 @@ function populateRowWithCustom(rowIndex, cp){
     return null;
   }
 
-  /***********************
-   * COMPLETE SALE (fire-and-forget background saves)
-   ***********************/
-  async function completeSale(){
-    const rows = document.querySelectorAll('#product-grid-body .product-row');
-    const saleItems = [];
-    let hasErrors = false;
-
-    rows.forEach((r,i)=>{
-      const idx = i+1;
-      const sel = document.getElementById(`product-${idx}`);
-      const qtyEl = document.getElementById(`qty-${idx}`);
-      const priceEl = document.getElementById(`price-${idx}`);
-      const unitEl = document.getElementById(`unit-${idx}`);
-      const sizeEl = document.getElementById(`size-${idx}`);
-      if(!sel) return;
-      // Skip empty rows
-      if(!sel.value) return;
-
-      const qty = Number(qtyEl.value || 0);
-      if(!qty || qty <= 0){ alert(`âŒ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
-      const maxStock = Number(qtyEl.max || Infinity);
-      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`âŒ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
-
-      // Determine if custom (temp) or normal product
-      let isCustom = sel.value.startsWith('CUST_TMP_');
-      let productId = isCustom ? null : sel.value;
-      let productName = '';
-      let size = sizeEl.value || 'N/A';
-      let unitType = unitEl.value || '';
-      let unitPrice = Number(priceEl.value || 0);
-      let lineTotal = unitPrice * qty;
-
-      if(isCustom){
-        const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
-        productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
-      } else {
-        const prod = (cachedProducts||[]).find(p => p.id === productId);
-        if(!prod){ alert(`âŒ Row ${idx}: Product not found`); hasErrors = true; return; }
-        productName = prod.name;
-        size = prod.size || size;
-        unitType = prod.unitType || unitType;
-        unitPrice = prod.price || unitPrice;
-      }
-
-      saleItems.push({
-        productId,
-        productName,
-        size,
-        quantity: qty,
-        unitType,
-        unitPrice,
-        totalAmount: lineTotal,
-        isCustomProduct: isCustom
-      });
-    });
-
-    if(hasErrors) return;
-    if(saleItems.length === 0){ alert('âŒ Please add at least one product to the sale'); return; }
-
-    // OPTIMISTIC: update local cache & UI immediately
-    const saleId = 'SALE_' + Date.now();
-    const nowIso = new Date().toISOString();
-    // push each line to cachedSales and deduct stock for non-custom
-    saleItems.forEach(item => {
-      const line = {
-        id: generateId(),
-        saleId,
-        productId: item.productId || '',
-        productName: item.productName,
-        size: item.size,
-        quantity: item.quantity,
-        unitType: item.unitType,
-        unitPrice: item.unitPrice,
-        totalAmount: item.totalAmount,
-        date: nowIso,
-        isCustomProduct: item.isCustomProduct
-      };
-      cachedSales.unshift(line);
-      // Deduct stock optimistically
-      if(!item.isCustomProduct && item.productId){
-        const pi = cachedProducts.findIndex(p => p.id === item.productId);
-        if(pi !== -1){
-          cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
-          if(cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
-        }
-      }
-    });
-
-      // Ã¢Å“â€¦ NEW: Sort sales by date after adding new sales
-    sortSalesByDateDescending();
-    renderProducts();
-    renderSales();
-
-    // Close modal immediately (fast UX)
-    const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
-    if(modal) modal.hide();
-
-    // Show immediate success message and that save happens in background
-    const grandTotal = saleItems.reduce((s,it) => s + Number(it.totalAmount || 0), 0);
-    setTimeout(()=> alert(`Ã¢Å“â€¦ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
-
-    // FIRE AND FORGET: save each item in background (don't block UI)
-    const saves = saleItems.map(item => {
-      const payload = {
-        saleId,
-        productId: item.productId || '',
-        productName: item.productName,
-        size: item.size,
-        quantity: item.quantity,
-        unitType: item.unitType,
-        unitPrice: item.unitPrice,
-        totalAmount: item.totalAmount,
-        isCustomProduct: item.isCustomProduct || false
-      };
-      return saveSaleToSheet(payload).then(resp=>{
-        if(!(resp && resp.success)){
-          console.error('Sale line failed to save', payload, resp);
-          // optionally: mark a small flag in UI or show toast later
-          return { ok:false, payload, resp };
-        }
-        return { ok:true, payload, resp };
-      }).catch(err => { console.error('saveSale error', err); return { ok:false, payload, err }; });
-    });
-
-    // handle results when finished (optional)
-    Promise.allSettled(saves).then(results => {
-      const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
-      if(failed.length){
-        console.warn('Some rows failed to save', failed);
-        // show a gentle non-blocking alert
-        setTimeout(()=> alert(`Ã¢Å¡ Ã¯Â¸Â Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
-      } else {
-        // re-sync to get canonical server state (ids, timestamps, stock)
-        syncFromGoogleSheets();
-      }
-    });
+ async function completeSale() {
+  // ✅ STEP 1: Verify authentication FIRST
+  if (!googleIdToken) {
+    const savedToken = localStorage.getItem('googleIdToken');
+    if (savedToken) {
+      console.warn('⚠️ Restoring token from localStorage');
+      googleIdToken = savedToken;
+    } else {
+      alert('⚠️ Authentication Error\n\nYour session has expired. Please sign in again.');
+      showAuthScreen();
+      return;
+    }
   }
+
+  console.log('✅ Authentication verified, token exists:', !!googleIdToken);
+
+  const rows = document.querySelectorAll('#product-grid-body .product-row');
+  const saleItems = [];
+  let hasErrors = false;
+
+  rows.forEach((r, i) => {
+    const idx = i + 1;
+    const sel = document.getElementById(`product-${idx}`);
+    const qtyEl = document.getElementById(`qty-${idx}`);
+    const priceEl = document.getElementById(`price-${idx}`);
+    const unitEl = document.getElementById(`unit-${idx}`);
+    const sizeEl = document.getElementById(`size-${idx}`);
+    
+    if (!sel) return;
+    if (!sel.value) return; // Skip empty rows
+
+    const qty = Number(qtyEl?.value || 0);
+    if (!qty || qty <= 0) {
+      alert(`❌ Row ${idx}: Enter a valid quantity`);
+      hasErrors = true;
+      return;
+    }
+
+    const maxStock = Number(qtyEl?.max || Infinity);
+    if (!sel.value.startsWith('CUST_TMP_') && qty > maxStock) {
+      alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`);
+      hasErrors = true;
+      return;
+    }
+
+    // Determine if custom (temp) or normal product
+    let isCustom = sel.value.startsWith('CUST_TMP_');
+    let productId = isCustom ? null : sel.value;
+    let productName = '';
+    let size = sizeEl?.value || 'N/A';
+    let unitType = unitEl?.value || 'Piece';
+    let unitPrice = Number(priceEl?.value || 0);
+
+    if (isCustom) {
+      const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
+      productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom Product');
+      size = cp.size || size;
+      unitType = cp.unitType || unitType;
+      unitPrice = cp.price || unitPrice;
+    } else {
+      const prod = (cachedProducts || []).find(p => p.id === productId);
+      if (!prod) {
+        alert(`❌ Row ${idx}: Product not found in cache`);
+        hasErrors = true;
+        return;
+      }
+      productName = prod.name;
+      size = prod.size || size;
+      unitType = prod.unitType || unitType;
+      unitPrice = Number(prod.price) || unitPrice;
+    }
+
+    // ✅ VALIDATE productName
+    if (!productName || productName.trim() === '') {
+      productName = sel.options[sel.selectedIndex]?.text || 'Unknown Product';
+      console.warn(`Row ${idx}: Product name was empty, using: ${productName}`);
+    }
+
+    let lineTotal = unitPrice * qty;
+
+    console.log(`✅ Row ${idx} prepared:`, { productName, quantity: qty, unitPrice, totalAmount: lineTotal });
+
+    saleItems.push({
+      productId,
+      productName,
+      size,
+      quantity: qty,
+      unitType,
+      unitPrice,
+      totalAmount: lineTotal,
+      isCustomProduct: isCustom
+    });
+  });
+
+  if (hasErrors) return;
+  if (saleItems.length === 0) {
+    alert('❌ Please add at least one product to the sale');
+    return;
+  }
+
+  console.log('📦 Total sale items:', saleItems.length);
+
+  // OPTIMISTIC: update local cache & UI immediately
+  const saleId = 'SALE_' + Date.now();
+  const nowIso = new Date().toISOString();
+  
+  // push each line to cachedSales and deduct stock for non-custom
+  saleItems.forEach(item => {
+    const line = {
+      id: generateId(),
+      saleId,
+      productId: item.productId || '',
+      productName: item.productName,
+      size: item.size,
+      quantity: item.quantity,
+      unitType: item.unitType,
+      unitPrice: item.unitPrice,
+      totalAmount: item.totalAmount,
+      date: nowIso,
+      isCustomProduct: item.isCustomProduct
+    };
+    cachedSales.unshift(line);
+    
+    // Deduct stock optimistically
+    if (!item.isCustomProduct && item.productId) {
+      const pi = cachedProducts.findIndex(p => p.id === item.productId);
+      if (pi !== -1) {
+        cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
+        if (cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
+      }
+    }
+  });
+
+  // Sort sales by date after adding new sales
+  sortSalesByDateDescending();
+  renderProducts();
+  renderSales();
+
+  // Close modal immediately (fast UX)
+  const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+  if (modal) modal.hide();
+
+  // Show immediate success message
+  const grandTotal = saleItems.reduce((s, it) => s + Number(it.totalAmount || 0), 0);
+  setTimeout(() => alert(`✅ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
+
+  // ✅ STEP 2: Save to backend with proper error handling
+  console.log('📤 Starting background save with auth token...');
+  
+  const saves = saleItems.map(item => {
+    const payload = {
+      saleId,
+      productId: item.productId || '',
+      productName: item.productName,
+      size: item.size,
+      quantity: item.quantity,
+      unitType: item.unitType,
+      unitPrice: item.unitPrice,
+      totalAmount: item.totalAmount,
+      isCustomProduct: item.isCustomProduct || false
+    };
+    
+    console.log('📤 Saving item:', payload.productName);
+    
+    return saveSaleToSheet(payload).then(resp => {
+      if (!(resp && resp.success)) {
+        console.error('❌ Sale line failed:', payload.productName, resp);
+        return { ok: false, payload, resp };
+      }
+      console.log('✅ Saved:', payload.productName);
+      return { ok: true, payload, resp };
+    }).catch(err => {
+      console.error('❌ Save error:', payload.productName, err);
+      return { ok: false, payload, err };
+    });
+  });
+
+  // handle results when finished
+  Promise.allSettled(saves).then(results => {
+    const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
+    if (failed.length) {
+      console.warn(`⚠️ ${failed.length} items failed to save`);
+      setTimeout(() => alert(`⚠️ Some items failed to sync to Google Sheets.\n\nPlease click Refresh to sync again.`), 800);
+    } else {
+      console.log('✅ All items saved successfully!');
+      // re-sync to get canonical server state
+      syncFromGoogleSheets();
+    }
+  });
+}
+
 
   /***********************
    * Load sale product select helper (if needed elsewhere)
@@ -3116,6 +3169,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
