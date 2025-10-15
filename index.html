@@ -14,25 +14,13 @@
 
 
 
-  <!-- ✅ html2canvas for image generation -->
+  <!-- âœ… html2canvas for image generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
     .table-explorer { background:#fff; border-radius:6px; overflow:hidden; }
-    .file-icon { 
-  font-size: 1.15rem; 
-  display: inline-block; 
-  width: 1.6rem; 
-  text-align: center; 
-}
-
-/* Bootstrap color classes for icons */
-.text-primary { color: #0d6efd !important; }
-.text-success { color: #198754 !important; }
-.text-warning { color: #ffc107 !important; }
-.text-danger { color: #dc3545 !important; }
-
+    .file-icon { font-size:1.15rem; display:inline-block; width:1.6rem; text-align:center; }
     .stock-badge{font-size:.85rem;padding:.25rem .5rem;border-radius:.5rem}
     .mobile-list{display:none}
     .mobile-item{background:#fff;padding:.75rem;border-radius:.5rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
@@ -55,7 +43,7 @@
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
 
-/* ✅ NEW: Additional mobile fixes for Record Sale modal */
+/* âœ… NEW: Additional mobile fixes for Record Sale modal */
 @media (max-width: 768px) {
     /* Specific fixes for salesModal only */
     #salesModal .modal-dialog {
@@ -158,7 +146,7 @@
 }
 
 
-/* ✅ NEW: Mobile Recent Sales Table Optimization */
+/* âœ… NEW: Mobile Recent Sales Table Optimization */
 @media (max-width: 768px) {
     .table-responsive {
         font-size: 0.75rem;
@@ -280,19 +268,19 @@
 
  
 
-<!-- ✅ ADD THIS AUTHENTICATION SCREEN -->
+<!-- âœ… ADD THIS AUTHENTICATION SCREEN -->
 <div id="authScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.3); text-align:center; max-width:400px; width:90%;">
     <i class="bi bi-shield-lock" style="font-size:64px; color:#667eea;"></i>
     <h2 style="margin:20px 0 10px;">Tile & Sanitaryware Inventory</h2>
     <p style="color:#666; margin-bottom:30px;">Sign in with your authorized Google account</p>
     
-      <!-- Google Sign-In button will be rendered here by JavaScript -->
+        <!-- Google Sign-In button will be rendered here by JavaScript -->
     <div id="googleSignInButton"></div>
 
     
     <p style="color:#999; font-size:12px; margin-top:30px;">
-      🔒 Secure authentication via Google
+      ðŸ”’ Secure authentication via Google
     </p>
   </div>
 </div>
@@ -324,7 +312,7 @@
 </div>
 
 
-        <!-- ✅ NEW: View Invoices Button -->
+        <!-- âœ… NEW: View Invoices Button -->
       <button class="btn btn-success btn-sm" onclick="viewSavedInvoices()">
         <i class="bi bi-receipt-cutoff"></i> View Invoices
       </button>
@@ -346,14 +334,14 @@
     <!-- Summary -->
     <div class="row mb-4">
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-box-seam text-primary" style="font-size:2rem"></i><h3 id="totalProducts" class="mt-2">0</h3><p class="text-muted mb-0">Total Products</p></div></div></div>
-      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">₹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
+      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">â‚¹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem"></i><h3 id="lowStock" class="mt-2">0</h3><p class="text-muted mb-0">Low Stock Items</p></div></div></div>
     </div>
 
     <!-- Search -->
     <div class="row mb-3">
       <div class="col-md-6 mx-auto">
-        <input id="searchInput" class="form-control form-control-lg" placeholder="🔍Search products by name, brand or size..." onkeyup="searchProducts()">
+        <input id="searchInput" class="form-control form-control-lg" placeholder="ðŸ”Search products by name, brand or size..." onkeyup="searchProducts()">
       </div>
     </div>
 
@@ -500,8 +488,8 @@
                   <tr>
                     <th style="width: 40%">Item Details</th>
                     <th style="width: 12%" class="text-center">Quantity</th>
-                    <th style="width: 15%" class="text-end">Rate (₹)</th>
-                    <th style="width: 18%" class="text-end">Amount (₹)</th>
+                    <th style="width: 15%" class="text-end">Rate (â‚¹)</th>
+                    <th style="width: 18%" class="text-end">Amount (â‚¹)</th>
                     <th style="width: 5%"></th>
                   </tr>
                 </thead>
@@ -522,7 +510,7 @@
               <table class="table table-sm">
                 <tr>
                   <td class="text-end"><strong>Sub Total:</strong></td>
-                  <td class="text-end" style="width: 150px" id="invoiceSubtotal">₹0.00</td>
+                  <td class="text-end" style="width: 150px" id="invoiceSubtotal">â‚¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -533,11 +521,11 @@
                     <select class="form-select form-select-sm d-inline-block" 
                             style="width: 60px" id="invoiceDiscountType" 
                             onchange="calculateInvoiceTotal()">
-                      <option value="amount">₹</option>
+                      <option value="amount">â‚¹</option>
                       <option value="percent">%</option>
                     </select>
                   </td>
-                  <td class="text-end text-danger" id="invoiceDiscountAmount">-₹0.00</td>
+                  <td class="text-end text-danger" id="invoiceDiscountAmount">-â‚¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -552,11 +540,11 @@
                       <option value="28">28%</option>
                     </select>
                   </td>
-                  <td class="text-end" id="invoiceTaxAmount">₹0.00</td>
+                  <td class="text-end" id="invoiceTaxAmount">â‚¹0.00</td>
                 </tr>
                 <tr class="table-success fw-bold">
-                  <td class="text-end"><h5 class="mb-0">Total (₹):</h5></td>
-                  <td class="text-end"><h5 class="mb-0" id="invoiceGrandTotal">₹0.00</h5></td>
+                  <td class="text-end"><h5 class="mb-0">Total (â‚¹):</h5></td>
+                  <td class="text-end"><h5 class="mb-0" id="invoiceGrandTotal">â‚¹0.00</h5></td>
                 </tr>
               </table>
             </div>
@@ -593,7 +581,7 @@
     <i class="bi bi-eye"></i> Preview
   </button>
   
-  <!-- ✅ NEW: Share Invoice Dropdown -->
+  <!-- âœ… NEW: Share Invoice Dropdown -->
   <div class="btn-group">
     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
       <i class="bi bi-share"></i> Share Invoice
@@ -703,7 +691,7 @@
 
     <div class="modal-body">
 
-      <!-- ✅ NEW: Multi-Select Product Picker -->
+      <!-- âœ… NEW: Multi-Select Product Picker -->
   <div class="mb-3">
     <label class="form-label fw-bold">
       <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Add Products (Multi-Select)
@@ -715,7 +703,7 @@
       </button>
       <div class="multi-select-options" id="multiSelectOptions">
         <input type="text" class="form-control form-control-sm mb-2" 
-               placeholder="🔍 Search products..." 
+               placeholder="ðŸ” Search products..." 
                id="multiSelectSearch" 
                oninput="filterMultiSelectOptions()">
         <div class="multi-select-list" id="multiSelectList">
@@ -729,7 +717,7 @@
 
 
       
-      <!-- ✅ NEW: Buttons at TOP -->
+      <!-- âœ… NEW: Buttons at TOP -->
   <div class="mb-3 text-end">
     <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()">
       <i class="bi bi-plus-circle"></i> Add More Rows
@@ -753,8 +741,8 @@
         </div>
         <div class="text-end" style="min-width:320px;">
           <table class="table table-borderless mb-0">
-            <tr><td class="text-end small-muted"><strong>Subtotal:</strong></td><td id="subtotal" class="text-end">₹0.00</td></tr>
-            <tr style="font-size:1.25rem;color:#28a745"><td class="text-end"><strong>GRAND TOTAL:</strong></td><td id="grandTotal" class="text-end">₹0.00</td></tr>
+            <tr><td class="text-end small-muted"><strong>Subtotal:</strong></td><td id="subtotal" class="text-end">â‚¹0.00</td></tr>
+            <tr style="font-size:1.25rem;color:#28a745"><td class="text-end"><strong>GRAND TOTAL:</strong></td><td id="grandTotal" class="text-end">â‚¹0.00</td></tr>
           </table>
         </div>
       </div>
@@ -785,7 +773,7 @@
          <div class="col-md-6 mb-3"><label class="form-label">Quantity (for this sale) *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
 
 
-        <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">₹0.00</div></div>
+        <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">â‚¹0.00</div></div>
       </form>
     </div>
 
@@ -873,7 +861,7 @@
               <table class="table table-sm">
                 <tr>
                   <td class="text-end"><strong>Sub Total:</strong></td>
-                  <td class="text-end" id="invoiceSubtotal">₹0.00</td>
+                  <td class="text-end" id="invoiceSubtotal">â‚¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -884,11 +872,11 @@
                     <select class="form-select form-select-sm d-inline-block" 
                             style="width: 60px" id="invoiceDiscountType" 
                             onchange="calculateInvoiceTotal()">
-                      <option value="amount">₹</option>
+                      <option value="amount">â‚¹</option>
                       <option value="percent">%</option>
                     </select>
                   </td>
-                  <td class="text-end text-danger" id="invoiceDiscountAmount">-₹0.00</td>
+                  <td class="text-end text-danger" id="invoiceDiscountAmount">-â‚¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -903,11 +891,11 @@
                       <option value="28">GST 28%</option>
                     </select>
                   </td>
-                  <td class="text-end" id="invoiceTaxAmount">₹0.00</td>
+                  <td class="text-end" id="invoiceTaxAmount">â‚¹0.00</td>
                 </tr>
                 <tr class="table-success">
-                  <td class="text-end"><h5>Total (₹):</h5></td>
-                  <td class="text-end"><h5 id="invoiceGrandTotal">₹0.00</h5></td>
+                  <td class="text-end"><h5>Total (â‚¹):</h5></td>
+                  <td class="text-end"><h5 id="invoiceGrandTotal">â‚¹0.00</h5></td>
                 </tr>
               </table>
             </div>
@@ -960,7 +948,7 @@
   <!-- Hidden file input for import -->
   <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
 
-  <script src="s://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
 
@@ -969,188 +957,13 @@
 // GLOBAL VARIABLES
 // ==========================================
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAQ1LoVlUZ7DzbIKzif6yCcpzc1C2T8wdSdOHnON_bdZmIzLl0lG7QoyxeYtU7V1yC/exec'; // Replace with your actual URL
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU9TlmuIw4_iVg0RUqoZHXVQrmOrtpVq-mz3LNt4jeZKXEIL9vyfL5GJg0gKMvZXw/exec'; // Replace with your actual URL
 
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
 let cachedProducts = [];
 let cachedSales = [];
-
-    // ---------- SAFETY / RENDER FALLBACK HELPERS (paste after your global vars) ----------
-
-// small HTML escaping helper (prevents XSS & broken markup)
-function escapeHtml(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-// Robust product renderer (fallback if original renderProductTable is missing)
-function renderProductTable() {
-  try {
-    const tbody = document.getElementById('productsTableBody');
-    const mobileList = document.getElementById('mobileProductsList');
-    if (!tbody || !mobileList) {
-      console.warn('renderProductTable: required DOM elements not found');
-      return;
-    }
-
-    // Clear
-    tbody.innerHTML = '';
-    mobileList.innerHTML = '';
-
-    if (!cachedProducts || cachedProducts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No products found</td></tr>';
-      mobileList.innerHTML = '';
-      return;
-    }
-
-    // Build desktop rows
-    cachedProducts.forEach((p) => {
-      const stock = Number(p.stock || 0);
-      const minStock = Number(p.minStock || 0);
-      let stockBadgeClass = 'bg-success text-white';
-      let stockText = `In Stock: ${stock}`;
-      if (stock === 0) { stockBadgeClass = 'bg-danger text-white'; stockText = 'Out of stock'; }
-      else if (stock <= minStock) { stockBadgeClass = 'bg-warning text-dark'; stockText = `Low: ${stock}`; }
-
-      const catColor = (p.category||'').toLowerCase().includes('tile') ? 'text-primary'
-                    : (p.category||'').toLowerCase().includes('sanitary') ? 'text-success'
-                    : 'text-warning';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><i class="bi bi-file-earmark file-icon ${catColor}"></i></td>
-
-        <td>${escapeHtml(p.name || '—')}</td>
-        <td>${escapeHtml(p.category || '—')}</td>
-        <td>${escapeHtml(p.brand || '')}</td>
-        <td>${escapeHtml(p.size || '—')}</td>
-        <td><span class="badge ${stockBadgeClass} stock-badge">${escapeHtml(stockText)}</span></td>
-        <td>₹${Number(p.price||0).toFixed(2)}/${escapeHtml(p.unitType||'')}</td>
-        <td>
-          <button class="btn btn-sm btn-primary btn-action-sm" onclick="editProduct('${escapeHtml(p.id)}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${escapeHtml(p.id)}')"><i class="bi bi-trash"></i></button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-
-      // mobile card
-      const div = document.createElement('div');
-      div.className = 'mobile-item';
-      div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;">
-          <i class="bi bi-file-earmark ${catColor}" style="font-size:1.2rem"></i>
-          <div style="flex:1">
-            <div style="font-weight:600">${escapeHtml(p.name || '—')}</div>
-            <div style="font-size:0.85rem;color:#666">${escapeHtml(p.brand || '')} • ${escapeHtml(p.size||'—')}</div>
-          </div>
-          <div style="text-align:right">
-            <div>${escapeHtml(stock)}</div>
-            <div style="font-weight:700;color:#28a745">₹${Number(p.price||0).toFixed(2)}</div>
-          </div>
-        </div>
-      `;
-      mobileList.appendChild(div);
-    });
-
-    // update summary numbers if provided (best-effort)
-    try { updateSummaryFromCache(); } catch(e) { /* ignore */ }
-
-  } catch (err) {
-    console.error('renderProductTable error', err);
-  }
-}
-
-// Robust sales renderer
-function renderSalesFromCache() {
-  try {
-    const tbody = document.getElementById('salesList');
-    if (!tbody) { console.warn('renderSalesFromCache: #salesList not found'); return; }
-
-    if (!cachedSales || cachedSales.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = '';
-    const recent = (cachedSales||[]).slice(0, 10);
-    recent.forEach(s => {
-      const d = new Date(s.date || Date.now());
-      const formatted = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-      const qty = s.quantity || s.qty || 0;
-      const unit = s.unitType || s.unit || '';
-      const amount = Number(s.totalAmount||s.total||0).toFixed(2);
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escapeHtml(formatted)}</td>
-        <td>${escapeHtml(s.productName || s.product || '—')}</td>
-        <td>${escapeHtml(qty)}</td>
-        <td>${escapeHtml(unit)}</td>
-        <td class="text-success fw-bold">₹${escapeHtml(amount)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    try { updateSummaryFromCache(); } catch(e) { /* ignore */ }
-  } catch (err) {
-    console.error('renderSalesFromCache error', err);
-  }
-}
-
-// Debug helper: run quick parallel GETs and print raw responses (call from Console)
-async function debugSync() {
-  try {
-    console.log('DEBUG: Calling getProducts and getSales endpoints with token (or without if missing)...');
-    const prodUrl = `${GOOGLE_SCRIPT_URL}?action=getProducts${googleIdToken ? '&idToken=' + encodeURIComponent(googleIdToken) : ''}&_dbg=${Date.now()}`;
-    const salesUrl = `${GOOGLE_SCRIPT_URL}?action=getSales${googleIdToken ? '&idToken=' + encodeURIComponent(googleIdToken) : ''}&_dbg=${Date.now()}`;
-
-    console.log(' -> Products URL:', prodUrl);
-    console.log(' -> Sales URL   :', salesUrl);
-
-    const [pR, sR] = await Promise.all([fetch(prodUrl), fetch(salesUrl)]);
-    console.log('Products response status:', pR.status, 'Sales status:', sR.status);
-
-    const pTxt = await pR.text().catch(e=>('PARSER_ERROR:'+e));
-    const sTxt = await sR.text().catch(e=>('PARSER_ERROR:'+e));
-
-    console.log('Products RAW response:', pTxt);
-    console.log('Sales RAW response   :', sTxt);
-
-    // Try to parse
-    try { console.log('Products JSON:', JSON.parse(pTxt)); } catch(e){ console.warn('Products JSON parse failed', e); }
-    try { console.log('Sales JSON   :', JSON.parse(sTxt)); } catch(e){ console.warn('Sales JSON parse failed', e); }
-
-    return { prodRaw: pTxt, salesRaw: sTxt };
-  } catch (err) {
-    console.error('debugSync error', err);
-    throw err;
-  }
-}
-
-// quick global convenience to manually refresh and re-render
-window.manualRefresh = async function(){
-  try {
-    if (typeof syncFromGoogleSheets === 'function') {
-      await syncFromGoogleSheets();
-    } else {
-      // fallback: call endpoints directly and render
-      const debug = await debugSync();
-      try { cachedProducts = JSON.parse(debug.prodRaw).products || []; } catch(e){ cachedProducts = []; }
-      try { cachedSales = JSON.parse(debug.salesRaw).sales || []; } catch(e){ cachedSales=[]; }
-      renderProductTable();
-      renderSalesFromCache();
-    }
-  } catch (e) {
-    console.error('manualRefresh failed', e);
-  }
-};
-
 
 // ==========================================
 // AUTHENTICATION
@@ -1197,24 +1010,21 @@ async function fetchClientId() {
   }
 }
 
-// Initialize Google Sign-In (Pop-up mode - no redirect needed)
+// Initialize Google Sign-In
 function initializeGoogleSignIn() {
   console.log('Initializing Google Sign-In with CLIENT_ID:', GOOGLE_CLIENT_ID);
   
   if (typeof google === 'undefined') {
     console.error('Google Identity Services library not loaded');
-    setTimeout(initializeGoogleSignIn, 1000);
+    setTimeout(initializeGoogleSignIn, 1000); // Retry after 1 second
     return;
   }
   
   try {
-    // Initialize with UX_MODE popup
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleGoogleSignIn,
-      auto_select: false,
-      ux_mode: 'popup',  // ← This fixes the redirect issue!
-      context: 'signin'
+      auto_select: false
     });
     
     google.accounts.id.renderButton(
@@ -1234,7 +1044,6 @@ function initializeGoogleSignIn() {
     console.error('Error initializing Google Sign-In:', error);
   }
 }
-
 
 // Handle Google Sign-In response
 async function handleGoogleSignIn(response) {
@@ -1314,7 +1123,7 @@ function updateUserUI() {
 
 // Show authentication error
 function showAuthError(message) {
-  alert('🔒 ' + message);
+  alert('ðŸ”’ ' + message);
   showAuthScreen();
 }
 
@@ -1348,60 +1157,34 @@ async function syncFromGoogleSheets() {
     showAuthError('Please sign in to continue');
     return;
   }
-
+  
   console.log('Syncing data from Google Sheets...');
   showLoading('Syncing data...');
-
+  
   try {
-    const urlProducts = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
-    const urlSales = `${GOOGLE_SCRIPT_URL}?action=getSales&idToken=${encodeURIComponent(googleIdToken)}`;
-
-    // Fetch both in parallel
-    const [prodRes, salesRes] = await Promise.all([
-      fetch(urlProducts).catch(e => ({ ok: false, statusText: e.message })),
-      fetch(urlSales).catch(e => ({ ok: false, statusText: e.message }))
-    ]);
-
-    // Parse products
-    const prodJson = prodRes.ok ? await prodRes.json().catch(() => ({ ok: false })) : { ok: false };
-    if (!prodJson.ok) {
-      if (prodJson.error === 'unauthorized') {
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      if (data.error === 'unauthorized') {
         showAuthError('Session expired. Please sign in again.');
         signOut();
-        hideLoading();
         return;
       }
-      throw new Error('Failed to fetch products');
+      throw new Error(data.message || 'Failed to fetch data');
     }
-
-    // Parse sales (non-fatal if fails)
-    const salesJson = salesRes.ok ? await salesRes.json().catch(() => ({ ok: false, sales: [] })) : { ok: false, sales: [] };
-    if (!salesJson.ok) {
-      console.warn('Sales fetch failed, using empty array:', salesJson);
-    }
-
-    // Update caches
-    cachedProducts = prodJson.products || [];
-    cachedSales = salesJson.sales || [];
-
-    console.log('Sync OK - Products:', cachedProducts.length, 'Sales:', cachedSales.length);
-
-    // Render both (even if sales is empty)
+    
+    cachedProducts = data.products || [];
+    console.log('Products loaded:', cachedProducts.length);
+    
     renderProductTable();
-    renderSalesFromCache(); // ← CRITICAL: Must call this!
-
     hideLoading();
-
+    
   } catch (error) {
     console.error('Sync error:', error);
-    hideLoading();
     alert('Failed to sync data: ' + error.message);
-    
-    // Fallback: Show empty state
-    cachedProducts = cachedProducts || [];
-    cachedSales = cachedSales || [];
-    renderProductTable();
-    renderSalesFromCache();
+    hideLoading();
   }
 }
 
@@ -1425,207 +1208,13 @@ function hideLoading() {
   }
 }
 
-/***** UI RENDER HELPERS — paste this block exactly as shown *****/
-
-function escapeHtml(str) {
-  if (!str && str !== 0) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-/**
- * Render products into the desktop table and mobile list.
- * Called after syncFromGoogleSheets() populates cachedProducts.
- */
-function renderProductTable() {
-  try {
-    const tbody = document.getElementById('productsTableBody');
-    const mobileList = document.getElementById('mobileProductsList');
-    if (!tbody || !mobileList) {
-      console.warn('renderProductTable: target elements missing');
-      return;
-    }
-
-    // clear
-    tbody.innerHTML = '';
-    mobileList.innerHTML = '';
-
-    if (!cachedProducts || cachedProducts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No products yet — add your first product.</td></tr>';
-      mobileList.innerHTML = '<div class="empty-state text-center py-4 text-muted">No products yet</div>';
-      updateSummaryFromCache();
-      return;
-    }
-
-    cachedProducts.forEach(p => {
-      const stock = Number(p.stock || 0);
-      const minStock = Number(p.minStock || 5);
-      const stockBadgeClass = stock > minStock ? 'stock-good' : (stock > 0 ? 'stock-low' : 'stock-out');
-      // category color for icon
-      const iconClass = (p.category === 'Tiles') ? 'text-primary' : (p.category === 'Sanitaryware' ? 'text-success' : 'text-warning');
-      const priceText = '₹' + (Number(p.price || 0)).toFixed(2) + (p.unitType ? ('/' + p.unitType) : '');
-
-      // Desktop row
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><i class="bi bi-file-earmark ${iconClass} file-icon"></i></td>
-        <td>${escapeHtml(p.name || '')}</td>
-        <td>${escapeHtml(p.category || '')}</td>
-        <td>${escapeHtml(p.brand || '')}</td>
-        <td>${escapeHtml(p.size || '')}</td>
-        <td><span class="stock-badge ${stockBadgeClass}">${escapeHtml(String(stock))}</span></td>
-        <td>${escapeHtml(priceText)}</td>
-        <td>
-          <button class="btn btn-sm btn-primary btn-action-sm" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-
-      // Mobile card
-      const card = document.createElement('div');
-      card.className = 'mobile-item';
-      card.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <div><i class="bi bi-file-earmark ${iconClass} file-icon"></i> <strong>${escapeHtml(p.name || '')}</strong></div>
-            <div class="text-muted small">${escapeHtml(p.brand || '')} • ${escapeHtml(p.category || '')}</div>
-            <div class="text-muted small">Size: ${escapeHtml(p.size || 'N/A')}</div>
-          </div>
-          <div class="text-end">
-            <div><span class="stock-badge ${stockBadgeClass}">${escapeHtml(String(stock))}</span></div>
-            <div class="mt-2">${escapeHtml(priceText)}</div>
-          </div>
-        </div>
-        <div class="mt-2">
-          <button class="btn btn-sm btn-primary me-1" onclick="editProduct('${p.id}')">Edit</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
-        </div>
-      `;
-      mobileList.appendChild(card);
-    });
-
-    // Update counters
-    updateSummaryFromCache();
-
-  } catch (err) {
-    console.error('renderProductTable error', err);
-  }
-}
-
-/**
- * Update summary counters (total products, low stock).
- * Uses cachedProducts and cachedSales.
- */
-function updateSummaryFromCache() {
-  try {
-    const totalEl = document.getElementById('totalProducts');
-    const salesTodayEl = document.getElementById('salesToday');
-    const lowStockEl = document.getElementById('lowStock');
-
-    const total = (cachedProducts || []).length;
-    if (totalEl) totalEl.textContent = total;
-
-    // low stock count
-    const low = (cachedProducts || []).filter(p => {
-      const stock = Number(p.stock || 0);
-      const minStock = Number(p.minStock || 5);
-      return stock <= minStock && stock > 0;
-    }).length;
-    if (lowStockEl) lowStockEl.textContent = low;
-
-    // Sales today (if cachedSales exists)
-    let sum = 0;
-    if (Array.isArray(cachedSales)) {
-      const today = new Date().toDateString();
-      cachedSales.forEach(s => {
-        const d = new Date(s.date || s[9] || Date.now());
-        if (d.toDateString() === today) {
-          sum += Number(s.totalAmount || s[8] || 0);
-        }
-      });
-    }
-    if (salesTodayEl) salesTodayEl.textContent = '₹' + (sum || 0).toFixed(2);
-
-  } catch (err) {
-    console.error('updateSummaryFromCache error', err);
-  }
-}
-
-/***** end UI RENDER HELPERS *****/
-
-/***** Render Recent Sales into the table *****/
-function renderSalesFromCache() {
-  try {
-    const tbody = document.getElementById('salesList');
-    if (!tbody) {
-      console.warn('renderSalesFromCache: #salesList element not found');
-      return;
-    }
-
-    if (!cachedSales || cachedSales.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>';
-      return;
-    }
-
-    // show most recent 10
-    const recent = (cachedSales || []).slice(0, 10);
-    tbody.innerHTML = '';
-    recent.forEach(sale => {
-      const d = new Date(sale.date || Date.now());
-      const formatted = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
-      const qty = sale.quantity || sale.qty || 0;
-      const unit = sale.unitType || sale.unit || '';
-      const amount = Number(sale.totalAmount || sale.total || 0).toFixed(2);
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escapeHtml(formatted)}</td>
-        <td>${escapeHtml(sale.productName || sale.product || '—')}</td>
-        <td>${escapeHtml(qty)}</td>
-        <td>${escapeHtml(unit)}</td>
-        <td class="text-success fw-bold">₹${escapeHtml(amount)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Update summary (sales today)
-    try { updateSummaryFromCache(); } catch (e) { /* silent */ }
-
-  } catch (err) {
-    console.error('renderSalesFromCache error', err);
-  }
-}
-function updateDashboard() {
-  // Total Products
-  const totalProducts = cachedProducts.length;
-  document.querySelector('.dashboard-metric:nth-child(1) h2').textContent = totalProducts;
-  
-  // Sales Today
-  const today = new Date().toISOString().split('T')[0];
-  const salesToday = (cachedSales || []).filter(s => {
-    const saleDate = new Date(s.date).toISOString().split('T')[0];
-    return saleDate === today;
-  });
-  const salesTodayAmount = salesToday.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
-  document.querySelector('.dashboard-metric:nth-child(2) h2').textContent = '₹' + salesTodayAmount.toFixed(2);
-  
-  // Low Stock Items
-  const lowStockItems = cachedProducts.filter(p => p.stock <= (p.minStock || 5));
-  document.querySelector('.dashboard-metric:nth-child(3) h2').textContent = lowStockItems.length;
-  
-  console.log('Dashboard updated:', { totalProducts, salesToday: salesToday.length, lowStockItems: lowStockItems.length });
-}
-
-    
   /***********************
    * CONFIG
    ***********************/
-  
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU9TlmuIw4_iVg0RUqoZHXVQrmOrtpVq-mz3LNt4jeZKXEIL9vyfL5GJg0gKMvZXw/exec'; // <-- replace with your deployed URL
+  let cachedProducts = [];
+  let cachedSales = [];
+
 let deletedSaleIds = []; // NEW: Track manually deleted sales
 
 // NEW: Load deleted IDs from localStorage on page load
@@ -1633,7 +1222,7 @@ try {
     const stored = localStorage.getItem('deletedSaleIds');
     if (stored) {
         deletedSaleIds = JSON.parse(stored);
-        console.log('ðŸ“ Loaded', deletedSaleIds.length, 'deleted sale IDs from localStorage');
+        console.log('Ã°Å¸â€œÂ Loaded', deletedSaleIds.length, 'deleted sale IDs from localStorage');
     }
 } catch (e) {
     console.warn('Could not load deletedSaleIds from localStorage', e);
@@ -1667,7 +1256,7 @@ try {
       catch(e) { return { ok: res.ok, json: null, text: txt }; }
     });
   }
-  function formatCurrency(n){ return '₹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function formatCurrency(n){ return 'â‚¹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function generateId(){ return 'TMP_' + Date.now().toString(36) + Math.random().toString(36).substr(2); }
   function escapeHtml(s){ if (s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -1702,9 +1291,6 @@ try {
     cachedProducts = data.products || [];
     renderProductTable();
     hideLoading();
-    // Update dashboard metrics
-updateDashboard();
-
     
   } catch (error) {
     console.error('Sync error:', error);
@@ -1746,14 +1332,14 @@ updateDashboard();
   function renderProducts(){
     const tbody = document.getElementById('productsTableBody');
     if(!hasInitialLoaded){
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryâ€¦</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃ¢â‚¬Â¦</div></td></tr>`;
     } else if(!cachedProducts || cachedProducts.length===0){
       tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
     } else {
       let html = '';
       cachedProducts.forEach(p => {
         const iconColor = categoryIconColor(p.category);
-        const priceText = (p.price!==undefined && p.price!==null) ? `₹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
+        const priceText = (p.price!==undefined && p.price!==null) ? `â‚¹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
         html += `<tr>
           <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>
           <td>${escapeHtml(p.name)}</td>
@@ -1772,7 +1358,7 @@ updateDashboard();
     }
     // mobile list
     const container = document.getElementById('mobileProductsList');
-    if(!hasInitialLoaded){ container.innerHTML=`<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryâ€¦</div></div>`; }
+    if(!hasInitialLoaded){ container.innerHTML=`<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃ¢â‚¬Â¦</div></div>`; }
     else if(!cachedProducts || cachedProducts.length===0){ container.innerHTML=`<div class="mobile-item text-center text-muted">No products yet</div>`; }
     else {
       let html = '';
@@ -1783,8 +1369,8 @@ updateDashboard();
             <div style="width:36px;text-align:center;"><i class="bi bi-file-earmark-fill" style="font-size:1.25rem;color:${iconColor}"></i></div>
             <div>
               <div style="font-weight:600">${escapeHtml(p.name)}</div>
-              <div class="small-muted">${escapeHtml(p.category||'')} â€¢ ${escapeHtml(p.brand||'')}</div>
-              <div class="small-muted"><strong>${escapeHtml(p.size||'')}</strong> â€¢ ₹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
+              <div class="small-muted">${escapeHtml(p.category||'')} Ã¢â‚¬Â¢ ${escapeHtml(p.brand||'')}</div>
+              <div class="small-muted"><strong>${escapeHtml(p.size||'')}</strong> Ã¢â‚¬Â¢ â‚¹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
             </div>
           </div>
           <div style="text-align:right;">
@@ -1805,7 +1391,7 @@ updateDashboard();
   function renderSales(){
     const tbody = document.getElementById('salesList');
     
-    if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading salesâ€¦</div></td></tr>`; return; }
+    if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading salesÃ¢â‚¬Â¦</div></td></tr>`; return; }
     
     if(!cachedSales || cachedSales.length===0){ tbody.innerHTML=`<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>`; return; }
     
@@ -1815,7 +1401,7 @@ updateDashboard();
     recent.forEach(sale => {
       const d = new Date(sale.date||'');
       const formatted = d && !isNaN(d) ? (d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) : sale.date;
-      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">₹${parseFloat(sale.totalAmount||0).toFixed(2)}</td></tr>`;
+      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">â‚¹${parseFloat(sale.totalAmount||0).toFixed(2)}</td></tr>`;
     });
     tbody.innerHTML = html;
     updateSummaryFromCache();
@@ -1827,7 +1413,7 @@ updateDashboard();
     const today = new Date().toDateString();
     const todaySales = (cachedSales||[]).filter(s => new Date(s.date).toDateString() === today);
     const sum = todaySales.reduce((acc,s) => acc + parseFloat(s.totalAmount||0), 0);
-    document.getElementById('salesToday').textContent = '₹' + sum.toFixed(2);
+    document.getElementById('salesToday').textContent = 'â‚¹' + sum.toFixed(2);
     const low = (cachedProducts||[]).filter(p => p.stock <= p.minStock && p.stock > 0).length;
     document.getElementById('lowStock').textContent = low;
   }
@@ -1913,7 +1499,7 @@ updateDashboard();
   function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show(); }
   function editProduct(id){
     const p = (cachedProducts||[]).find(x=>x.id===id);
-    if(!p){ alert('❌ Product not found'); return; }
+    if(!p){ alert('âŒ Product not found'); return; }
     editingProductId = id;
     document.getElementById('modalTitle').textContent='Edit Product';
     document.getElementById('productId').value = p.id;
@@ -1941,7 +1527,7 @@ updateDashboard();
     const price = parseFloat(document.getElementById('price').value);
     const stock = parseInt(document.getElementById('stock').value);
     const minStock = parseInt(document.getElementById('minStock').value)||5;
-    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('❌ Fill required fields'); return; }
+    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('âŒ Fill required fields'); return; }
     const product = { id: editingProductId || (Date.now().toString(36)+Math.random().toString(36).substr(2)), name, category, brand, size, unitType, piecesPerBox, sftPerBox, price, stock, minStock };
     const idx = (cachedProducts||[]).findIndex(p=>p.id===product.id);
     const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
@@ -1956,7 +1542,7 @@ updateDashboard();
         if(localIdx!==-1){ cachedProducts[localIdx].id = resp.id; renderProducts(); }
       }
       showSyncIndicator('Saved',900);
-    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('❌ Save failed - reverted locally.'); });
+    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('âŒ Save failed - reverted locally.'); });
   }
 
   function deleteProduct(id){
@@ -1965,7 +1551,7 @@ updateDashboard();
     cachedProducts = (cachedProducts||[]).filter(p=>p.id!==id);
     renderProducts();
     showSyncIndicator('Deleting...');
-    deleteProductFromSheet(id).then(success=>{ if(success) showSyncIndicator('Deleted',900); else { cachedProducts = prev; renderProducts(); alert('❌ Delete failed - reverted locally.'); } });
+    deleteProductFromSheet(id).then(success=>{ if(success) showSyncIndicator('Deleted',900); else { cachedProducts = prev; renderProducts(); alert('âŒ Delete failed - reverted locally.'); } });
   }
 
   /***********************
@@ -1973,11 +1559,11 @@ updateDashboard();
    ***********************/
   function openSalesModal(){
   initSalesGrid();
-  populateMultiSelect(); // ✅ NEW: Populate multi-select
+  populateMultiSelect(); // âœ… NEW: Populate multi-select
   new bootstrap.Modal(document.getElementById('salesModal')).show();
 }
 
-// ✅ NEW: Multi-Select Functions
+// âœ… NEW: Multi-Select Functions
 function populateMultiSelect() {
     const container = document.getElementById('multiSelectList');
     if (!container) return;
@@ -2108,7 +1694,7 @@ document.addEventListener('click', function(e) {
 
       <td><input type="text" class="form-control unit-input readonly-input" id="unit-${index}" readonly /></td>
       <td><input type="number" class="form-control price-input readonly-input" id="price-${index}" readonly /></td>
-      <td><div id="total-${index}" class="fw-bold">₹0.00</div></td>
+      <td><div id="total-${index}" class="fw-bold">â‚¹0.00</div></td>
       <td><button class="btn btn-sm btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x"></i></button></td>
     `;
     tbody.appendChild(tr);
@@ -2125,7 +1711,7 @@ document.addEventListener('click', function(e) {
   const tr = btn.closest('tr')
   if(!tr) return
   
-  // ✅ FIX: Don't actually delete the row - just clear/reset it
+  // âœ… FIX: Don't actually delete the row - just clear/reset it
   const select = tr.querySelector('.product-select')
   const sizeEl = tr.querySelector('.size-input')
   const qtyEl = tr.querySelector('.qty-input')
@@ -2153,7 +1739,7 @@ document.addEventListener('click', function(e) {
   }
   if(totalEl) totalEl.textContent = formatCurrency(0)
   
-  // ✅ CRITICAL: Get row index and re-attach event listener
+  // âœ… CRITICAL: Get row index and re-attach event listener
   const rowIndex = Array.from(tr.parentNode.children).indexOf(tr) + 1;
   
   if(select) {
@@ -2195,7 +1781,7 @@ function sortSalesByDateDescending() {
         const dateB = new Date(b.date);
         return dateB - dateA; // Newest first
     });
-    console.log('ðŸ”„ Sales sorted: newest first');
+    console.log('Ã°Å¸â€â€ž Sales sorted: newest first');
 }
 
   /***********************
@@ -2248,7 +1834,7 @@ function sortSalesByDateDescending() {
     const qty = Number(qtyEl.value || 0);
     const max = Number(qtyEl.max || Infinity);
     if(qty > max){
-      alert(`❌ Quantity exceeds available stock (${max}). Adjusting to max.`);
+      alert(`âŒ Quantity exceeds available stock (${max}). Adjusting to max.`);
       qtyEl.value = max;
     }
     updateRowTotal(rowIndex);
@@ -2288,7 +1874,7 @@ function sortSalesByDateDescending() {
    ***********************/
 function openCustomProductPopup() {
   document.getElementById('customProductForm').reset();
-  document.getElementById('customTotal').textContent = '₹0.00';
+  document.getElementById('customTotal').textContent = 'â‚¹0.00';
   new bootstrap.Modal(document.getElementById('customProductModal'), {backdrop: 'static'}).show();
   setTimeout(() => document.getElementById('customName').focus(), 200);
 }
@@ -2309,17 +1895,17 @@ function validateCustomProduct() {
   const price = Number(document.getElementById('customPrice').value || 0);
   
   if (!name || name.length < 2) {
-    alert('❌ Product name required (min 2 chars)');
+    alert('âŒ Product name required (min 2 chars)');
     return false;
   }
   
   if (!qty || qty < 1) {
-    alert('❌ Quantity must be at least 1');
+    alert('âŒ Quantity must be at least 1');
     return false;
   }
   
   if (!price || price <= 0) {
-    alert('❌ Unit price must be greater than 0');
+    alert('âŒ Unit price must be greater than 0');
     return false;
   }
   
@@ -2368,7 +1954,7 @@ function addCustomProductToGrid() {
   if (modal) modal.hide();
   
   // Show success
-  alert(`✅ Custom product "${name}" added to sale!`);
+  alert(`âœ… Custom product "${name}" added to sale!`);
 }
 
 
@@ -2394,14 +1980,14 @@ function populateRowWithCustom(rowIndex, cp){
     document.getElementById(`unit-${rowIndex}`).value = cp.unitType;
     document.getElementById(`price-${rowIndex}`).value = cp.price;
     
-    // ✅ FIX: Make quantity editable for custom products
+    // âœ… FIX: Make quantity editable for custom products
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
-    qtyEl.disabled = false;  // ✅ Keep enabled
-    qtyEl.readOnly = false;  // ✅ Not read-only
+    qtyEl.disabled = false;  // âœ… Keep enabled
+    qtyEl.readOnly = false;  // âœ… Not read-only
     qtyEl.value = cp.quantity;
     qtyEl.max = cp.quantity; // Can increase up to this amount
     
-    // ✅ NEW: Add event listener to update total when quantity changes
+    // âœ… NEW: Add event listener to update total when quantity changes
     qtyEl.addEventListener('input', function() {
         const newQty = parseFloat(this.value) || 0;
         const price = parseFloat(document.getElementById(`price-${rowIndex}`).value) || 0;
@@ -2446,9 +2032,9 @@ function populateRowWithCustom(rowIndex, cp){
       if(!sel.value) return;
 
       const qty = Number(qtyEl.value || 0);
-      if(!qty || qty <= 0){ alert(`❌ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
+      if(!qty || qty <= 0){ alert(`âŒ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
       const maxStock = Number(qtyEl.max || Infinity);
-      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
+      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`âŒ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
 
       // Determine if custom (temp) or normal product
       let isCustom = sel.value.startsWith('CUST_TMP_');
@@ -2464,7 +2050,7 @@ function populateRowWithCustom(rowIndex, cp){
         productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
       } else {
         const prod = (cachedProducts||[]).find(p => p.id === productId);
-        if(!prod){ alert(`❌ Row ${idx}: Product not found`); hasErrors = true; return; }
+        if(!prod){ alert(`âŒ Row ${idx}: Product not found`); hasErrors = true; return; }
         productName = prod.name;
         size = prod.size || size;
         unitType = prod.unitType || unitType;
@@ -2484,7 +2070,7 @@ function populateRowWithCustom(rowIndex, cp){
     });
 
     if(hasErrors) return;
-    if(saleItems.length === 0){ alert('❌ Please add at least one product to the sale'); return; }
+    if(saleItems.length === 0){ alert('âŒ Please add at least one product to the sale'); return; }
 
     // OPTIMISTIC: update local cache & UI immediately
     const saleId = 'SALE_' + Date.now();
@@ -2515,7 +2101,7 @@ function populateRowWithCustom(rowIndex, cp){
       }
     });
 
-      // âœ… NEW: Sort sales by date after adding new sales
+      // Ã¢Å“â€¦ NEW: Sort sales by date after adding new sales
     sortSalesByDateDescending();
     renderProducts();
     renderSales();
@@ -2526,7 +2112,7 @@ function populateRowWithCustom(rowIndex, cp){
 
     // Show immediate success message and that save happens in background
     const grandTotal = saleItems.reduce((s,it) => s + Number(it.totalAmount || 0), 0);
-    setTimeout(()=> alert(`âœ… Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
+    setTimeout(()=> alert(`Ã¢Å“â€¦ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
 
     // FIRE AND FORGET: save each item in background (don't block UI)
     const saves = saleItems.map(item => {
@@ -2557,7 +2143,7 @@ function populateRowWithCustom(rowIndex, cp){
       if(failed.length){
         console.warn('Some rows failed to save', failed);
         // show a gentle non-blocking alert
-        setTimeout(()=> alert(`âš ï¸ Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
+        setTimeout(()=> alert(`Ã¢Å¡ Ã¯Â¸Â Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
       } else {
         // re-sync to get canonical server state (ids, timestamps, stock)
         syncFromGoogleSheets();
@@ -2580,10 +2166,10 @@ function populateRowWithCustom(rowIndex, cp){
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
-    alert('âœ… Backup downloaded');
+    alert('Ã¢Å“â€¦ Backup downloaded');
   }
   function importData(){ document.getElementById('fileInput').click(); }
-  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('âœ… Data restored (local)'); }catch(err){ alert('❌ Invalid file'); } }; reader.readAsText(file); }
+  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('Ã¢Å“â€¦ Data restored (local)'); }catch(err){ alert('âŒ Invalid file'); } }; reader.readAsText(file); }
 
       function searchProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -2642,7 +2228,7 @@ function displayProducts(products) {
                 <td>${escapeHtml(product.brand) || '-'}</td>
                 <td><strong>${escapeHtml(product.size) || 'N/A'}</strong></td>
                 <td><span class="badge ${stockBadgeClass}">${stockClass} (${product.stock})</span></td>
-                <td>₹${product.price.toFixed(2)}/${product.unitType}</td>
+                <td>â‚¹${product.price.toFixed(2)}/${product.unitType}</td>
                 <td>
                     <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${product.id}')">
                         <i class="bi bi-pencil"></i> Edit
@@ -2677,7 +2263,7 @@ function displayProducts(products) {
                     <div>
                         <div style="font-weight:600">${escapeHtml(p.name)}</div>
                         <div class="small-muted">${escapeHtml(p.category)} ${escapeHtml(p.brand)}</div>
-                        <div class="small-muted"><strong>${escapeHtml(p.size)}</strong> ₹${parseFloat(p.price || 0).toFixed(2)}/${p.unitType}</div>
+                        <div class="small-muted"><strong>${escapeHtml(p.size)}</strong> â‚¹${parseFloat(p.price || 0).toFixed(2)}/${p.unitType}</div>
                     </div>
                 </div>
                 <div style="text-align:right">
@@ -2743,7 +2329,7 @@ function updateClearSalesCount() {
     if (!fromDate || !toDate) return;
     
     if (fromDate > toDate) {
-        alert('❌ "From Date" cannot be after "To Date"');
+        alert('âŒ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -2767,7 +2353,7 @@ function clearSalesInDateRange() {
     const toDate = new Date(document.getElementById('clearToDate').value);
     
     if (!fromDate || !toDate) {
-        alert('❌ Please select both From and To dates');
+        alert('âŒ Please select both From and To dates');
         return;
     }
     
@@ -2776,7 +2362,7 @@ function clearSalesInDateRange() {
     toDate.setHours(23, 59, 59, 999);
     
     if (fromDate > toDate) {
-        alert('❌ "From Date" cannot be after "To Date"');
+        alert('âŒ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -2787,18 +2373,18 @@ function clearSalesInDateRange() {
     });
     
     if (salesInRange.length === 0) {
-        alert('â„¹ï¸ No sales found in the selected date range');
+        alert('Ã¢â€žÂ¹Ã¯Â¸Â No sales found in the selected date range');
         return;
     }
     
     // Confirm deletion
     const fromStr = fromDate.toLocaleDateString('en-IN');
     const toStr = toDate.toLocaleDateString('en-IN');
-    const confirmMsg = `Are you sure you want to hide ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\nâš ï¸ This will hide them from display only.\nGoogle Sheets data remains unchanged.\n\nYou can restore them later by clearing browser data.`;
+    const confirmMsg = `Are you sure you want to hide ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\nÃ¢Å¡ Ã¯Â¸Â This will hide them from display only.\nGoogle Sheets data remains unchanged.\n\nYou can restore them later by clearing browser data.`;
     
     if (!confirm(confirmMsg)) return;
     
-    // âœ… FIX: Store deleted IDs persistently
+    // Ã¢Å“â€¦ FIX: Store deleted IDs persistently
     salesInRange.forEach(sale => {
         if (sale.id && !deletedSaleIds.includes(sale.id)) {
             deletedSaleIds.push(sale.id);
@@ -2808,7 +2394,7 @@ function clearSalesInDateRange() {
     // Save to localStorage for persistence across sessions and page reloads
     try {
         localStorage.setItem('deletedSaleIds', JSON.stringify(deletedSaleIds));
-        console.log('ðŸ’¾ Saved', deletedSaleIds.length, 'deleted sale IDs to localStorage');
+        console.log('Ã°Å¸â€™Â¾ Saved', deletedSaleIds.length, 'deleted sale IDs to localStorage');
     } catch (e) {
         console.warn('Could not save deletedSaleIds to localStorage', e);
     }
@@ -2828,7 +2414,7 @@ function clearSalesInDateRange() {
     modal.hide();
     
     // Show success message
-    alert(`âœ… Successfully cleared ${salesInRange.length} sales records!\n\nNote: They're hidden from display only. Google Sheets data is unchanged.\n\nTo restore: Clear browser data or use developer console to run:\nlocalStorage.removeItem('deletedSaleIds')`);
+    alert(`Ã¢Å“â€¦ Successfully cleared ${salesInRange.length} sales records!\n\nNote: They're hidden from display only. Google Sheets data is unchanged.\n\nTo restore: Clear browser data or use developer console to run:\nlocalStorage.removeItem('deletedSaleIds')`);
 }
 
 
@@ -2848,7 +2434,7 @@ function clearSalesInDateRange() {
   
   salesList.innerHTML = '';
   
-  // ✅ FIX: Show only last 100 sales (most recent)
+  // âœ… FIX: Show only last 100 sales (most recent)
   const recentSales = cachedSales.slice(0, 100);
   
   recentSales.forEach(sale => {
@@ -2862,14 +2448,14 @@ function clearSalesInDateRange() {
         <td>${sale.productName}</td>
         <td>${sale.quantity}</td>
         <td>${sale.unitType}</td>
-        <td class="text-success fw-bold">₹${parseFloat(sale.totalAmount).toFixed(2)}</td>
+        <td class="text-success fw-bold">â‚¹${parseFloat(sale.totalAmount).toFixed(2)}</td>
       </tr>
     `;
     
     salesList.innerHTML += row;
   });
   
-  // ✅ FIX: Show count if more than 100 sales exist
+  // âœ… FIX: Show count if more than 100 sales exist
   if (cachedSales.length > 100) {
     salesList.innerHTML += `
       <tr>
@@ -3063,7 +2649,7 @@ function createInvoiceRow(item, index) {
                oninput="updateInvoiceRowTotal(${index})">
       </td>
       <td class="text-end fw-bold invoice-row-total">
-        ₹${(item.quantity * item.rate).toFixed(2)}
+        â‚¹${(item.quantity * item.rate).toFixed(2)}
       </td>
       <td class="text-center">
         <button type="button" class="btn btn-sm btn-link text-danger" 
@@ -3155,7 +2741,7 @@ function loadDefaultTerms() {
   const defaultTerms = `1. Payment due within 14 days of invoice date
 2. Late payments subject to 2% monthly interest charge
 3. Goods once sold cannot be returned or exchanged
-4. Delivery charges may apply for orders under ₹10,000
+4. Delivery charges may apply for orders under â‚¹10,000
 5. Company not responsible for damages during transit`;
   
   document.getElementById('invoiceTerms').value = defaultTerms;
@@ -3167,7 +2753,7 @@ async function saveInvoice() {
   const customerName = document.getElementById('invoiceCustomerName').value.trim();
   
   if (!customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -3179,7 +2765,7 @@ async function saveInvoice() {
   invoices.push(invoiceData);
   localStorage.setItem('invoices', JSON.stringify(invoices));
   
-  alert('✅ Invoice saved successfully!\n\nInvoice Number: ' + invoiceData.invoiceNumber);
+  alert('âœ… Invoice saved successfully!\n\nInvoice Number: ' + invoiceData.invoiceNumber);
   
   // Close modal
   const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
@@ -3204,10 +2790,10 @@ function collectInvoiceData() {
     }
   });
   
-  const subtotal = parseFloat(document.getElementById('invoiceSubtotal').textContent.replace(/[₹,]/g, ''));
-  const discount = parseFloat(document.getElementById('invoiceDiscountAmount').textContent.replace(/[₹,-]/g, ''));
-  const tax = parseFloat(document.getElementById('invoiceTaxAmount').textContent.replace(/[₹,]/g, ''));
-  const total = parseFloat(document.getElementById('invoiceGrandTotal').textContent.replace(/[₹,]/g, ''));
+  const subtotal = parseFloat(document.getElementById('invoiceSubtotal').textContent.replace(/[â‚¹,]/g, ''));
+  const discount = parseFloat(document.getElementById('invoiceDiscountAmount').textContent.replace(/[â‚¹,-]/g, ''));
+  const tax = parseFloat(document.getElementById('invoiceTaxAmount').textContent.replace(/[â‚¹,]/g, ''));
+  const total = parseFloat(document.getElementById('invoiceGrandTotal').textContent.replace(/[â‚¹,]/g, ''));
   
   return {
     invoiceNumber: document.getElementById('invoiceNumber').value,
@@ -3230,7 +2816,7 @@ function previewInvoice() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -3252,8 +2838,8 @@ function generateInvoiceHTML(data) {
         <td style="text-align: center">${index + 1}</td>
         <td>${escapeHtml(item.name)}</td>
         <td style="text-align: center">${item.quantity}</td>
-        <td style="text-align: right">₹${item.rate.toFixed(2)}</td>
-        <td style="text-align: right">₹${item.amount.toFixed(2)}</td>
+        <td style="text-align: right">â‚¹${item.rate.toFixed(2)}</td>
+        <td style="text-align: right">â‚¹${item.amount.toFixed(2)}</td>
       </tr>
     `;
   });
@@ -3312,19 +2898,19 @@ function generateInvoiceHTML(data) {
       <table style="width: 400px; margin-left: auto">
         <tr>
           <td>Sub Total:</td>
-          <td class="text-right">₹${data.subtotal.toFixed(2)}</td>
+          <td class="text-right">â‚¹${data.subtotal.toFixed(2)}</td>
         </tr>
         <tr>
           <td>Discount:</td>
-          <td class="text-right">-₹${data.discount.toFixed(2)}</td>
+          <td class="text-right">-â‚¹${data.discount.toFixed(2)}</td>
         </tr>
         <tr>
           <td>Tax:</td>
-          <td class="text-right">₹${data.tax.toFixed(2)}</td>
+          <td class="text-right">â‚¹${data.tax.toFixed(2)}</td>
         </tr>
         <tr class="total-row">
           <td>Grand Total:</td>
-          <td class="text-right">₹${data.total.toFixed(2)}</td>
+          <td class="text-right">â‚¹${data.total.toFixed(2)}</td>
         </tr>
       </table>
       
@@ -3355,13 +2941,6 @@ function generateInvoiceHTML(data) {
 // ==========================================
 
 function viewSavedInvoices() {
-  // Safety check for bootstrap
-  if (typeof bootstrap === 'undefined') {
-    console.error('Bootstrap JS not loaded yet');
-    alert('Please wait for the page to fully load');
-    return;
-  }
-  
   const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
   
   const container = document.getElementById('invoicesListContainer');
@@ -3401,7 +2980,7 @@ function viewSavedInvoices() {
           <td>${escapeHtml(inv.customerName)}</td>
           <td>${new Date(inv.invoiceDate).toLocaleDateString('en-IN')}</td>
           <td>${new Date(inv.dueDate).toLocaleDateString('en-IN')}</td>
-          <td class="text-end"><strong>₹${inv.total.toFixed(2)}</strong></td>
+          <td class="text-end"><strong>â‚¹${inv.total.toFixed(2)}</strong></td>
           <td><small>${escapeHtml(itemsSummary)}${moreItems}</small></td>
           <td class="text-center">
             <button class="btn btn-sm btn-info" onclick="previewSavedInvoice(${index})" title="Preview">
@@ -3431,7 +3010,6 @@ function viewSavedInvoices() {
   new bootstrap.Modal(document.getElementById('viewInvoicesModal')).show();
 }
 
-
 function previewSavedInvoice(index) {
   const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
   const invoice = invoices[index];
@@ -3459,7 +3037,7 @@ function deleteSavedInvoice(index) {
   invoices.splice(index, 1);
   localStorage.setItem('invoices', JSON.stringify(invoices));
   
-  alert(`✅ Invoice ${deletedInvoice.invoiceNumber} deleted successfully`);
+  alert(`âœ… Invoice ${deletedInvoice.invoiceNumber} deleted successfully`);
   
   // Refresh the list
   viewSavedInvoices();
@@ -3475,7 +3053,7 @@ async function shareInvoiceAsImage() {
   // Validate customer name
   const customerName = document.getElementById('invoiceCustomerName').value.trim();
   if (!customerName) {
-    alert('❌ Please enter customer name before sharing');
+    alert('âŒ Please enter customer name before sharing');
     return;
   }
   
@@ -3518,10 +3096,10 @@ async function shareInvoiceAsImage() {
         try {
           await navigator.share({
             title: `Invoice ${invoiceData.invoiceNumber}`,
-            text: `Invoice for ${invoiceData.customerName} - ₹${invoiceData.total.toFixed(2)}`,
+            text: `Invoice for ${invoiceData.customerName} - â‚¹${invoiceData.total.toFixed(2)}`,
             files: [file]
           });
-          console.log('✅ Invoice shared successfully');
+          console.log('âœ… Invoice shared successfully');
         } catch (err) {
           if (err.name !== 'AbortError') {
             console.error('Share failed:', err);
@@ -3537,7 +3115,7 @@ async function shareInvoiceAsImage() {
   } catch (error) {
     hideLoading();
     console.error('Error generating image:', error);
-    alert('❌ Error generating invoice image. Please try again.');
+    alert('âŒ Error generating invoice image. Please try again.');
   }
 }
 
@@ -3547,7 +3125,7 @@ function fallbackDownloadImage(canvas, fileName) {
   link.download = fileName;
   link.href = canvas.toDataURL('image/png');
   link.click();
-  alert('✅ Invoice image downloaded! You can now share it from your downloads.');
+  alert('âœ… Invoice image downloaded! You can now share it from your downloads.');
 }
 
 // Generate clean invoice HTML for image conversion
@@ -3559,8 +3137,8 @@ function generateInvoiceHTMLForImage(data) {
         <td style="text-align:center;padding:8px;border:1px solid #ddd;">${index + 1}</td>
         <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(item.name)}</td>
         <td style="text-align:center;padding:8px;border:1px solid #ddd;">${item.quantity}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">₹${item.rate.toFixed(2)}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">₹${item.amount.toFixed(2)}</td>
+        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.rate.toFixed(2)}</td>
+        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.amount.toFixed(2)}</td>
       </tr>
     `;
   });
@@ -3602,19 +3180,19 @@ function generateInvoiceHTMLForImage(data) {
         <table style="margin-left:auto;width:300px;">
           <tr>
             <td style="padding:5px;"><strong>Sub Total:</strong></td>
-            <td style="padding:5px;text-align:right;">₹${data.subtotal.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;">â‚¹${data.subtotal.toFixed(2)}</td>
           </tr>
           <tr>
             <td style="padding:5px;color:#dc3545;"><strong>Discount:</strong></td>
-            <td style="padding:5px;text-align:right;color:#dc3545;">-₹${data.discount.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;color:#dc3545;">-â‚¹${data.discount.toFixed(2)}</td>
           </tr>
           <tr>
             <td style="padding:5px;"><strong>Tax:</strong></td>
-            <td style="padding:5px;text-align:right;">₹${data.tax.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;">â‚¹${data.tax.toFixed(2)}</td>
           </tr>
           <tr style="border-top:2px solid #000;">
             <td style="padding:10px;font-size:18px;"><strong>Grand Total:</strong></td>
-            <td style="padding:10px;text-align:right;font-size:18px;"><strong>₹${data.total.toFixed(2)}</strong></td>
+            <td style="padding:10px;text-align:right;font-size:18px;"><strong>â‚¹${data.total.toFixed(2)}</strong></td>
           </tr>
         </table>
       </div>
@@ -3642,7 +3220,7 @@ function generateInvoiceHTMLForImage(data) {
 
 // Share Invoice as PDF
 async function shareInvoiceAsPDF() {
-  alert('📄 PDF sharing coming soon! For now, use Preview → Print to save as PDF.');
+  alert('ðŸ“„ PDF sharing coming soon! For now, use Preview â†’ Print to save as PDF.');
   // You can implement PDF generation using jsPDF or html2pdf.js later
 }
 
@@ -3651,7 +3229,7 @@ function shareViaWhatsApp() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -3665,7 +3243,7 @@ function shareViaEmail() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -3680,7 +3258,7 @@ function shareViaSMS() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -3691,7 +3269,7 @@ function shareViaSMS() {
 
 // Generate text message for sharing
 function generateShareText(data) {
-  let text = `🧾 INVOICE\n\n`;
+  let text = `ðŸ§¾ INVOICE\n\n`;
   text += `Invoice No: ${data.invoiceNumber}\n`;
   text += `Customer: ${data.customerName}\n`;
   text += `Date: ${new Date(data.invoiceDate).toLocaleDateString('en-IN')}\n`;
@@ -3699,19 +3277,19 @@ function generateShareText(data) {
   
   text += `ITEMS:\n`;
   data.items.forEach((item, i) => {
-    text += `${i + 1}. ${item.name} x ${item.quantity} = ₹${item.amount.toFixed(2)}\n`;
+    text += `${i + 1}. ${item.name} x ${item.quantity} = â‚¹${item.amount.toFixed(2)}\n`;
   });
   
   text += `\n`;
-  text += `Sub Total: ₹${data.subtotal.toFixed(2)}\n`;
+  text += `Sub Total: â‚¹${data.subtotal.toFixed(2)}\n`;
   if (data.discount > 0) {
-    text += `Discount: -₹${data.discount.toFixed(2)}\n`;
+    text += `Discount: -â‚¹${data.discount.toFixed(2)}\n`;
   }
   if (data.tax > 0) {
-    text += `Tax: ₹${data.tax.toFixed(2)}\n`;
+    text += `Tax: â‚¹${data.tax.toFixed(2)}\n`;
   }
-  text += `━━━━━━━━━━━━━━━━\n`;
-  text += `TOTAL: ₹${data.total.toFixed(2)}\n\n`;
+  text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
+  text += `TOTAL: â‚¹${data.total.toFixed(2)}\n\n`;
   
   text += `Thank you for your business!\n`;
   text += `- Tile & Sanitaryware Inventory`;
@@ -3744,18 +3322,6 @@ function hideLoading() {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
