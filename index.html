@@ -918,7 +918,7 @@
  /***********************
  * CONFIG
  ***********************/
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZY2HURq601qlGoUfnpbYBzq_Hx9ZD67CGQZcbT40M5c-8e31wfL_bmerd4eKJSCrB/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqsu5bt3LwJXwG8LTNOChVohYuigH7SG_agjpBpjdgyZkLO5B9Eq6Hp4ll-wkJV40e/exec';
 let cachedProducts = [];
 let cachedSales = [];
 
@@ -1085,15 +1085,29 @@ async function handleGoogleSignIn(response) {
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
   
+  if (!idToken) {
+    console.error('No idToken provided');
+    alert('Authentication failed: No token received');
+    clearSession();
+    showAuthScreen();
+    return;
+  }
+  
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    // ✅ CRITICAL FIX: Use URL-encoded form data instead of JSON
+    const url = `${GOOGLE_SCRIPT_URL}?action=authenticate&idToken=${encodeURIComponent(idToken)}`;
+    
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'authenticate',
-        idToken: idToken
-      })
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: '' // Empty body - data is in URL
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
     
     const data = await response.json();
     console.log('📋 Authentication response:', data);
@@ -1113,7 +1127,7 @@ async function authenticateWithToken(idToken) {
       showApp();
       updateUserUI();
       
-      // Wait a bit before syncing to ensure app is shown
+      // Wait a bit before syncing
       setTimeout(async () => {
         await syncFromGoogleSheets();
       }, 500);
@@ -1121,19 +1135,21 @@ async function authenticateWithToken(idToken) {
     } else {
       // ❌ FAILED
       console.error('❌ Authentication failed:', data);
-      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
+      const errorMsg = data.message || 'Your account is not authorized to access this inventory.';
+      alert('Access denied: ' + errorMsg);
       clearSession();
       showAuthScreen();
       initializeGoogleSignIn();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    alert('Authentication failed. Please try again.');
+    alert('Authentication failed: ' + error.message + '\n\nPlease check your internet connection and try again.');
     clearSession();
     showAuthScreen();
     initializeGoogleSignIn();
   }
 }
+
 
 // Show authentication screen
 function showAuthScreen() {
@@ -3129,6 +3145,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
