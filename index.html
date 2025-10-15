@@ -907,7 +907,7 @@
   <!-- Hidden file input for import -->
   <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="s://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
 
@@ -1368,41 +1368,98 @@ async function syncFromGoogleSheets() {
   /***********************
    * Save helpers (server calls)
    ***********************/
-  async function saveProductToSheet(product, isEdit=false){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct':'addProduct'}`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(product)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveProductToSheet', e); return null; }
+ async function saveProductToSheet(product, isEdit=false) {
+  // ✅ Check authentication
+  if (!googleIdToken) {
+    alert('Authentication required. Please sign in again.');
+    signOut();
+    return null;
   }
 
-  async function saveSaleToSheet(item){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(item)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveSaleToSheet', e); return null; }
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(product))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      alert('Session expired. Please sign in again.');
+      signOut();
+      return null;
+    }
+    
+    return parsed.json || null;
+  } catch(e) {
+    console.error('saveProductToSheet', e);
+    return null;
+  }
+}
+
+
+ async function saveSaleToSheet(item) {
+  // ✅ Check authentication
+  if (!googleIdToken) {
+    alert('Authentication required. Please sign in again.');
+    signOut();
+    return null;
   }
 
-  async function deleteProductFromSheet(id){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify({ id })
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json && parsed.json.success;
-    }catch(e){ console.error('deleteProductFromSheet', e); return false; }
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=addSale&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(item))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      alert('Session expired. Please sign in again.');
+      signOut();
+      return null;
+    }
+    
+    return parsed.json || null;
+  } catch(e) {
+    console.error('saveSaleToSheet', e);
+    return null;
   }
+}
+
+
+ async function deleteProductFromSheet(id) {
+  // ✅ Check authentication
+  if (!googleIdToken) {
+    alert('Authentication required. Please sign in again.');
+    signOut();
+    return false;
+  }
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify({ id }))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      alert('Session expired. Please sign in again.');
+      signOut();
+      return false;
+    }
+    
+    return parsed.json && parsed.json.success;
+  } catch(e) {
+    console.error('deleteProductFromSheet', e);
+    return false;
+  }
+}
+
 
   /***********************
    * Product CRUD UI
@@ -2958,6 +3015,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
