@@ -1061,6 +1061,14 @@ function showApp() {
   document.getElementById('appContent').style.display = 'block';
 }
 
+// Show authentication error
+function showAuthError(message) {
+  alert('⚠️ Authentication Error: ' + message);
+  console.error('Auth error:', message);
+}
+
+
+    
 // Update user UI
 function updateUserUI() {
   if (currentUser) {
@@ -3018,6 +3026,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
