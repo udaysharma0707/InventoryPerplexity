@@ -1057,6 +1057,44 @@ function showAuthScreen() {
   document.getElementById('appContent').style.display = 'none';
 }
 
+/**
+ * showAuthError(message)
+ * - Gracefully handle authentication failures.
+ * - Clears saved token, shows auth screen, disables auto-select and prompts user to re-sign-in.
+ */
+function showAuthError(message) {
+  try {
+    console.warn('Auth error:', message);
+    // Clear local state
+    localStorage.removeItem('googleIdToken');
+    googleIdToken = null;
+    currentUser = null;
+
+    // Disable automatic sign-in if library available
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      try { google.accounts.id.disableAutoSelect(); } catch(e){ /* ignore */ }
+    }
+
+    // show a visible message to the user (prefer non-blocking)
+    if (typeof showSyncIndicator === 'function') {
+      // showSyncIndicator(message, 'error') - some implementations accept (msg,type)
+      try { showSyncIndicator(message, 'error'); } catch(e) { console.warn('showSyncIndicator not compatible', e); }
+    } else {
+      // fallback to alert
+      alert('🔒 Authentication error: ' + (message || 'Please sign in again.'));
+    }
+
+    // Show sign-in UI
+    showAuthScreen();
+
+    // Re-initialize the Google Sign-in button so user can retry
+    try { initializeGoogleSignIn(); } catch(e) { /* ignore if not present yet */ }
+  } catch (err) {
+    console.error('showAuthError failed:', err);
+  }
+}
+
+    
 // Show app
 function showApp() {
   document.getElementById('authScreen').style.display = 'none';
@@ -1371,41 +1409,60 @@ async function syncFromGoogleSheets() {
   /***********************
    * Save helpers (server calls)
    ***********************/
-  async function saveProductToSheet(product, isEdit=false){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct':'addProduct'}`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(product)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveProductToSheet', e); return null; }
+  /***********************
+ * Save helpers (server calls) - updated to include idToken
+ ***********************/
+async function saveProductToSheet(product, isEdit=false) {
+  if (!googleIdToken) { showAuthError('Please sign in to save product'); return null; }
+  try {
+    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify(product)
+    });
+    const parsed = await safeParseResponse(res);
+    return parsed.json || null;
+  } catch (e) {
+    console.error('saveProductToSheet', e);
+    return null;
   }
+}
 
-  async function saveSaleToSheet(item){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(item)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveSaleToSheet', e); return null; }
+async function saveSaleToSheet(item) {
+  if (!googleIdToken) { showAuthError('Please sign in to save sale'); return null; }
+  try {
+    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify(item)
+    });
+    const parsed = await safeParseResponse(res);
+    return parsed.json || null;
+  } catch (e) {
+    console.error('saveSaleToSheet', e);
+    return null;
   }
+}
 
-  async function deleteProductFromSheet(id){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify({ id })
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json && parsed.json.success;
-    }catch(e){ console.error('deleteProductFromSheet', e); return false; }
+async function deleteProductFromSheet(id) {
+  if (!googleIdToken) { showAuthError('Please sign in to delete product'); return false; }
+  try {
+    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify({ id })
+    });
+    const parsed = await safeParseResponse(res);
+    return parsed.json && parsed.json.success;
+  } catch (e) {
+    console.error('deleteProductFromSheet', e);
+    return false;
   }
+}
+
 
   /***********************
    * Product CRUD UI
@@ -2961,6 +3018,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
