@@ -1053,11 +1053,44 @@ async function authenticateWithToken(idToken) {
   }
 }
 
-// Show authentication screen
-function showAuthScreen() {
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('appContent').style.display = 'none';
+/**
+ * Enhanced Authentication Error Handler
+ * Shows user-friendly error messages and handles token cleanup
+ */
+function showAuthError(message, autoRedirect = true) {
+  console.error('🚨 AUTH ERROR:', message);
+  
+  // Log detailed debug info
+  console.log('Auth State:', {
+    hasToken: !!googleIdToken,
+    hasCurrentUser: !!currentUser,
+    tokenInStorage: !!localStorage.getItem('googleIdToken'),
+    timestamp: new Date().toISOString()
+  });
+  
+  // Show user-friendly message
+  const userMessage = `🔒 Authentication Error\n\n${message}\n\nYou will be redirected to the sign-in screen.`;
+  
+  // Clean up invalid auth state
+  googleIdToken = null;
+  currentUser = null;
+  localStorage.removeItem('googleIdToken');
+  
+  // Show alert
+  alert(userMessage);
+  
+  // Auto-redirect to sign-in screen
+  if (autoRedirect) {
+    setTimeout(() => {
+      showAuthScreen();
+      // Force Google Sign-In button refresh
+      if (typeof initializeGoogleSignIn === 'function') {
+        initializeGoogleSignIn();
+      }
+    }, 500);
+  }
 }
+
 
 // Show app
 function showApp() {
@@ -2970,6 +3003,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
