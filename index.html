@@ -1094,73 +1094,39 @@ try {
   function generateId(){ return 'TMP_' + Date.now().toString(36) + Math.random().toString(36).substr(2); }
   function escapeHtml(s){ if (s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
- /**
- * Sync / Fetch from Google Sheets
- * Combines authentication check + complete data fetching + sales filtering
- */
-async function syncFromGoogleSheets() {
-  // Check authentication first
+ async function syncFromGoogleSheets() {
+  // Check authentication
   if (!googleIdToken) {
     showAuthError('Please sign in to continue');
     return;
   }
-
-  showSyncIndicator('Refreshing...');
+  
+  showLoading('Syncing data...');
   
   try {
-    // Fetch with authentication token
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
-    const res = await fetch(url);
+    // Add idToken to request
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
+    const response = await fetch(url);
+    const data = await response.json();
     
-    if (!res.ok) {
-      throw new Error(`Network error: ${res.status}`);
+    if (!data.ok) {
+      if (data.error === 'unauthorized') {
+        showAuthError('Session expired. Please sign in again.');
+        signOut();
+        return;
+      }
+      throw new Error(data.message || 'Failed to fetch data');
     }
     
-    const data = await res.json();
+    // Process data...
+    cachedProducts = data.products || [];
+    renderProductTable();
+    hideLoading();
     
-    // Check for unauthorized response
-    if (!data.success && data.error === 'unauthorized') {
-      showAuthError('Session expired. Please sign in again.');
-      signOut();
-      hideSyncIndicator();
-      return;
-    }
-    
-    // Verify successful response
-    if (data && data.success) {
-      // Update products
-      cachedProducts = data.products || [];
-      
-      // Update sales with filtering for deleted items
-      let allSales = data.sales || [];
-      
-      // ✅ FIX 1: Filter out manually deleted sales
-      cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
-      console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
-      
-      // ✅ FIX 2: Sort sales by date (newest first)
-      sortSalesByDateDescending();
-      
-      // Mark initial load complete
-      hasInitialLoaded = true;
-      
-      // Render both products and sales
-      renderProducts();
-      renderSales();
-      
-      // Update dashboard metrics
-      updateSummaryFromCache();
-      
-      showSyncIndicator('Synced!', 900);
-      
-    } else {
-      throw new Error(data.error || 'Failed to fetch data');
-    }
-    
-  } catch (err) {
-    console.error('Sync error:', err);
-    alert('Failed to sync data: ' + err.message);
-    hideSyncIndicator();
+  } catch (error) {
+    console.error('Sync error:', error);
+    alert('Failed to sync data: ' + error.message);
+    hideLoading();
   }
 }
 
@@ -2911,6 +2877,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
