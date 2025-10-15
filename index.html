@@ -1406,25 +1406,23 @@ async function syncFromGoogleSheets() {
     if(current) sel.value = current;
   }
 
-  /***********************
-   * Save helpers (server calls)
-   ***********************/
-  /***********************
- * Save helpers (server calls) - updated to include idToken
+ /***********************
+ * Save helpers (server calls) - safe against CORS preflight + include idToken
  ***********************/
 async function saveProductToSheet(product, isEdit=false) {
   if (!googleIdToken) { showAuthError('Please sign in to save product'); return null; }
   try {
+    // include idToken in query string so Apps Script can verify
     const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // "simple" content-type -> no preflight
       body: JSON.stringify(product)
     });
     const parsed = await safeParseResponse(res);
     return parsed.json || null;
   } catch (e) {
-    console.error('saveProductToSheet', e);
+    console.error('saveProductToSheet error', e);
     return null;
   }
 }
@@ -1435,13 +1433,13 @@ async function saveSaleToSheet(item) {
     const url = `${GOOGLE_SCRIPT_URL}?action=addSale&idToken=${encodeURIComponent(googleIdToken)}`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
       body: JSON.stringify(item)
     });
     const parsed = await safeParseResponse(res);
     return parsed.json || null;
   } catch (e) {
-    console.error('saveSaleToSheet', e);
+    console.error('saveSaleToSheet error', e);
     return null;
   }
 }
@@ -1452,13 +1450,13 @@ async function deleteProductFromSheet(id) {
     const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
       body: JSON.stringify({ id })
     });
     const parsed = await safeParseResponse(res);
     return parsed.json && parsed.json.success;
   } catch (e) {
-    console.error('deleteProductFromSheet', e);
+    console.error('deleteProductFromSheet error', e);
     return false;
   }
 }
@@ -3018,6 +3016,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
