@@ -9,14 +9,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
-  <!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-
-
-  <!-- âœ… html2canvas for image generation -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
     .table-explorer { background:#fff; border-radius:6px; overflow:hidden; }
@@ -265,36 +257,10 @@
   </style>
 </head>
 <body>
-
- 
-
-<!-- âœ… ADD THIS AUTHENTICATION SCREEN -->
-<div id="authScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.3); text-align:center; max-width:400px; width:90%;">
-    <i class="bi bi-shield-lock" style="font-size:64px; color:#667eea;"></i>
-    <h2 style="margin:20px 0 10px;">Tile & Sanitaryware Inventory</h2>
-    <p style="color:#666; margin-bottom:30px;">Sign in with your authorized Google account</p>
-    
-        <!-- Google Sign-In button will be rendered here by JavaScript -->
-    <div id="googleSignInButton"></div>
-
-    
-    <p style="color:#999; font-size:12px; margin-top:30px;">
-      ðŸ”’ Secure authentication via Google
-    </p>
-  </div>
-</div>
-
-<!-- App Content (hidden until authenticated) -->
-<div id="appContent" style="display:none;">
-
-  <!-- YOUR EXISTING NAVBAR, DASHBOARD, ETC. GOES HERE -->
-
   <!-- Sync indicator -->
   <div id="syncIndicator" class="sync-indicator"><i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span></div>
 
   <!-- Navbar -->
-  
   <nav class="navbar navbar-dark bg-primary sticky-top">
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory</span>
@@ -302,15 +268,6 @@
         <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()"><i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh</button>
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
-        <!-- Add this to your navbar -->
-<div class="d-flex align-items-center ms-auto">
-  <img id="userAvatar" src="" alt="User" style="width:32px; height:32px; border-radius:50%; margin-right:10px; display:none;">
-  <span id="userName" style="margin-right:15px; color:white;"></span>
-  <button class="btn btn-sm btn-outline-light" onclick="signOut()">
-    <i class="bi bi-box-arrow-right"></i> Sign Out
-  </button>
-</div>
-
 
         <!-- âœ… NEW: View Invoices Button -->
       <button class="btn btn-success btn-sm" onclick="viewSavedInvoices()">
@@ -573,54 +530,17 @@
         </form>
       </div>
       
-     <div class="modal-footer">
-  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-    <i class="bi bi-x-circle"></i> Close
-  </button>
-  <button type="button" class="btn btn-info" onclick="previewInvoice()">
-    <i class="bi bi-eye"></i> Preview
-  </button>
-  
-  <!-- âœ… NEW: Share Invoice Dropdown -->
-  <div class="btn-group">
-    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-      <i class="bi bi-share"></i> Share Invoice
-    </button>
-    <ul class="dropdown-menu">
-      <li>
-        <a class="dropdown-item" href="#" onclick="shareInvoiceAsImage(); return false;">
-          <i class="bi bi-image"></i> Share as Image (Recommended)
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="#" onclick="shareInvoiceAsPDF(); return false;">
-          <i class="bi bi-file-pdf"></i> Share as PDF
-        </a>
-      </li>
-      <li><hr class="dropdown-divider"></li>
-      <li>
-        <a class="dropdown-item" href="#" onclick="shareViaWhatsApp(); return false;">
-          <i class="bi bi-whatsapp text-success"></i> WhatsApp (Text)
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="#" onclick="shareViaEmail(); return false;">
-          <i class="bi bi-envelope"></i> Email (Text)
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="#" onclick="shareViaSMS(); return false;">
-          <i class="bi bi-phone"></i> SMS (Text)
-        </a>
-      </li>
-    </ul>
-  </div>
-  
-  <button type="button" class="btn btn-success" onclick="saveInvoice()">
-    <i class="bi bi-save"></i> Save Invoice
-  </button>
-</div>
-
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+        <button type="button" class="btn btn-info" onclick="previewInvoice()">
+          <i class="bi bi-eye"></i> Preview
+        </button>
+        <button type="button" class="btn btn-success" onclick="saveInvoice()">
+          <i class="bi bi-save"></i> Save Invoice
+        </button>
+      </div>
       
     </div>
   </div>
@@ -951,267 +871,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-
-    
-// ==========================================
-// GLOBAL VARIABLES
-// ==========================================
-
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAQ1LoVlUZ7DzbIKzif6yCcpzc1C2T8wdSdOHnON_bdZmIzLl0lG7QoyxeYtU7V1yC/exec'; // Replace with your actual URL
-
-let currentUser = null;
-let googleIdToken = null;
-let GOOGLE_CLIENT_ID = null;
-let cachedProducts = [];
-let cachedSales = [];
-
-// ==========================================
-// AUTHENTICATION
-// ==========================================
-
-// Initialize on page load
-window.addEventListener('load', async function() {
-  console.log('Page loaded, initializing authentication...');
-  
-  // Fetch CLIENT_ID from server
-  await fetchClientId();
-  
-  // Check if user has a saved session
-  const savedToken = localStorage.getItem('googleIdToken');
-  if (savedToken) {
-    console.log('Found saved token, attempting authentication...');
-    await authenticateWithToken(savedToken);
-  } else {
-    console.log('No saved token, showing auth screen...');
-    showAuthScreen();
-  }
-});
-
-// Fetch CLIENT_ID from server
-async function fetchClientId() {
-  try {
-    console.log('Fetching CLIENT_ID from server...');
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
-    const data = await response.json();
-    
-    if (data.ok && data.clientId) {
-      GOOGLE_CLIENT_ID = data.clientId;
-      console.log('CLIENT_ID fetched successfully');
-      
-      // Initialize Google Sign-In
-      initializeGoogleSignIn();
-    } else {
-      console.error('Failed to fetch CLIENT_ID:', data);
-      alert('Failed to initialize authentication. Please refresh the page.');
-    }
-  } catch (error) {
-    console.error('Error fetching CLIENT_ID:', error);
-    alert('Failed to connect to server. Please check your internet connection.');
-  }
-}
-
-// Initialize Google Sign-In
-function initializeGoogleSignIn() {
-  console.log('Initializing Google Sign-In with CLIENT_ID:', GOOGLE_CLIENT_ID);
-  
-  if (typeof google === 'undefined') {
-    console.error('Google Identity Services library not loaded');
-    setTimeout(initializeGoogleSignIn, 1000); // Retry after 1 second
-    return;
-  }
-  
-  try {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleSignIn,
-      auto_select: false
-    });
-    
-    google.accounts.id.renderButton(
-      document.getElementById('googleSignInButton'),
-      {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'rectangular',
-        width: 300
-      }
-    );
-    
-    console.log('Google Sign-In button rendered successfully');
-  } catch (error) {
-    console.error('Error initializing Google Sign-In:', error);
-  }
-}
-
-// Handle Google Sign-In response
-async function handleGoogleSignIn(response) {
-  console.log('Google Sign-In callback triggered');
-  const idToken = response.credential;
-  await authenticateWithToken(idToken);
-}
-
-// Authenticate with Google ID token
-async function authenticateWithToken(idToken) {
-  console.log('Authenticating with token...');
-  
-  try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=authenticate&idToken=${encodeURIComponent(idToken)}`
-    });
-    
-    const data = await response.json();
-    console.log('Authentication response:', data);
-    
-    if (data.ok && data.user) {
-      // Authentication successful
-      currentUser = data.user;
-      googleIdToken = idToken;
-      localStorage.setItem('googleIdToken', idToken);
-      
-      console.log('Authentication successful:', currentUser);
-      
-      showApp();
-      updateUserUI();
-      
-      // Load inventory data
-      await syncFromGoogleSheets();
-    } else {
-      // Authentication failed
-      console.error('Authentication failed:', data);
-      showAuthError(data.message || 'Access denied. Your account is not authorized.');
-      localStorage.removeItem('googleIdToken');
-    }
-  } catch (error) {
-    console.error('Authentication error:', error);
-    showAuthError('Authentication failed. Please try again.');
-    localStorage.removeItem('googleIdToken');
-  }
-}
-
-// Show authentication screen
-function showAuthScreen() {
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('appContent').style.display = 'none';
-}
-
-// Show app (hide auth screen)
-function showApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
-}
-
-// Update user UI
-function updateUserUI() {
-  if (currentUser) {
-    const userNameEl = document.getElementById('userName');
-    const userAvatarEl = document.getElementById('userAvatar');
-    
-    if (userNameEl) {
-      userNameEl.textContent = currentUser.name || currentUser.email;
-    }
-    
-    if (userAvatarEl && currentUser.picture) {
-      userAvatarEl.src = currentUser.picture;
-      userAvatarEl.style.display = 'inline-block';
-    }
-  }
-}
-
-// Show authentication error
-function showAuthError(message) {
-  alert('ðŸ”’ ' + message);
-  showAuthScreen();
-}
-
-// Sign out
-function signOut() {
-  if (confirm('Are you sure you want to sign out?')) {
-    console.log('Signing out...');
-    
-    currentUser = null;
-    googleIdToken = null;
-    localStorage.removeItem('googleIdToken');
-    
-    // Revoke Google session
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      google.accounts.id.disableAutoSelect();
-    }
-    
-    showAuthScreen();
-    
-    // Reload page to reset state
-    setTimeout(() => location.reload(), 500);
-  }
-}
-
-// ==========================================
-// API CALLS WITH AUTHENTICATION
-// ==========================================
-
-async function syncFromGoogleSheets() {
-  if (!googleIdToken) {
-    showAuthError('Please sign in to continue');
-    return;
-  }
-  
-  console.log('Syncing data from Google Sheets...');
-  showLoading('Syncing data...');
-  
-  try {
-    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (!data.ok) {
-      if (data.error === 'unauthorized') {
-        showAuthError('Session expired. Please sign in again.');
-        signOut();
-        return;
-      }
-      throw new Error(data.message || 'Failed to fetch data');
-    }
-    
-  cachedProducts = data.products || [];
-console.log('Products loaded:', cachedProducts.length);
-
-renderProducts();  // ✅ CORRECT function name
-hideLoading();
-
-    
-  } catch (error) {
-    console.error('Sync error:', error);
-    alert('Failed to sync data: ' + error.message);
-    hideLoading();
-  }
-}
-
-// Helper functions for loading indicator
-function showLoading(message = 'Loading...') {
-  let loader = document.getElementById('globalLoader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'globalLoader';
-    loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px 40px;border-radius:8px;z-index:10000;font-size:16px;';
-    document.body.appendChild(loader);
-  }
-  loader.textContent = message;
-  loader.style.display = 'block';
-}
-
-function hideLoading() {
-  const loader = document.getElementById('globalLoader');
-  if (loader) {
-    loader.style.display = 'none';
-  }
-}
-
   /***********************
    * CONFIG
    ***********************/
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec'; // <-- replace with your deployed URL
+  let cachedProducts = [];
+  let cachedSales = [];
 
 let deletedSaleIds = []; // NEW: Track manually deleted sales
 
@@ -1261,65 +926,34 @@ try {
   /***********************
    * Sync / Fetch
    ***********************/
- async function syncFromGoogleSheets() {
-  // Check authentication
-  if (!googleIdToken) {
-    showAuthError('Please sign in to continue');
-    return;
-  }
-
-  showLoading('Syncing data...');
-  
-  try {
-    // Fetch both products AND sales
-    const urlProducts = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
-    const urlSales = `${GOOGLE_SCRIPT_URL}?action=getSales&idToken=${encodeURIComponent(googleIdToken)}`;
-
-    // Fetch both in parallel
-    const [prodRes, salesRes] = await Promise.all([
-      fetch(urlProducts),
-      fetch(urlSales)
-    ]);
-
-    const prodData = await prodRes.json();
-    const salesData = await salesRes.json();
-
-    // Check products response
-    if (!prodData.ok) {
-      if (prodData.error === 'unauthorized') {
-        showAuthError('Session expired. Please sign in again.');
-        signOut();
-        return;
-      }
-      throw new Error(prodData.message || 'Failed to fetch products');
+  async function syncFromGoogleSheets() {
+    showSyncIndicator('Refreshing...');
+    try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
+        if (!res.ok) throw new Error(`Network ${res.status}`);
+        const data = await res.json();
+        
+        if (data && data.success) {
+            cachedProducts = data.products || [];
+            let allSales = data.sales || [];
+            
+            // Ã¢Å“â€¦ FIX 1: Filter out manually deleted sales
+            cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
+            console.log(`Ã°Å¸â€œÅ  Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+            
+            // Ã¢Å“â€¦ FIX 2: Sort sales by date (newest first)
+            sortSalesByDateDescending();
+            
+            hasInitialLoaded = true;
+            renderProducts();
+            renderSales();
+            showSyncIndicator('Synced!', 900);
+        }
+    } catch (err) {
+        console.error('sync error', err);
+        hideSyncIndicator();
     }
-
-    // Check sales response (non-fatal if fails)
-    if (!salesData.ok) {
-      console.warn('Sales fetch failed:', salesData);
-    }
-
-    // Update caches
-    cachedProducts = prodData.products || [];
-    cachedSales = salesData.sales || [];
-
-    console.log('Sync complete - Products:', cachedProducts.length, 'Sales:', cachedSales.length);
-
-    // Render both
-    renderProducts();  // ✅ Correct function
-    renderSales();     // ✅ Correct function
-    
-    updateSummaryFromCache();  // Update dashboard metrics
-
-    hideLoading();
-
-  } catch (error) {
-    console.error('Sync error:', error);
-    alert('Failed to sync data: ' + error.message);
-    hideLoading();
-  }
 }
-
 
   async function fallbackGetProductsAndSales() {
     try { const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`); if(p.ok){ const pj=await p.json(); if(pj && pj.products) cachedProducts=pj.products; } }
@@ -2883,11 +2517,7 @@ function generateInvoiceHTML(data) {
           button { display: none; }
         }
       </style>
-      
     </head>
-
-</div> <!-- End of appContent -->
-
     <body>
       <div class="invoice-header">
         <h1>INVOICE</h1>
@@ -3064,293 +2694,10 @@ function deleteSavedInvoice(index) {
   viewSavedInvoices();
 }
 
-
-    // ==========================================
-// SHARE INVOICE FEATURE
-// ==========================================
-
-// Share Invoice as Image (Primary Method)
-async function shareInvoiceAsImage() {
-  // Validate customer name
-  const customerName = document.getElementById('invoiceCustomerName').value.trim();
-  if (!customerName) {
-    alert('âŒ Please enter customer name before sharing');
-    return;
-  }
-  
-  showLoading('Generating image...');
-  
-  try {
-    // Get invoice data
-    const invoiceData = collectInvoiceData();
-    
-    // Generate invoice HTML in hidden container
-    const tempContainer = document.createElement('div');
-    tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;width:800px;padding:40px;';
-    tempContainer.innerHTML = generateInvoiceHTMLForImage(invoiceData);
-    document.body.appendChild(tempContainer);
-    
-    // Wait for fonts to load
-    await document.fonts.ready;
-    
-    // Convert to canvas
-    const canvas = await html2canvas(tempContainer, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      logging: false,
-      windowWidth: 800,
-      windowHeight: tempContainer.scrollHeight
-    });
-    
-    // Remove temp container
-    document.body.removeChild(tempContainer);
-    
-    hideLoading();
-    
-    // Convert canvas to blob
-    canvas.toBlob(async (blob) => {
-      const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.customerName.replace(/\s+/g, '_')}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
-      
-      // Try Web Share API (mobile & modern browsers)
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: `Invoice ${invoiceData.invoiceNumber}`,
-            text: `Invoice for ${invoiceData.customerName} - â‚¹${invoiceData.total.toFixed(2)}`,
-            files: [file]
-          });
-          console.log('âœ… Invoice shared successfully');
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Share failed:', err);
-            fallbackDownloadImage(canvas, fileName);
-          }
-        }
-      } else {
-        // Fallback: Download image
-        fallbackDownloadImage(canvas, fileName);
-      }
-    }, 'image/png', 0.95);
-    
-  } catch (error) {
-    hideLoading();
-    console.error('Error generating image:', error);
-    alert('âŒ Error generating invoice image. Please try again.');
-  }
-}
-
-// Fallback: Download image if share not supported
-function fallbackDownloadImage(canvas, fileName) {
-  const link = document.createElement('a');
-  link.download = fileName;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  alert('âœ… Invoice image downloaded! You can now share it from your downloads.');
-}
-
-// Generate clean invoice HTML for image conversion
-function generateInvoiceHTMLForImage(data) {
-  let itemsHTML = '';
-  data.items.forEach((item, index) => {
-    itemsHTML += `
-      <tr>
-        <td style="text-align:center;padding:8px;border:1px solid #ddd;">${index + 1}</td>
-        <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(item.name)}</td>
-        <td style="text-align:center;padding:8px;border:1px solid #ddd;">${item.quantity}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.rate.toFixed(2)}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.amount.toFixed(2)}</td>
-      </tr>
-    `;
-  });
-  
-  return `
-    <div style="font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto;">
-      <div style="text-align:center;margin-bottom:30px;border-bottom:3px solid #0d6efd;padding-bottom:20px;">
-        <h1 style="margin:0;font-size:36px;color:#0d6efd;">INVOICE</h1>
-        <h2 style="margin:10px 0;font-size:20px;color:#333;">Tile & Sanitaryware Inventory</h2>
-      </div>
-      
-      <div style="display:flex;justify-content:space-between;margin-bottom:30px;">
-        <div style="flex:1;">
-          <p style="margin:5px 0;"><strong>Invoice Number:</strong> ${data.invoiceNumber}</p>
-          <p style="margin:5px 0;"><strong>Customer Name:</strong> ${escapeHtml(data.customerName)}</p>
-        </div>
-        <div style="flex:1;text-align:right;">
-          <p style="margin:5px 0;"><strong>Invoice Date:</strong> ${new Date(data.invoiceDate).toLocaleDateString('en-IN')}</p>
-          <p style="margin:5px 0;"><strong>Due Date:</strong> ${new Date(data.dueDate).toLocaleDateString('en-IN')}</p>
-        </div>
-      </div>
-      
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-        <thead>
-          <tr style="background:#f8f9fa;">
-            <th style="padding:10px;border:1px solid #ddd;text-align:center;width:50px;">#</th>
-            <th style="padding:10px;border:1px solid #ddd;text-align:left;">Item Description</th>
-            <th style="padding:10px;border:1px solid #ddd;text-align:center;width:80px;">Quantity</th>
-            <th style="padding:10px;border:1px solid #ddd;text-align:right;width:100px;">Rate</th>
-            <th style="padding:10px;border:1px solid #ddd;text-align:right;width:120px;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemsHTML}
-        </tbody>
-      </table>
-      
-      <div style="text-align:right;margin-bottom:20px;">
-        <table style="margin-left:auto;width:300px;">
-          <tr>
-            <td style="padding:5px;"><strong>Sub Total:</strong></td>
-            <td style="padding:5px;text-align:right;">â‚¹${data.subtotal.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px;color:#dc3545;"><strong>Discount:</strong></td>
-            <td style="padding:5px;text-align:right;color:#dc3545;">-â‚¹${data.discount.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px;"><strong>Tax:</strong></td>
-            <td style="padding:5px;text-align:right;">â‚¹${data.tax.toFixed(2)}</td>
-          </tr>
-          <tr style="border-top:2px solid #000;">
-            <td style="padding:10px;font-size:18px;"><strong>Grand Total:</strong></td>
-            <td style="padding:10px;text-align:right;font-size:18px;"><strong>â‚¹${data.total.toFixed(2)}</strong></td>
-          </tr>
-        </table>
-      </div>
-      
-      ${data.notes ? `
-        <div style="margin-bottom:20px;">
-          <p style="margin:5px 0;"><strong>Customer Notes:</strong></p>
-          <p style="margin:5px 0;padding:10px;background:#f8f9fa;border-left:3px solid #0d6efd;">${escapeHtml(data.notes)}</p>
-        </div>
-      ` : ''}
-      
-      ${data.terms ? `
-        <div style="margin-bottom:20px;">
-          <p style="margin:5px 0;"><strong>Terms & Conditions:</strong></p>
-          <p style="margin:5px 0;white-space:pre-line;font-size:12px;color:#666;">${escapeHtml(data.terms)}</p>
-        </div>
-      ` : ''}
-      
-      <div style="text-align:center;margin-top:30px;padding-top:20px;border-top:1px solid #ddd;color:#666;font-size:12px;">
-        <p>Thank you for your business!</p>
-      </div>
-    </div>
-  `;
-}
-
-// Share Invoice as PDF
-async function shareInvoiceAsPDF() {
-  alert('ðŸ“„ PDF sharing coming soon! For now, use Preview â†’ Print to save as PDF.');
-  // You can implement PDF generation using jsPDF or html2pdf.js later
-}
-
-// Share via WhatsApp (Text message)
-function shareViaWhatsApp() {
-  const invoiceData = collectInvoiceData();
-  
-  if (!invoiceData.customerName) {
-    alert('âŒ Please enter customer name');
-    return;
-  }
-  
-  const message = generateShareText(invoiceData);
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, '_blank');
-}
-
-// Share via Email (Text)
-function shareViaEmail() {
-  const invoiceData = collectInvoiceData();
-  
-  if (!invoiceData.customerName) {
-    alert('âŒ Please enter customer name');
-    return;
-  }
-  
-  const subject = `Invoice ${invoiceData.invoiceNumber} from Tile & Sanitaryware Inventory`;
-  const body = generateShareText(invoiceData);
-  const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailtoUrl;
-}
-
-// Share via SMS (Text)
-function shareViaSMS() {
-  const invoiceData = collectInvoiceData();
-  
-  if (!invoiceData.customerName) {
-    alert('âŒ Please enter customer name');
-    return;
-  }
-  
-  const message = generateShareText(invoiceData);
-  const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
-  window.location.href = smsUrl;
-}
-
-// Generate text message for sharing
-function generateShareText(data) {
-  let text = `ðŸ§¾ INVOICE\n\n`;
-  text += `Invoice No: ${data.invoiceNumber}\n`;
-  text += `Customer: ${data.customerName}\n`;
-  text += `Date: ${new Date(data.invoiceDate).toLocaleDateString('en-IN')}\n`;
-  text += `Due Date: ${new Date(data.dueDate).toLocaleDateString('en-IN')}\n\n`;
-  
-  text += `ITEMS:\n`;
-  data.items.forEach((item, i) => {
-    text += `${i + 1}. ${item.name} x ${item.quantity} = â‚¹${item.amount.toFixed(2)}\n`;
-  });
-  
-  text += `\n`;
-  text += `Sub Total: â‚¹${data.subtotal.toFixed(2)}\n`;
-  if (data.discount > 0) {
-    text += `Discount: -â‚¹${data.discount.toFixed(2)}\n`;
-  }
-  if (data.tax > 0) {
-    text += `Tax: â‚¹${data.tax.toFixed(2)}\n`;
-  }
-  text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
-  text += `TOTAL: â‚¹${data.total.toFixed(2)}\n\n`;
-  
-  text += `Thank you for your business!\n`;
-  text += `- Tile & Sanitaryware Inventory`;
-  
-  return text;
-}
-
-// Loading indicator helpers
-function showLoading(message = 'Processing...') {
-  let loader = document.getElementById('globalLoader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'globalLoader';
-    loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px 40px;border-radius:8px;z-index:10000;font-size:16px;';
-    document.body.appendChild(loader);
-  }
-  loader.textContent = message;
-  loader.style.display = 'block';
-}
-
-function hideLoading() {
-  const loader = document.getElementById('globalLoader');
-  if (loader) {
-    loader.style.display = 'none';
-  }
-}
-
-
     
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
 
 
