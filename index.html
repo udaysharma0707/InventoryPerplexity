@@ -1123,6 +1123,33 @@ function showAuthError(message, autoRedirect = true) {
   }
 }
 
+/**
+ * ==========================================
+ * DIAGNOSTIC: Check Auth State Anywhere
+ * ==========================================
+ */
+function checkAuthState(location = 'unknown') {
+  console.log(`
+╔════════════════════════════════════════════════════════════
+║ 🔍 AUTH STATE CHECK (from: ${location})
+╠════════════════════════════════════════════════════════════
+║ googleIdToken: ${googleIdToken ? '✅ EXISTS (length: ' + googleIdToken.length + ')' : '❌ NULL'}
+║ currentUser: ${currentUser ? '✅ EXISTS (' + currentUser.email + ')' : '❌ NULL'}
+║ localStorage token: ${localStorage.getItem('googleIdToken') ? '✅ EXISTS' : '❌ NULL'}
+║ Window token var: ${typeof window.googleIdToken !== 'undefined' ? '✅ DEFINED' : '❌ UNDEFINED'}
+║ Timestamp: ${new Date().toISOString()}
+╚════════════════════════════════════════════════════════════
+  `);
+  
+  return {
+    hasToken: !!googleIdToken,
+    hasUser: !!currentUser,
+    hasStorageToken: !!localStorage.getItem('googleIdToken')
+  };
+}
+
+    
+
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
@@ -1417,41 +1444,123 @@ async function syncFromGoogleSheets() {
   /***********************
    * Save helpers (server calls)
    ***********************/
-  async function saveProductToSheet(product, isEdit=false){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct':'addProduct'}`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(product)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveProductToSheet', e); return null; }
+ async function saveProductToSheet(product, isEdit=false) {
+  // ✅ CRITICAL: Check and restore token
+  if (!googleIdToken) {
+    const savedToken = localStorage.getItem('googleIdToken');
+    if (savedToken) {
+      console.warn('⚠️ Token was null, restoring from localStorage');
+      googleIdToken = savedToken;
+    } else {
+      console.error('❌ No token available anywhere!');
+      showAuthError('Session expired. Please sign in again.');
+      return null;
+    }
   }
+  
+  // Log auth state
+  checkAuthState('saveProductToSheet');
 
-  async function saveSaleToSheet(item){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify(item)
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json || null;
-    }catch(e){ console.error('saveSaleToSheet', e); return null; }
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(product))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      console.error('❌ Backend returned unauthorized');
+      showAuthError('Session expired. Please sign in again.');
+      return null;
+    }
+    
+    return parsed.json || null;
+  } catch(e) {
+    console.error('saveProductToSheet error:', e);
+    return null;
   }
+}
 
-  async function deleteProductFromSheet(id){
-    try{
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body: JSON.stringify({ id })
-      });
-      const parsed = await safeParseResponse(res);
-      return parsed.json && parsed.json.success;
-    }catch(e){ console.error('deleteProductFromSheet', e); return false; }
+
+ async function saveSaleToSheet(item) {
+  // ✅ CRITICAL: Check and restore token
+  if (!googleIdToken) {
+    const savedToken = localStorage.getItem('googleIdToken');
+    if (savedToken) {
+      console.warn('⚠️ Token was null, restoring from localStorage');
+      googleIdToken = savedToken;
+    } else {
+      console.error('❌ No token available anywhere!');
+      showAuthError('Session expired. Please sign in again.');
+      return null;
+    }
   }
+  
+  // Log auth state
+  checkAuthState('saveSaleToSheet');
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=addSale&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(item))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      console.error('❌ Backend returned unauthorized');
+      showAuthError('Session expired. Please sign in again.');
+      return null;
+    }
+    
+    return parsed.json || null;
+  } catch(e) {
+    console.error('saveSaleToSheet error:', e);
+    return null;
+  }
+}
+
+  async function deleteProductFromSheet(id) {
+  // ✅ CRITICAL: Check and restore token
+  if (!googleIdToken) {
+    const savedToken = localStorage.getItem('googleIdToken');
+    if (savedToken) {
+      console.warn('⚠️ Token was null, restoring from localStorage');
+      googleIdToken = savedToken;
+    } else {
+      console.error('❌ No token available anywhere!');
+      showAuthError('Session expired. Please sign in again.');
+      return false;
+    }
+  }
+  
+  // Log auth state
+  checkAuthState('deleteProductFromSheet');
+
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify({ id }))}`
+    });
+    
+    const parsed = await safeParseResponse(res);
+    
+    if (parsed.json && (parsed.json.error === 'unauthorized')) {
+      console.error('❌ Backend returned unauthorized');
+      showAuthError('Session expired. Please sign in again.');
+      return false;
+    }
+    
+    return parsed.json && parsed.json.success;
+  } catch(e) {
+    console.error('deleteProductFromSheet error:', e);
+    return false;
+  }
+}
 
   /***********************
    * Product CRUD UI
@@ -3007,6 +3116,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
