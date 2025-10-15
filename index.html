@@ -953,17 +953,18 @@ window.addEventListener('load', async function() {
     return;
   }
   
-  // Step 2: Check for saved token
-  const savedToken = localStorage.getItem('googleIdToken');
-  if (savedToken) {
-    console.log('🔑 Found saved token, attempting authentication...');
-    await authenticateWithToken(savedToken);
-  } else {
-    console.log('👤 No saved token, showing auth screen...');
+   // Step 2: Try to reuse saved token or perform a silent sign-in attempt
+  // (ensureSignedInOrPrompt() will either authenticate silently or show the sign-in UI)
+  try {
+    await ensureSignedInOrPrompt();
+  } catch (e) {
+    console.error('ensureSignedInOrPrompt failed', e);
+    // fallback to showing auth screen and rendering the sign-in button
     showAuthScreen();
     initializeGoogleSignIn();
   }
 });
+
 
 // Initialize Google Sign-In
 function initializeGoogleSignIn() {
@@ -1004,6 +1005,127 @@ function initializeGoogleSignIn() {
   }
 }
 
+/* =========================
+   Token helpers + Silent sign-in
+   Place this after initializeGoogleSignIn() and before handleGoogleSignIn()/authenticateWithToken()
+   ========================= */
+
+// Decode a JWT payload (no verification - just read exp, email etc.)
+function decodeJwt(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(atob(payload).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(json);
+  } catch (e) {
+    console.warn('decodeJwt error', e);
+    return null;
+  }
+}
+
+// Returns true if token is expired (or invalid)
+function isTokenExpired(token) {
+  if (!token) return true;
+  const payload = decodeJwt(token);
+  if (!payload || !payload.exp) return true;
+  // payload.exp is in seconds since epoch
+  const nowSec = Math.floor(Date.now() / 1000);
+  // treat as expired a little earlier to account for clock skew (30s)
+  return (payload.exp - 30) <= nowSec;
+}
+
+// Try silent sign-in using Google Identity Services (auto_select + prompt).
+// If successful the callback handleGoogleSignIn will be called (the usual flow).
+function trySilentSignIn() {
+  if (typeof google === 'undefined') {
+    console.log('trySilentSignIn: google lib not loaded, retrying shortly');
+    setTimeout(trySilentSignIn, 500);
+    return;
+  }
+
+  console.log('Attempting silent sign-in (auto_select)...
+
+');
+
+  // Re-initialize with auto_select = true for a silent attempt
+  try {
+    // We initialize a temporary instance that prefers auto selection
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleSignIn, // handle the credential if returned
+      auto_select: true,           // allow automatic sign-in if possible
+      ux_mode: 'popup'             // popup mode best for static sites
+    });
+
+    // prompt() attempts One-Tap or automatic credential delivery.
+    // When the user has an active Google sign-in and consent, this will call the callback silently.
+    google.accounts.id.prompt((notification) => {
+      // notification.getNotDisplayedReason() returns reason if not displayed
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        console.log('Silent prompt not displayed or skipped:', notification.getNotDisplayedReason && notification.getNotDisplayedReason());
+      } else if (notification.isDismissedMoment()) {
+        console.log('Silent prompt dismissed by user.');
+      } else {
+        console.log('google.accounts.id.prompt result:', notification);
+      }
+      // If the prompt didn't produce credentials, caller code will continue to show login UI.
+      // We do nothing here; handleGoogleSignIn will run if credential arrives.
+    });
+  } catch (e) {
+    console.warn('trySilentSignIn error', e);
+  }
+}
+
+// Call this during init when saved token is expired or absent.
+// It will attempt silent sign-in and fall back to showing UI if silent fails.
+async function ensureSignedInOrPrompt() {
+  const saved = localStorage.getItem('googleIdToken');
+  if (saved && !isTokenExpired(saved)) {
+    console.log('Saved token valid, using it.');
+    // Use the token directly (avoid new prompt)
+    await authenticateWithToken(saved);
+    return;
+  }
+
+  // Token not present or expired — try silent sign-in
+  trySilentSignIn();
+
+  // Give the silent attempt a short timeout; if nothing arrives, show the auth screen.
+  // (handleGoogleSignIn will call authenticateWithToken when a credential is received.)
+  setTimeout(() => {
+    const stillSaved = localStorage.getItem('googleIdToken');
+    if (stillSaved && !isTokenExpired(stillSaved)) {
+      // silent sign-in succeeded and stored token
+      console.log('Silent sign-in succeeded in background');
+      return;
+    }
+    // else show explicit auth UI
+    console.log('Silent sign-in did not yield token — showing auth screen');
+    showAuthScreen();
+    // ensure the normal sign-in button is rendered (initialize with auto_select:false)
+    initializeGoogleSignIn();
+  }, 1600); // 1.6s is short but enough for most silent responses; tweak if you like
+}
+
+// Small helper to persist token + expiry metadata
+function storeIdToken(token) {
+  if (!token) return;
+  localStorage.setItem('googleIdToken', token);
+  const payload = decodeJwt(token);
+  if (payload && payload.exp) {
+    // also store a convenience expiry timestamp (ms)
+    localStorage.setItem('googleIdTokenExpiry', String(payload.exp * 1000));
+  } else {
+    localStorage.removeItem('googleIdTokenExpiry');
+  }
+}
+
+
+
+    
 // Handle Google Sign-In callback
 async function handleGoogleSignIn(response) {
   console.log('🔐 Google Sign-In callback triggered');
@@ -1029,7 +1151,8 @@ async function authenticateWithToken(idToken) {
       // Success
       currentUser = data.user;
       googleIdToken = idToken;
-      localStorage.setItem('googleIdToken', idToken);
+      storeIdToken(idToken);
+
       
       console.log('✅ Authentication successful:', currentUser);
       
@@ -1040,13 +1163,13 @@ async function authenticateWithToken(idToken) {
       // Failed
       console.error('❌ Authentication failed:', data);
       alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
-      localStorage.removeItem('googleIdToken');
+      localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
       showAuthScreen();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
     alert('Authentication failed. Please try again.');
-    localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
     showAuthScreen();
   }
 }
@@ -1066,7 +1189,7 @@ function showAuthError(message) {
   try {
     console.warn('Auth error:', message);
     // Clear local state
-    localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
     googleIdToken = null;
     currentUser = null;
 
@@ -1122,7 +1245,7 @@ function signOut() {
     
     currentUser = null;
     googleIdToken = null;
-    localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
     
     if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
       google.accounts.id.disableAutoSelect();
@@ -3016,6 +3139,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
