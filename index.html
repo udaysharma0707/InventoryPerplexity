@@ -1020,21 +1020,24 @@ async function fetchClientId() {
   }
 }
 
-// Initialize Google Sign-In
+// Initialize Google Sign-In (Pop-up mode - no redirect needed)
 function initializeGoogleSignIn() {
   console.log('Initializing Google Sign-In with CLIENT_ID:', GOOGLE_CLIENT_ID);
   
   if (typeof google === 'undefined') {
     console.error('Google Identity Services library not loaded');
-    setTimeout(initializeGoogleSignIn, 1000); // Retry after 1 second
+    setTimeout(initializeGoogleSignIn, 1000);
     return;
   }
   
   try {
+    // Initialize with UX_MODE popup
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleGoogleSignIn,
-      auto_select: false
+      auto_select: false,
+      ux_mode: 'popup',  // ← This fixes the redirect issue!
+      context: 'signin'
     });
     
     google.accounts.id.renderButton(
@@ -1054,6 +1057,7 @@ function initializeGoogleSignIn() {
     console.error('Error initializing Google Sign-In:', error);
   }
 }
+
 
 // Handle Google Sign-In response
 async function handleGoogleSignIn(response) {
@@ -3329,6 +3333,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
