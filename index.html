@@ -964,23 +964,35 @@
 
     
 // ==========================================
-// AUTHENTICATION
+// GLOBAL VARIABLES
 // ==========================================
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU9TlmuIw4_iVg0RUqoZHXVQrmOrtpVq-mz3LNt4jeZKXEIL9vyfL5GJg0gKMvZXw/exec'; // Replace with your actual URL
 
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
+let cachedProducts = [];
+let cachedSales = [];
 
-// On page load - check authentication
+// ==========================================
+// AUTHENTICATION
+// ==========================================
+
+// Initialize on page load
 window.addEventListener('load', async function() {
-  // Fetch CLIENT_ID from server (secure)
+  console.log('Page loaded, initializing authentication...');
+  
+  // Fetch CLIENT_ID from server
   await fetchClientId();
   
   // Check if user has a saved session
   const savedToken = localStorage.getItem('googleIdToken');
   if (savedToken) {
+    console.log('Found saved token, attempting authentication...');
     await authenticateWithToken(savedToken);
   } else {
+    console.log('No saved token, showing auth screen...');
     showAuthScreen();
   }
 });
@@ -988,30 +1000,72 @@ window.addEventListener('load', async function() {
 // Fetch CLIENT_ID from server
 async function fetchClientId() {
   try {
+    console.log('Fetching CLIENT_ID from server...');
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
     const data = await response.json();
-    if (data.ok) {
+    
+    if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      // Update the data-client_id attribute
-      const gIdOnload = document.querySelector('[data-client_id]');
-      if (gIdOnload) {
-        gIdOnload.setAttribute('data-client_id', GOOGLE_CLIENT_ID);
-      }
+      console.log('CLIENT_ID fetched successfully');
+      
+      // Initialize Google Sign-In
+      initializeGoogleSignIn();
+    } else {
+      console.error('Failed to fetch CLIENT_ID:', data);
+      alert('Failed to initialize authentication. Please refresh the page.');
     }
   } catch (error) {
-    console.error('Error fetching client ID:', error);
-    alert('Failed to initialize authentication. Please refresh the page.');
+    console.error('Error fetching CLIENT_ID:', error);
+    alert('Failed to connect to server. Please check your internet connection.');
+  }
+}
+
+// Initialize Google Sign-In
+function initializeGoogleSignIn() {
+  console.log('Initializing Google Sign-In with CLIENT_ID:', GOOGLE_CLIENT_ID);
+  
+  if (typeof google === 'undefined') {
+    console.error('Google Identity Services library not loaded');
+    setTimeout(initializeGoogleSignIn, 1000); // Retry after 1 second
+    return;
+  }
+  
+  try {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleSignIn,
+      auto_select: false
+    });
+    
+    google.accounts.id.renderButton(
+      document.getElementById('googleSignInButton'),
+      {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+        width: 300
+      }
+    );
+    
+    console.log('Google Sign-In button rendered successfully');
+  } catch (error) {
+    console.error('Error initializing Google Sign-In:', error);
   }
 }
 
 // Handle Google Sign-In response
-async function handleCredentialResponse(response) {
+async function handleGoogleSignIn(response) {
+  console.log('Google Sign-In callback triggered');
   const idToken = response.credential;
   await authenticateWithToken(idToken);
 }
 
 // Authenticate with Google ID token
 async function authenticateWithToken(idToken) {
+  console.log('Authenticating with token...');
+  
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -1020,26 +1074,31 @@ async function authenticateWithToken(idToken) {
     });
     
     const data = await response.json();
+    console.log('Authentication response:', data);
     
-    if (data.ok) {
+    if (data.ok && data.user) {
       // Authentication successful
       currentUser = data.user;
       googleIdToken = idToken;
       localStorage.setItem('googleIdToken', idToken);
       
+      console.log('Authentication successful:', currentUser);
+      
       showApp();
       updateUserUI();
       
       // Load inventory data
-      syncFromGoogleSheets();
+      await syncFromGoogleSheets();
     } else {
       // Authentication failed
-      showAuthError(data.message || 'Access denied');
+      console.error('Authentication failed:', data);
+      showAuthError(data.message || 'Access denied. Your account is not authorized.');
       localStorage.removeItem('googleIdToken');
     }
   } catch (error) {
     console.error('Authentication error:', error);
     showAuthError('Authentication failed. Please try again.');
+    localStorage.removeItem('googleIdToken');
   }
 }
 
@@ -1058,11 +1117,16 @@ function showApp() {
 // Update user UI
 function updateUserUI() {
   if (currentUser) {
-    document.getElementById('userName').textContent = currentUser.name;
-    if (currentUser.picture) {
-      const avatar = document.getElementById('userAvatar');
-      avatar.src = currentUser.picture;
-      avatar.style.display = 'inline-block';
+    const userNameEl = document.getElementById('userName');
+    const userAvatarEl = document.getElementById('userAvatar');
+    
+    if (userNameEl) {
+      userNameEl.textContent = currentUser.name || currentUser.email;
+    }
+    
+    if (userAvatarEl && currentUser.picture) {
+      userAvatarEl.src = currentUser.picture;
+      userAvatarEl.style.display = 'inline-block';
     }
   }
 }
@@ -1076,6 +1140,8 @@ function showAuthError(message) {
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
+    console.log('Signing out...');
+    
     currentUser = null;
     googleIdToken = null;
     localStorage.removeItem('googleIdToken');
@@ -1086,10 +1152,71 @@ function signOut() {
     }
     
     showAuthScreen();
+    
+    // Reload page to reset state
+    setTimeout(() => location.reload(), 500);
   }
 }
 
+// ==========================================
+// API CALLS WITH AUTHENTICATION
+// ==========================================
 
+async function syncFromGoogleSheets() {
+  if (!googleIdToken) {
+    showAuthError('Please sign in to continue');
+    return;
+  }
+  
+  console.log('Syncing data from Google Sheets...');
+  showLoading('Syncing data...');
+  
+  try {
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      if (data.error === 'unauthorized') {
+        showAuthError('Session expired. Please sign in again.');
+        signOut();
+        return;
+      }
+      throw new Error(data.message || 'Failed to fetch data');
+    }
+    
+    cachedProducts = data.products || [];
+    console.log('Products loaded:', cachedProducts.length);
+    
+    renderProductTable();
+    hideLoading();
+    
+  } catch (error) {
+    console.error('Sync error:', error);
+    alert('Failed to sync data: ' + error.message);
+    hideLoading();
+  }
+}
+
+// Helper functions for loading indicator
+function showLoading(message = 'Loading...') {
+  let loader = document.getElementById('globalLoader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'globalLoader';
+    loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px 40px;border-radius:8px;z-index:10000;font-size:16px;';
+    document.body.appendChild(loader);
+  }
+  loader.textContent = message;
+  loader.style.display = 'block';
+}
+
+function hideLoading() {
+  const loader = document.getElementById('globalLoader');
+  if (loader) {
+    loader.style.display = 'none';
+  }
+}
 
   /***********************
    * CONFIG
@@ -3205,6 +3332,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
