@@ -1,5 +1,3 @@
-Google sign in , entry getting registered inventory working index.html and appscript
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -920,7 +918,7 @@ Google sign in , entry getting registered inventory working index.html and appsc
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZY2HURq601qlGoUfnpbYBzq_Hx9ZD67CGQZcbT40M5c-8e31wfL_bmerd4eKJSCrB/exec'; // <-- replace with your deployed URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw19AglfGz5n3WMaQjbxmKE-XDpBOMjxhRu11EK4shuswfbw3U2l4qk_b7E-uHETKa5/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
     
@@ -1189,7 +1187,8 @@ try {
  * Combines authentication check + complete data fetching + sales filtering
  */
 async function syncFromGoogleSheets() {
-  if (!sessionId) {
+  // Check authentication first
+  if (!googleIdToken) {
     showAuthError('Please sign in to continue');
     return;
   }
@@ -1197,32 +1196,61 @@ async function syncFromGoogleSheets() {
   showSyncIndicator('Refreshing...');
   
   try {
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&sessionId=${encodeURIComponent(sessionId)}&t=${Date.now()}`;
+    // Fetch with authentication token
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
     const res = await fetch(url);
+    
+    if (!res.ok) {
+      throw new Error(`Network error: ${res.status}`);
+    }
+    
     const data = await res.json();
     
-    if (data.error === 'unauthorized') {
-      showAuthError('Session expired');
+    // Check for unauthorized response
+    if (!data.success && data.error === 'unauthorized') {
+      showAuthError('Session expired. Please sign in again.');
+      signOut();
+      hideSyncIndicator();
       return;
     }
     
-    if (data.success) {
+    // Verify successful response
+    if (data && data.success) {
+      // Update products
       cachedProducts = data.products || [];
-      cachedSales = (data.sales || []).filter(sale => !deletedSaleIds.includes(sale.id));
+      
+      // Update sales with filtering for deleted items
+      let allSales = data.sales || [];
+      
+      // ✅ FIX 1: Filter out manually deleted sales
+      cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
+      console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+      
+      // ✅ FIX 2: Sort sales by date (newest first)
       sortSalesByDateDescending();
+      
+      // Mark initial load complete
       hasInitialLoaded = true;
+      
+      // Render both products and sales
       renderProducts();
       renderSales();
+      
+      // Update dashboard metrics
       updateSummaryFromCache();
+      
       showSyncIndicator('Synced!', 900);
+      
+    } else {
+      throw new Error(data.error || 'Failed to fetch data');
     }
+    
   } catch (err) {
     console.error('Sync error:', err);
-    alert('Failed to sync');
+    alert('Failed to sync data: ' + err.message);
     hideSyncIndicator();
   }
 }
-
 
 
   async function fallbackGetProductsAndSales() {
@@ -1382,128 +1410,56 @@ async function syncFromGoogleSheets() {
  * Save helpers (server calls) - safe against CORS preflight + include idToken
  ***********************/
 async function saveProductToSheet(product, isEdit=false) {
-  if (!sessionId) {
-    showAuthError('Please sign in');
-    return null;
-  }
-  
+  if (!googleIdToken) { showAuthError('Please sign in to save product'); return null; }
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
+    // include idToken in query string so Apps Script can verify
+    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: isEdit ? 'updateProduct' : 'addProduct',
-        sessionId: sessionId,
-        data: product
-      })
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // "simple" content-type -> no preflight
+      body: JSON.stringify(product)
     });
-    
-    const data = await res.json();
-    
-    if (data.error === 'unauthorized') {
-      showAuthError('Session expired');
-      return null;
-    }
-    
-    return data;
+    const parsed = await safeParseResponse(res);
+    return parsed.json || null;
   } catch (e) {
-    console.error('saveProductToSheet error:', e);
+    console.error('saveProductToSheet error', e);
     return null;
   }
 }
 
-
-/**
- * Save sale to Google Sheets with session authentication
- */
 async function saveSaleToSheet(item) {
-  // Check for valid session
-  if (!sessionId) {
-    showAuthError('Please sign in to save sale');
-    return null;
-  }
-  
+  if (!googleIdToken) { showAuthError('Please sign in to save sale'); return null; }
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'addSale',
-        sessionId: sessionId,
-        data: item
-      })
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
+      body: JSON.stringify(item)
     });
-    
-    const data = await response.json();
-    
-    // Check for session expiry
-    if (data.error === 'unauthorized') {
-      console.error('❌ Session expired or invalid');
-      showAuthError('Your session has expired. Please sign in again.');
-      return null;
-    }
-    
-    // Check for success
-    if (!data.success) {
-      console.error('❌ Sale save failed:', data);
-      return null;
-    }
-    
-    console.log('✅ Sale saved successfully:', data);
-    return data;
-    
-  } catch (error) {
-    console.error('❌ saveSaleToSheet error:', error);
+    const parsed = await safeParseResponse(res);
+    return parsed.json || null;
+  } catch (e) {
+    console.error('saveSaleToSheet error', e);
     return null;
   }
 }
 
-
-/**
- * Delete product from Google Sheets with session authentication
- */
 async function deleteProductFromSheet(id) {
-  // Check for valid session
-  if (!sessionId) {
-    showAuthError('Please sign in to delete product');
-    return false;
-  }
-  
+  if (!googleIdToken) { showAuthError('Please sign in to delete product'); return false; }
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'deleteProduct',
-        sessionId: sessionId,
-        data: { id: id }
-      })
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
+      body: JSON.stringify({ id })
     });
-    
-    const data = await response.json();
-    
-    // Check for session expiry
-    if (data.error === 'unauthorized') {
-      console.error('❌ Session expired or invalid');
-      showAuthError('Your session has expired. Please sign in again.');
-      return false;
-    }
-    
-    // Check for success
-    if (!data.success) {
-      console.error('❌ Product delete failed:', data);
-      return false;
-    }
-    
-    console.log('✅ Product deleted successfully:', data);
-    return true;
-    
-  } catch (error) {
-    console.error('❌ deleteProductFromSheet error:', error);
+    const parsed = await safeParseResponse(res);
+    return parsed.json && parsed.json.success;
+  } catch (e) {
+    console.error('deleteProductFromSheet error', e);
     return false;
   }
 }
-
 
 
   /***********************
