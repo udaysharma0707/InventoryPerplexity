@@ -1812,6 +1812,11 @@ function sortSalesByDateDescending() {
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
     if(!qtyEl) return;
     const qty = Number(qtyEl.value || 0);
+    console.log(`Row ${idx} - qtyEl:`, qtyEl, 'value:', qtyEl?.value, 'parsed qty:', qty);
+    const unitPrice = Number(priceEl.value || 0);
+console.log(`Row ${idx} - priceEl:`, priceEl, 'value:', priceEl?.value, 'parsed price:', unitPrice);
+
+
     const max = Number(qtyEl.max || Infinity);
     if(qty > max){
       alert(`âŒ Quantity exceeds available stock (${max}). Adjusting to max.`);
@@ -2007,6 +2012,24 @@ function populateRowWithCustom(rowIndex, cp){
       const priceEl = document.getElementById(`price-${idx}`);
       const unitEl = document.getElementById(`unit-${idx}`);
       const sizeEl = document.getElementById(`size-${idx}`);
+
+      // ✅ Debug logging
+console.log(`Row ${idx} - Elements:`, {
+  qtyEl: qtyEl,
+  qtyValue: qtyEl?.value,
+  priceEl: priceEl,
+  priceValue: priceEl?.value,
+  unitEl: unitEl?.value,
+  product: sel.value
+});
+
+// ✅ Check if required elements exist
+if (!qtyEl || !priceEl) {
+  console.error(`Row ${idx}: Missing input elements!`);
+  alert(`Error in row ${idx}: Input fields not found. Please refresh and try again.`);
+  hasErrors = true;
+  return;
+}
       if(!sel) return;
       // Skip empty rows
       if(!sel.value) return;
@@ -3026,6 +3049,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
