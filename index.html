@@ -915,64 +915,134 @@
   <script>
 
     
-  /***********************
-   * CONFIG
-   ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZY2HURq601qlGoUfnpbYBzq_Hx9ZD67CGQZcbT40M5c-8e31wfL_bmerd4eKJSCrB/exec'; // <-- replace with your deployed URL
-  let cachedProducts = [];
-  let cachedSales = [];
-    
+ /***********************
+ * CONFIG
+ ***********************/
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZY2HURq601qlGoUfnpbYBzq_Hx9ZD67CGQZcbT40M5c-8e31wfL_bmerd4eKJSCrB/exec';
+let cachedProducts = [];
+let cachedSales = [];
+
 // ==========================================
-// AUTHENTICATION - COMPLETE WORKING VERSION
+// SESSION-BASED AUTHENTICATION (FIXED)
 // ==========================================
 
 let currentUser = null;
-let googleIdToken = null;
+let sessionId = null;
 let GOOGLE_CLIENT_ID = null;
+let isInitializing = false; // ✅ Prevent double initialization
 
 // Initialize on page load
 window.addEventListener('load', async function() {
-  console.log('🚀 Page loaded, initializing authentication...');
+  if (isInitializing) return; // ✅ Prevent double-init
+  isInitializing = true;
+  
+  console.log('🚀 Page loaded, initializing...');
   
   // Step 1: Fetch CLIENT_ID
   try {
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId&t=${Date.now()}`);
     const data = await response.json();
     
     if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID);
+      console.log('✅ CLIENT_ID fetched');
     } else {
       console.error('❌ Failed to get CLIENT_ID:', data);
-      alert('Failed to initialize authentication. Please refresh the page.');
+      alert('Failed to initialize. Please refresh.');
       return;
     }
   } catch (error) {
     console.error('❌ Error fetching CLIENT_ID:', error);
-    alert('Failed to connect to server. Please check your internet connection.');
+    alert('Failed to connect to server.');
     return;
   }
   
-  // Step 2: Check for saved token
-  const savedToken = localStorage.getItem('googleIdToken');
-  if (savedToken) {
-    console.log('🔑 Found saved token, attempting authentication...');
-    await authenticateWithToken(savedToken);
+  // Step 2: Check for saved session
+  const savedSessionId = localStorage.getItem('sessionId');
+  const savedUser = localStorage.getItem('currentUser');
+  
+  if (savedSessionId && savedUser) {
+    console.log('🔑 Found saved session, validating...');
+    sessionId = savedSessionId;
+    
+    try {
+      currentUser = JSON.parse(savedUser);
+    } catch (e) {
+      console.error('Failed to parse saved user:', e);
+      clearSession();
+      showAuthScreen();
+      initializeGoogleSignIn();
+      return;
+    }
+    
+    // Validate session with backend
+    const isValid = await validateSavedSession();
+    
+    if (isValid) {
+      console.log('✅ Session valid, loading app...');
+      showApp();
+      updateUserUI();
+      await syncFromGoogleSheets();
+    } else {
+      console.log('❌ Session expired, clearing...');
+      clearSession();
+      showAuthScreen();
+      initializeGoogleSignIn();
+    }
   } else {
-    console.log('👤 No saved token, showing auth screen...');
+    console.log('👤 No saved session, showing auth screen...');
     showAuthScreen();
     initializeGoogleSignIn();
   }
 });
 
+// Validate saved session
+async function validateSavedSession() {
+  try {
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&sessionId=${encodeURIComponent(sessionId)}&t=${Date.now()}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Validation request failed:', response.status);
+      return false;
+    }
+    
+    const data = await response.json();
+    console.log('Session validation response:', data);
+    
+    // Check if response is successful and not unauthorized
+    if (data.success && data.error !== 'unauthorized') {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
+}
+
+// Clear session data
+function clearSession() {
+  sessionId = null;
+  currentUser = null;
+  localStorage.removeItem('sessionId');
+  localStorage.removeItem('currentUser');
+  console.log('🗑️ Session cleared');
+}
+
 // Initialize Google Sign-In
 function initializeGoogleSignIn() {
   console.log('🔧 Initializing Google Sign-In...');
   
-  // Wait for Google library to load
   if (typeof google === 'undefined') {
     console.log('⏳ Waiting for Google library...');
     setTimeout(initializeGoogleSignIn, 500);
+    return;
+  }
+  
+  if (!GOOGLE_CLIENT_ID) {
+    console.error('❌ CLIENT_ID not available');
     return;
   }
   
@@ -998,7 +1068,7 @@ function initializeGoogleSignIn() {
       width: 300
     });
     
-    console.log('✅ Google Sign-In button rendered successfully');
+    console.log('✅ Google Sign-In button rendered');
   } catch (error) {
     console.error('❌ Error initializing Google Sign-In:', error);
   }
@@ -1011,92 +1081,70 @@ async function handleGoogleSignIn(response) {
   await authenticateWithToken(idToken);
 }
 
-// Authenticate with token
+// Authenticate with token and create session
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
   
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=authenticate&idToken=${encodeURIComponent(idToken)}`
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'authenticate',
+        idToken: idToken
+      })
     });
     
     const data = await response.json();
     console.log('📋 Authentication response:', data);
     
-    if (data.ok && data.user) {
-      // Success
+    if (data.ok && data.sessionId && data.user) {
+      // ✅ SUCCESS - Store session
       currentUser = data.user;
-      googleIdToken = idToken;
-      localStorage.setItem('googleIdToken', idToken);
+      sessionId = data.sessionId;
       
-      console.log('✅ Authentication successful:', currentUser);
+      localStorage.setItem('sessionId', sessionId);
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
       
+      console.log('✅ Session created:', sessionId);
+      console.log('✅ User:', currentUser.email);
+      
+      // Show app and load data
       showApp();
       updateUserUI();
-      await syncFromGoogleSheets();
+      
+      // Wait a bit before syncing to ensure app is shown
+      setTimeout(async () => {
+        await syncFromGoogleSheets();
+      }, 500);
+      
     } else {
-      // Failed
+      // ❌ FAILED
       console.error('❌ Authentication failed:', data);
       alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
-      localStorage.removeItem('googleIdToken');
+      clearSession();
       showAuthScreen();
+      initializeGoogleSignIn();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
     alert('Authentication failed. Please try again.');
-    localStorage.removeItem('googleIdToken');
+    clearSession();
     showAuthScreen();
+    initializeGoogleSignIn();
   }
 }
 
 // Show authentication screen
 function showAuthScreen() {
+  console.log('📱 Showing auth screen');
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('appContent').style.display = 'none';
 }
 
-/**
- * showAuthError(message)
- * - Gracefully handle authentication failures.
- * - Clears saved token, shows auth screen, disables auto-select and prompts user to re-sign-in.
- */
-function showAuthError(message) {
-  try {
-    console.warn('Auth error:', message);
-    // Clear local state
-    localStorage.removeItem('googleIdToken');
-    googleIdToken = null;
-    currentUser = null;
-
-    // Disable automatic sign-in if library available
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      try { google.accounts.id.disableAutoSelect(); } catch(e){ /* ignore */ }
-    }
-
-    // show a visible message to the user (prefer non-blocking)
-    if (typeof showSyncIndicator === 'function') {
-      // showSyncIndicator(message, 'error') - some implementations accept (msg,type)
-      try { showSyncIndicator(message, 'error'); } catch(e) { console.warn('showSyncIndicator not compatible', e); }
-    } else {
-      // fallback to alert
-      alert('🔒 Authentication error: ' + (message || 'Please sign in again.'));
-    }
-
-    // Show sign-in UI
-    showAuthScreen();
-
-    // Re-initialize the Google Sign-in button so user can retry
-    try { initializeGoogleSignIn(); } catch(e) { /* ignore if not present yet */ }
-  } catch (err) {
-    console.error('showAuthError failed:', err);
-  }
-}
-
-    
 // Show app
 function showApp() {
+  console.log('📱 Showing app');
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
 }
@@ -1107,31 +1155,96 @@ function updateUserUI() {
     const userNameEl = document.getElementById('userName');
     const userAvatarEl = document.getElementById('userAvatar');
     
-    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userNameEl) {
+      userNameEl.textContent = currentUser.name || currentUser.email;
+    }
+    
     if (userAvatarEl && currentUser.picture) {
       userAvatarEl.src = currentUser.picture;
       userAvatarEl.style.display = 'inline-block';
     }
+    
+    console.log('👤 User UI updated:', currentUser.email);
   }
 }
 
-// Sign out
-function signOut() {
-  if (confirm('Are you sure you want to sign out?')) {
-    console.log('👋 Signing out...');
-    
-    currentUser = null;
-    googleIdToken = null;
-    localStorage.removeItem('googleIdToken');
-    
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      google.accounts.id.disableAutoSelect();
-    }
-    
+// Show auth error and redirect to sign-in
+function showAuthError(message) {
+  console.warn('🚨 Auth error:', message);
+  
+  // Don't show error dialog during initial load
+  if (isInitializing) {
+    console.log('Skipping error dialog during initialization');
+    clearSession();
     showAuthScreen();
-    setTimeout(() => location.reload(), 300);
+    initializeGoogleSignIn();
+    return;
+  }
+  
+  clearSession();
+  
+  // Disable auto-select
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    try { 
+      google.accounts.id.disableAutoSelect(); 
+    } catch(e) {
+      console.warn('Could not disable auto-select:', e);
+    }
+  }
+  
+  alert('🔒 ' + (message || 'Session expired. Please sign in again.'));
+  showAuthScreen();
+  
+  try { 
+    initializeGoogleSignIn(); 
+  } catch(e) {
+    console.error('Failed to initialize sign-in:', e);
   }
 }
+
+// Sign out function
+async function signOut() {
+  console.log('🔔 Sign out requested');
+  
+  if (!confirm('Are you sure you want to sign out?')) {
+    console.log('Sign out cancelled by user');
+    return; // ✅ User cancelled - do nothing
+  }
+  
+  console.log('👋 Signing out...');
+  
+  // Revoke session on server
+  if (sessionId) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'revokeSession',
+          sessionId: sessionId
+        })
+      });
+      console.log('✅ Session revoked on server');
+    } catch (error) {
+      console.warn('Failed to revoke session on server:', error);
+    }
+  }
+  
+  // Clear local session
+  clearSession();
+  
+  // Disable Google auto-select
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    google.accounts.id.disableAutoSelect();
+  }
+  
+  // Show auth screen and reload
+  showAuthScreen();
+  setTimeout(() => {
+    location.reload();
+  }, 300);
+}
+
 
 
 
@@ -3016,6 +3129,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
