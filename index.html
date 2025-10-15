@@ -1212,6 +1212,141 @@ function hideLoading() {
   }
 }
 
+/***** UI RENDER HELPERS — paste this block exactly as shown *****/
+
+function escapeHtml(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Render products into the desktop table and mobile list.
+ * Called after syncFromGoogleSheets() populates cachedProducts.
+ */
+function renderProductTable() {
+  try {
+    const tbody = document.getElementById('productsTableBody');
+    const mobileList = document.getElementById('mobileProductsList');
+    if (!tbody || !mobileList) {
+      console.warn('renderProductTable: target elements missing');
+      return;
+    }
+
+    // clear
+    tbody.innerHTML = '';
+    mobileList.innerHTML = '';
+
+    if (!cachedProducts || cachedProducts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No products yet — add your first product.</td></tr>';
+      mobileList.innerHTML = '<div class="empty-state text-center py-4 text-muted">No products yet</div>';
+      updateSummaryFromCache();
+      return;
+    }
+
+    cachedProducts.forEach(p => {
+      const stock = Number(p.stock || 0);
+      const minStock = Number(p.minStock || 5);
+      const stockBadgeClass = stock > minStock ? 'stock-good' : (stock > 0 ? 'stock-low' : 'stock-out');
+      // category color for icon
+      const iconClass = (p.category === 'Tiles') ? 'text-primary' : (p.category === 'Sanitaryware' ? 'text-success' : 'text-warning');
+      const priceText = '₹' + (Number(p.price || 0)).toFixed(2) + (p.unitType ? ('/' + p.unitType) : '');
+
+      // Desktop row
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><i class="bi bi-file-earmark ${iconClass} file-icon"></i></td>
+        <td>${escapeHtml(p.name || '')}</td>
+        <td>${escapeHtml(p.category || '')}</td>
+        <td>${escapeHtml(p.brand || '')}</td>
+        <td>${escapeHtml(p.size || '')}</td>
+        <td><span class="stock-badge ${stockBadgeClass}">${escapeHtml(String(stock))}</span></td>
+        <td>${escapeHtml(priceText)}</td>
+        <td>
+          <button class="btn btn-sm btn-primary btn-action-sm" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      // Mobile card
+      const card = document.createElement('div');
+      card.className = 'mobile-item';
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div><i class="bi bi-file-earmark ${iconClass} file-icon"></i> <strong>${escapeHtml(p.name || '')}</strong></div>
+            <div class="text-muted small">${escapeHtml(p.brand || '')} • ${escapeHtml(p.category || '')}</div>
+            <div class="text-muted small">Size: ${escapeHtml(p.size || 'N/A')}</div>
+          </div>
+          <div class="text-end">
+            <div><span class="stock-badge ${stockBadgeClass}">${escapeHtml(String(stock))}</span></div>
+            <div class="mt-2">${escapeHtml(priceText)}</div>
+          </div>
+        </div>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-primary me-1" onclick="editProduct('${p.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
+        </div>
+      `;
+      mobileList.appendChild(card);
+    });
+
+    // Update counters
+    updateSummaryFromCache();
+
+  } catch (err) {
+    console.error('renderProductTable error', err);
+  }
+}
+
+/**
+ * Update summary counters (total products, low stock).
+ * Uses cachedProducts and cachedSales.
+ */
+function updateSummaryFromCache() {
+  try {
+    const totalEl = document.getElementById('totalProducts');
+    const salesTodayEl = document.getElementById('salesToday');
+    const lowStockEl = document.getElementById('lowStock');
+
+    const total = (cachedProducts || []).length;
+    if (totalEl) totalEl.textContent = total;
+
+    // low stock count
+    const low = (cachedProducts || []).filter(p => {
+      const stock = Number(p.stock || 0);
+      const minStock = Number(p.minStock || 5);
+      return stock <= minStock && stock > 0;
+    }).length;
+    if (lowStockEl) lowStockEl.textContent = low;
+
+    // Sales today (if cachedSales exists)
+    let sum = 0;
+    if (Array.isArray(cachedSales)) {
+      const today = new Date().toDateString();
+      cachedSales.forEach(s => {
+        const d = new Date(s.date || s[9] || Date.now());
+        if (d.toDateString() === today) {
+          sum += Number(s.totalAmount || s[8] || 0);
+        }
+      });
+    }
+    if (salesTodayEl) salesTodayEl.textContent = '₹' + (sum || 0).toFixed(2);
+
+  } catch (err) {
+    console.error('updateSummaryFromCache error', err);
+  }
+}
+
+/***** end UI RENDER HELPERS *****/
+
+
+    
   /***********************
    * CONFIG
    ***********************/
@@ -3323,6 +3458,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
