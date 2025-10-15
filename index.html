@@ -1094,36 +1094,74 @@ try {
   function generateId(){ return 'TMP_' + Date.now().toString(36) + Math.random().toString(36).substr(2); }
   function escapeHtml(s){ if (s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  /***********************
-   * Sync / Fetch
-   ***********************/
-  async function syncFromGoogleSheets() {
-    showSyncIndicator('Refreshing...');
-    try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
-        if (!res.ok) throw new Error(`Network ${res.status}`);
-        const data = await res.json();
-        
-        if (data && data.success) {
-            cachedProducts = data.products || [];
-            let allSales = data.sales || [];
-            
-            // Ã¢Å“â€¦ FIX 1: Filter out manually deleted sales
-            cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
-            console.log(`Ã°Å¸â€œÅ  Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
-            
-            // Ã¢Å“â€¦ FIX 2: Sort sales by date (newest first)
-            sortSalesByDateDescending();
-            
-            hasInitialLoaded = true;
-            renderProducts();
-            renderSales();
-            showSyncIndicator('Synced!', 900);
-        }
-    } catch (err) {
-        console.error('sync error', err);
-        hideSyncIndicator();
+ /**
+ * Sync / Fetch from Google Sheets
+ * Combines authentication check + complete data fetching + sales filtering
+ */
+async function syncFromGoogleSheets() {
+  // Check authentication first
+  if (!googleIdToken) {
+    showAuthError('Please sign in to continue');
+    return;
+  }
+
+  showSyncIndicator('Refreshing...');
+  
+  try {
+    // Fetch with authentication token
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
+    const res = await fetch(url);
+    
+    if (!res.ok) {
+      throw new Error(`Network error: ${res.status}`);
     }
+    
+    const data = await res.json();
+    
+    // Check for unauthorized response
+    if (!data.success && data.error === 'unauthorized') {
+      showAuthError('Session expired. Please sign in again.');
+      signOut();
+      hideSyncIndicator();
+      return;
+    }
+    
+    // Verify successful response
+    if (data && data.success) {
+      // Update products
+      cachedProducts = data.products || [];
+      
+      // Update sales with filtering for deleted items
+      let allSales = data.sales || [];
+      
+      // ✅ FIX 1: Filter out manually deleted sales
+      cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
+      console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+      
+      // ✅ FIX 2: Sort sales by date (newest first)
+      sortSalesByDateDescending();
+      
+      // Mark initial load complete
+      hasInitialLoaded = true;
+      
+      // Render both products and sales
+      renderProducts();
+      renderSales();
+      
+      // Update dashboard metrics
+      updateSummaryFromCache();
+      
+      showSyncIndicator('Synced!', 900);
+      
+    } else {
+      throw new Error(data.error || 'Failed to fetch data');
+    }
+    
+  } catch (err) {
+    console.error('Sync error:', err);
+    alert('Failed to sync data: ' + err.message);
+    hideSyncIndicator();
+  }
 }
 
 
@@ -2873,6 +2911,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
