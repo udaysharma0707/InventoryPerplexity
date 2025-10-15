@@ -920,54 +920,98 @@
   let cachedSales = [];
     
 // ==========================================
-// AUTHENTICATION
+// AUTHENTICATION - COMPLETE WORKING VERSION
 // ==========================================
 
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
 
-// On page load - check authentication
+// Initialize on page load
 window.addEventListener('load', async function() {
-  // Fetch CLIENT_ID from server (secure)
-  await fetchClientId();
+  console.log('🚀 Page loaded, initializing authentication...');
   
-  // Check if user has a saved session
-  const savedToken = localStorage.getItem('googleIdToken');
-  if (savedToken) {
-    await authenticateWithToken(savedToken);
-  } else {
-    showAuthScreen();
-  }
-});
-
-// Fetch CLIENT_ID from server
-async function fetchClientId() {
+  // Step 1: Fetch CLIENT_ID
   try {
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
     const data = await response.json();
-    if (data.ok) {
+    
+    if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      // Update the data-client_id attribute
-      const gIdOnload = document.querySelector('[data-client_id]');
-      if (gIdOnload) {
-        gIdOnload.setAttribute('data-client_id', GOOGLE_CLIENT_ID);
-      }
+      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID);
+    } else {
+      console.error('❌ Failed to get CLIENT_ID:', data);
+      alert('Failed to initialize authentication. Please refresh the page.');
+      return;
     }
   } catch (error) {
-    console.error('Error fetching client ID:', error);
-    alert('Failed to initialize authentication. Please refresh the page.');
+    console.error('❌ Error fetching CLIENT_ID:', error);
+    alert('Failed to connect to server. Please check your internet connection.');
+    return;
+  }
+  
+  // Step 2: Check for saved token
+  const savedToken = localStorage.getItem('googleIdToken');
+  if (savedToken) {
+    console.log('🔑 Found saved token, attempting authentication...');
+    await authenticateWithToken(savedToken);
+  } else {
+    console.log('👤 No saved token, showing auth screen...');
+    showAuthScreen();
+    initializeGoogleSignIn();
+  }
+});
+
+// Initialize Google Sign-In
+function initializeGoogleSignIn() {
+  console.log('🔧 Initializing Google Sign-In...');
+  
+  // Wait for Google library to load
+  if (typeof google === 'undefined') {
+    console.log('⏳ Waiting for Google library...');
+    setTimeout(initializeGoogleSignIn, 500);
+    return;
+  }
+  
+  try {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleSignIn,
+      ux_mode: 'popup',
+      auto_select: false
+    });
+    
+    const buttonDiv = document.getElementById('googleSignInButton');
+    if (!buttonDiv) {
+      console.error('❌ Button container not found!');
+      return;
+    }
+    
+    google.accounts.id.renderButton(buttonDiv, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'signin_with',
+      width: 300
+    });
+    
+    console.log('✅ Google Sign-In button rendered successfully');
+  } catch (error) {
+    console.error('❌ Error initializing Google Sign-In:', error);
   }
 }
 
-// Handle Google Sign-In response
-async function handleCredentialResponse(response) {
+// Handle Google Sign-In callback
+async function handleGoogleSignIn(response) {
+  console.log('🔐 Google Sign-In callback triggered');
   const idToken = response.credential;
   await authenticateWithToken(idToken);
 }
 
-// Authenticate with Google ID token
+// Authenticate with token
 async function authenticateWithToken(idToken) {
+  console.log('🔒 Authenticating with token...');
+  
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -976,26 +1020,31 @@ async function authenticateWithToken(idToken) {
     });
     
     const data = await response.json();
+    console.log('📋 Authentication response:', data);
     
-    if (data.ok) {
-      // Authentication successful
+    if (data.ok && data.user) {
+      // Success
       currentUser = data.user;
       googleIdToken = idToken;
       localStorage.setItem('googleIdToken', idToken);
       
+      console.log('✅ Authentication successful:', currentUser);
+      
       showApp();
       updateUserUI();
-      
-      // Load inventory data
-      syncFromGoogleSheets();
+      await syncFromGoogleSheets();
     } else {
-      // Authentication failed
-      showAuthError(data.message || 'Access denied');
+      // Failed
+      console.error('❌ Authentication failed:', data);
+      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
       localStorage.removeItem('googleIdToken');
+      showAuthScreen();
     }
   } catch (error) {
-    console.error('Authentication error:', error);
-    showAuthError('Authentication failed. Please try again.');
+    console.error('❌ Authentication error:', error);
+    alert('Authentication failed. Please try again.');
+    localStorage.removeItem('googleIdToken');
+    showAuthScreen();
   }
 }
 
@@ -1005,7 +1054,7 @@ function showAuthScreen() {
   document.getElementById('appContent').style.display = 'none';
 }
 
-// Show app (hide auth screen)
+// Show app
 function showApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
@@ -1014,36 +1063,35 @@ function showApp() {
 // Update user UI
 function updateUserUI() {
   if (currentUser) {
-    document.getElementById('userName').textContent = currentUser.name;
-    if (currentUser.picture) {
-      const avatar = document.getElementById('userAvatar');
-      avatar.src = currentUser.picture;
-      avatar.style.display = 'inline-block';
+    const userNameEl = document.getElementById('userName');
+    const userAvatarEl = document.getElementById('userAvatar');
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userAvatarEl && currentUser.picture) {
+      userAvatarEl.src = currentUser.picture;
+      userAvatarEl.style.display = 'inline-block';
     }
   }
-}
-
-// Show authentication error
-function showAuthError(message) {
-  alert('🔒 ' + message);
-  showAuthScreen();
 }
 
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
+    console.log('👋 Signing out...');
+    
     currentUser = null;
     googleIdToken = null;
     localStorage.removeItem('googleIdToken');
     
-    // Revoke Google session
     if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
       google.accounts.id.disableAutoSelect();
     }
     
     showAuthScreen();
+    setTimeout(() => location.reload(), 300);
   }
 }
+
 
 
 
@@ -2910,6 +2958,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
