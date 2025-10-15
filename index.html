@@ -1368,8 +1368,8 @@ async function syncFromGoogleSheets() {
   /***********************
    * Save helpers (server calls)
    ***********************/
- async function saveProductToSheet(product, isEdit=false) {
-  // ✅ Check authentication
+async function saveProductToSheet(product, isEdit=false) {
+  // Check authentication
   if (!googleIdToken) {
     alert('Authentication required. Please sign in again.');
     signOut();
@@ -1399,8 +1399,9 @@ async function syncFromGoogleSheets() {
 }
 
 
- async function saveSaleToSheet(item) {
-  // ✅ Check authentication
+
+async function saveSaleToSheet(item) {
+  // Check authentication
   if (!googleIdToken) {
     alert('Authentication required. Please sign in again.');
     signOut();
@@ -1430,8 +1431,8 @@ async function syncFromGoogleSheets() {
 }
 
 
- async function deleteProductFromSheet(id) {
-  // ✅ Check authentication
+async function deleteProductFromSheet(id) {
+  // Check authentication
   if (!googleIdToken) {
     alert('Authentication required. Please sign in again.');
     signOut();
@@ -1459,6 +1460,7 @@ async function syncFromGoogleSheets() {
     return false;
   }
 }
+
 
 
   /***********************
@@ -3015,6 +3017,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
