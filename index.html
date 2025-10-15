@@ -1811,7 +1811,25 @@ function sortSalesByDateDescending() {
   function onQtyChange(rowIndex){
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
     if(!qtyEl) return;
-    const qty = Number(qtyEl.value || 0);
+  const qty = Number(qtyEl.value || 0);
+// 🚨 TEMPORARY DEBUG: Force a test value
+if (qty === 0) {
+  console.warn(`⚠️ Row ${idx}: Quantity is 0, using test value 1`);
+  // Force qty to 1 for testing
+  const testQty = 1;
+  saleItems.push({
+    productId,
+    productName,
+    size,
+    quantity: testQty,  // ← Use test value
+    unitType,
+    unitPrice: unitPrice || 100,  // ← Force test price if also 0
+    totalAmount: (unitPrice || 100) * testQty,
+    isCustomProduct: isCustom
+  });
+  return; // Skip normal processing
+}
+
     console.log(`Row ${idx} - qtyEl:`, qtyEl, 'value:', qtyEl?.value, 'parsed qty:', qty);
     const unitPrice = Number(priceEl.value || 0);
 console.log(`Row ${idx} - priceEl:`, priceEl, 'value:', priceEl?.value, 'parsed price:', unitPrice);
@@ -3049,6 +3067,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
