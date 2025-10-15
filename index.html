@@ -1024,7 +1024,8 @@ function renderProductTable() {
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><i class="bi bi-file-earmark ${catColor} file-icon"></i></td>
+        <td><i class="bi bi-file-earmark file-icon ${catColor}"></i></td>
+
         <td>${escapeHtml(p.name || '—')}</td>
         <td>${escapeHtml(p.category || '—')}</td>
         <td>${escapeHtml(p.brand || '')}</td>
@@ -3712,6 +3713,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
