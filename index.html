@@ -1600,6 +1600,26 @@ function renderSalesFromCache() {
     console.error('renderSalesFromCache error', err);
   }
 }
+function updateDashboard() {
+  // Total Products
+  const totalProducts = cachedProducts.length;
+  document.querySelector('.dashboard-metric:nth-child(1) h2').textContent = totalProducts;
+  
+  // Sales Today
+  const today = new Date().toISOString().split('T')[0];
+  const salesToday = (cachedSales || []).filter(s => {
+    const saleDate = new Date(s.date).toISOString().split('T')[0];
+    return saleDate === today;
+  });
+  const salesTodayAmount = salesToday.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+  document.querySelector('.dashboard-metric:nth-child(2) h2').textContent = '₹' + salesTodayAmount.toFixed(2);
+  
+  // Low Stock Items
+  const lowStockItems = cachedProducts.filter(p => p.stock <= (p.minStock || 5));
+  document.querySelector('.dashboard-metric:nth-child(3) h2').textContent = lowStockItems.length;
+  
+  console.log('Dashboard updated:', { totalProducts, salesToday: salesToday.length, lowStockItems: lowStockItems.length });
+}
 
     
   /***********************
@@ -1682,6 +1702,9 @@ try {
     cachedProducts = data.products || [];
     renderProductTable();
     hideLoading();
+    // Update dashboard metrics
+updateDashboard();
+
     
   } catch (error) {
     console.error('Sync error:', error);
@@ -3332,6 +3355,13 @@ function generateInvoiceHTML(data) {
 // ==========================================
 
 function viewSavedInvoices() {
+  // Safety check for bootstrap
+  if (typeof bootstrap === 'undefined') {
+    console.error('Bootstrap JS not loaded yet');
+    alert('Please wait for the page to fully load');
+    return;
+  }
+  
   const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
   
   const container = document.getElementById('invoicesListContainer');
@@ -3400,6 +3430,7 @@ function viewSavedInvoices() {
   // Show modal
   new bootstrap.Modal(document.getElementById('viewInvoicesModal')).show();
 }
+
 
 function previewSavedInvoice(index) {
   const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
@@ -3713,6 +3744,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
