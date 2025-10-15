@@ -1053,7 +1053,33 @@ async function authenticateWithToken(idToken) {
   }
 }
 
-/**
+// Show authentication screen
+function showAuthScreen() {
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+
+
+// Show app
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}
+
+// Update user UI
+function updateUserUI() {
+  if (currentUser) {
+    const userNameEl = document.getElementById('userName');
+    const userAvatarEl = document.getElementById('userAvatar');
+    
+    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
+    if (userAvatarEl && currentUser.picture) {
+      userAvatarEl.src = currentUser.picture;
+      userAvatarEl.style.display = 'inline-block';
+    }
+  }
+}
+
+    /**
  * Enhanced Authentication Error Handler
  * Shows user-friendly error messages and handles token cleanup
  */
@@ -1089,34 +1115,6 @@ function showAuthError(message, autoRedirect = true) {
       }
     }, 500);
   }
-}
-
-
-// Show app
-function showApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
-}
-
-// Update user UI
-function updateUserUI() {
-  if (currentUser) {
-    const userNameEl = document.getElementById('userName');
-    const userAvatarEl = document.getElementById('userAvatar');
-    
-    if (userNameEl) userNameEl.textContent = currentUser.name || currentUser.email;
-    if (userAvatarEl && currentUser.picture) {
-      userAvatarEl.src = currentUser.picture;
-      userAvatarEl.style.display = 'inline-block';
-    }
-  }
-}
-
-    // ✅ ADD THIS NEW FUNCTION HERE
-// Show authentication error
-function showAuthError(message) {
-  alert('🔒 Authentication Error\n\n' + message);
-  console.error('Auth error:', message);
 }
 
 // Sign out
@@ -3003,6 +3001,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
