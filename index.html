@@ -9,6 +9,10 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
+  <!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+
 
   <!-- ✅ html2canvas for image generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -261,10 +265,46 @@
   </style>
 </head>
 <body>
+
+ 
+
+<!-- ✅ ADD THIS AUTHENTICATION SCREEN -->
+<div id="authScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.3); text-align:center; max-width:400px; width:90%;">
+    <i class="bi bi-shield-lock" style="font-size:64px; color:#667eea;"></i>
+    <h2 style="margin:20px 0 10px;">Tile & Sanitaryware Inventory</h2>
+    <p style="color:#666; margin-bottom:30px;">Sign in with your authorized Google account</p>
+    
+    <div id="g_id_onload"
+         data-client_id="PLACEHOLDER"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+    
+    <p style="color:#999; font-size:12px; margin-top:30px;">
+      🔒 Secure authentication via Google
+    </p>
+  </div>
+</div>
+
+<!-- App Content (hidden until authenticated) -->
+<div id="appContent" style="display:none;">
+
+  <!-- YOUR EXISTING NAVBAR, DASHBOARD, ETC. GOES HERE -->
+
   <!-- Sync indicator -->
   <div id="syncIndicator" class="sync-indicator"><i class="bi bi-arrow-repeat"></i> <span id="syncText">Syncing...</span></div>
 
   <!-- Navbar -->
+  
   <nav class="navbar navbar-dark bg-primary sticky-top">
     <div class="container-fluid">
       <span class="navbar-brand mb-0 h1"><i class="bi bi-boxes"></i> Tile & Sanitaryware Inventory</span>
@@ -272,6 +312,15 @@
         <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()"><i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh</button>
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
+        <!-- Add this to your navbar -->
+<div class="d-flex align-items-center ms-auto">
+  <img id="userAvatar" src="" alt="User" style="width:32px; height:32px; border-radius:50%; margin-right:10px; display:none;">
+  <span id="userName" style="margin-right:15px; color:white;"></span>
+  <button class="btn btn-sm btn-outline-light" onclick="signOut()">
+    <i class="bi bi-box-arrow-right"></i> Sign Out
+  </button>
+</div>
+
 
         <!-- ✅ NEW: View Invoices Button -->
       <button class="btn btn-success btn-sm" onclick="viewSavedInvoices()">
@@ -912,10 +961,140 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+
+    <script>
+// ==========================================
+// AUTHENTICATION
+// ==========================================
+
+let currentUser = null;
+let googleIdToken = null;
+let GOOGLE_CLIENT_ID = null;
+
+// On page load - check authentication
+window.addEventListener('load', async function() {
+  // Fetch CLIENT_ID from server (secure)
+  await fetchClientId();
+  
+  // Check if user has a saved session
+  const savedToken = localStorage.getItem('googleIdToken');
+  if (savedToken) {
+    await authenticateWithToken(savedToken);
+  } else {
+    showAuthScreen();
+  }
+});
+
+// Fetch CLIENT_ID from server
+async function fetchClientId() {
+  try {
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
+    const data = await response.json();
+    if (data.ok) {
+      GOOGLE_CLIENT_ID = data.clientId;
+      // Update the data-client_id attribute
+      const gIdOnload = document.querySelector('[data-client_id]');
+      if (gIdOnload) {
+        gIdOnload.setAttribute('data-client_id', GOOGLE_CLIENT_ID);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching client ID:', error);
+    alert('Failed to initialize authentication. Please refresh the page.');
+  }
+}
+
+// Handle Google Sign-In response
+async function handleCredentialResponse(response) {
+  const idToken = response.credential;
+  await authenticateWithToken(idToken);
+}
+
+// Authenticate with Google ID token
+async function authenticateWithToken(idToken) {
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `action=authenticate&idToken=${encodeURIComponent(idToken)}`
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      // Authentication successful
+      currentUser = data.user;
+      googleIdToken = idToken;
+      localStorage.setItem('googleIdToken', idToken);
+      
+      showApp();
+      updateUserUI();
+      
+      // Load inventory data
+      syncFromGoogleSheets();
+    } else {
+      // Authentication failed
+      showAuthError(data.message || 'Access denied');
+      localStorage.removeItem('googleIdToken');
+    }
+  } catch (error) {
+    console.error('Authentication error:', error);
+    showAuthError('Authentication failed. Please try again.');
+  }
+}
+
+// Show authentication screen
+function showAuthScreen() {
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+}
+
+// Show app (hide auth screen)
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}
+
+// Update user UI
+function updateUserUI() {
+  if (currentUser) {
+    document.getElementById('userName').textContent = currentUser.name;
+    if (currentUser.picture) {
+      const avatar = document.getElementById('userAvatar');
+      avatar.src = currentUser.picture;
+      avatar.style.display = 'inline-block';
+    }
+  }
+}
+
+// Show authentication error
+function showAuthError(message) {
+  alert('🔒 ' + message);
+  showAuthScreen();
+}
+
+// Sign out
+function signOut() {
+  if (confirm('Are you sure you want to sign out?')) {
+    currentUser = null;
+    googleIdToken = null;
+    localStorage.removeItem('googleIdToken');
+    
+    // Revoke Google session
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
+    
+    showAuthScreen();
+  }
+}
+
+
+
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxybpZsUsLTlagwm_9vPbk2XfjPK-Div0xz1Z5om9lHsypgGrtbBa6hcOPS0QcS6g8v/exec'; // <-- replace with your deployed URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU9TlmuIw4_iVg0RUqoZHXVQrmOrtpVq-mz3LNt4jeZKXEIL9vyfL5GJg0gKMvZXw/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
 
@@ -968,33 +1147,41 @@ try {
    * Sync / Fetch
    ***********************/
   async function syncFromGoogleSheets() {
-    showSyncIndicator('Refreshing...');
-    try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll&t=${Date.now()}`);
-        if (!res.ok) throw new Error(`Network ${res.status}`);
-        const data = await res.json();
-        
-        if (data && data.success) {
-            cachedProducts = data.products || [];
-            let allSales = data.sales || [];
-            
-            // âœ… FIX 1: Filter out manually deleted sales
-            cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
-            console.log(`ðŸ“Š Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
-            
-            // âœ… FIX 2: Sort sales by date (newest first)
-            sortSalesByDateDescending();
-            
-            hasInitialLoaded = true;
-            renderProducts();
-            renderSales();
-            showSyncIndicator('Synced!', 900);
-        }
-    } catch (err) {
-        console.error('sync error', err);
-        hideSyncIndicator();
+  // Check authentication
+  if (!googleIdToken) {
+    showAuthError('Please sign in to continue');
+    return;
+  }
+  
+  showLoading('Syncing data...');
+  
+  try {
+    // Add idToken to request
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      if (data.error === 'unauthorized') {
+        showAuthError('Session expired. Please sign in again.');
+        signOut();
+        return;
+      }
+      throw new Error(data.message || 'Failed to fetch data');
     }
+    
+    // Process data...
+    cachedProducts = data.products || [];
+    renderProductTable();
+    hideLoading();
+    
+  } catch (error) {
+    console.error('Sync error:', error);
+    alert('Failed to sync data: ' + error.message);
+    hideLoading();
+  }
 }
+
 
   async function fallbackGetProductsAndSales() {
     try { const p = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts&t=${Date.now()}`); if(p.ok){ const pj=await p.json(); if(pj && pj.products) cachedProducts=pj.products; } }
@@ -2559,6 +2746,9 @@ function generateInvoiceHTML(data) {
         }
       </style>
     </head>
+</div> <!-- End of appContent -->
+
+
     <body>
       <div class="invoice-header">
         <h1>INVOICE</h1>
@@ -3014,6 +3204,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
