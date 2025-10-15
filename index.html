@@ -965,6 +965,180 @@ let GOOGLE_CLIENT_ID = null;
 let cachedProducts = [];
 let cachedSales = [];
 
+    // ---------- SAFETY / RENDER FALLBACK HELPERS (paste after your global vars) ----------
+
+// small HTML escaping helper (prevents XSS & broken markup)
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Robust product renderer (fallback if original renderProductTable is missing)
+function renderProductTable() {
+  try {
+    const tbody = document.getElementById('productsTableBody');
+    const mobileList = document.getElementById('mobileProductsList');
+    if (!tbody || !mobileList) {
+      console.warn('renderProductTable: required DOM elements not found');
+      return;
+    }
+
+    // Clear
+    tbody.innerHTML = '';
+    mobileList.innerHTML = '';
+
+    if (!cachedProducts || cachedProducts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No products found</td></tr>';
+      mobileList.innerHTML = '';
+      return;
+    }
+
+    // Build desktop rows
+    cachedProducts.forEach((p) => {
+      const stock = Number(p.stock || 0);
+      const minStock = Number(p.minStock || 0);
+      let stockBadgeClass = 'bg-success text-white';
+      let stockText = `In Stock: ${stock}`;
+      if (stock === 0) { stockBadgeClass = 'bg-danger text-white'; stockText = 'Out of stock'; }
+      else if (stock <= minStock) { stockBadgeClass = 'bg-warning text-dark'; stockText = `Low: ${stock}`; }
+
+      const catColor = (p.category||'').toLowerCase().includes('tile') ? 'text-primary'
+                    : (p.category||'').toLowerCase().includes('sanitary') ? 'text-success'
+                    : 'text-warning';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><i class="bi bi-file-earmark ${catColor} file-icon"></i></td>
+        <td>${escapeHtml(p.name || '—')}</td>
+        <td>${escapeHtml(p.category || '—')}</td>
+        <td>${escapeHtml(p.brand || '')}</td>
+        <td>${escapeHtml(p.size || '—')}</td>
+        <td><span class="badge ${stockBadgeClass} stock-badge">${escapeHtml(stockText)}</span></td>
+        <td>₹${Number(p.price||0).toFixed(2)}/${escapeHtml(p.unitType||'')}</td>
+        <td>
+          <button class="btn btn-sm btn-primary btn-action-sm" onclick="editProduct('${escapeHtml(p.id)}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-danger btn-action-sm" onclick="deleteProduct('${escapeHtml(p.id)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      // mobile card
+      const div = document.createElement('div');
+      div.className = 'mobile-item';
+      div.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+          <i class="bi bi-file-earmark ${catColor}" style="font-size:1.2rem"></i>
+          <div style="flex:1">
+            <div style="font-weight:600">${escapeHtml(p.name || '—')}</div>
+            <div style="font-size:0.85rem;color:#666">${escapeHtml(p.brand || '')} • ${escapeHtml(p.size||'—')}</div>
+          </div>
+          <div style="text-align:right">
+            <div>${escapeHtml(stock)}</div>
+            <div style="font-weight:700;color:#28a745">₹${Number(p.price||0).toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+      mobileList.appendChild(div);
+    });
+
+    // update summary numbers if provided (best-effort)
+    try { updateSummaryFromCache(); } catch(e) { /* ignore */ }
+
+  } catch (err) {
+    console.error('renderProductTable error', err);
+  }
+}
+
+// Robust sales renderer
+function renderSalesFromCache() {
+  try {
+    const tbody = document.getElementById('salesList');
+    if (!tbody) { console.warn('renderSalesFromCache: #salesList not found'); return; }
+
+    if (!cachedSales || cachedSales.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    const recent = (cachedSales||[]).slice(0, 10);
+    recent.forEach(s => {
+      const d = new Date(s.date || Date.now());
+      const formatted = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      const qty = s.quantity || s.qty || 0;
+      const unit = s.unitType || s.unit || '';
+      const amount = Number(s.totalAmount||s.total||0).toFixed(2);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(formatted)}</td>
+        <td>${escapeHtml(s.productName || s.product || '—')}</td>
+        <td>${escapeHtml(qty)}</td>
+        <td>${escapeHtml(unit)}</td>
+        <td class="text-success fw-bold">₹${escapeHtml(amount)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    try { updateSummaryFromCache(); } catch(e) { /* ignore */ }
+  } catch (err) {
+    console.error('renderSalesFromCache error', err);
+  }
+}
+
+// Debug helper: run quick parallel GETs and print raw responses (call from Console)
+async function debugSync() {
+  try {
+    console.log('DEBUG: Calling getProducts and getSales endpoints with token (or without if missing)...');
+    const prodUrl = `${GOOGLE_SCRIPT_URL}?action=getProducts${googleIdToken ? '&idToken=' + encodeURIComponent(googleIdToken) : ''}&_dbg=${Date.now()}`;
+    const salesUrl = `${GOOGLE_SCRIPT_URL}?action=getSales${googleIdToken ? '&idToken=' + encodeURIComponent(googleIdToken) : ''}&_dbg=${Date.now()}`;
+
+    console.log(' -> Products URL:', prodUrl);
+    console.log(' -> Sales URL   :', salesUrl);
+
+    const [pR, sR] = await Promise.all([fetch(prodUrl), fetch(salesUrl)]);
+    console.log('Products response status:', pR.status, 'Sales status:', sR.status);
+
+    const pTxt = await pR.text().catch(e=>('PARSER_ERROR:'+e));
+    const sTxt = await sR.text().catch(e=>('PARSER_ERROR:'+e));
+
+    console.log('Products RAW response:', pTxt);
+    console.log('Sales RAW response   :', sTxt);
+
+    // Try to parse
+    try { console.log('Products JSON:', JSON.parse(pTxt)); } catch(e){ console.warn('Products JSON parse failed', e); }
+    try { console.log('Sales JSON   :', JSON.parse(sTxt)); } catch(e){ console.warn('Sales JSON parse failed', e); }
+
+    return { prodRaw: pTxt, salesRaw: sTxt };
+  } catch (err) {
+    console.error('debugSync error', err);
+    throw err;
+  }
+}
+
+// quick global convenience to manually refresh and re-render
+window.manualRefresh = async function(){
+  try {
+    if (typeof syncFromGoogleSheets === 'function') {
+      await syncFromGoogleSheets();
+    } else {
+      // fallback: call endpoints directly and render
+      const debug = await debugSync();
+      try { cachedProducts = JSON.parse(debug.prodRaw).products || []; } catch(e){ cachedProducts = []; }
+      try { cachedSales = JSON.parse(debug.salesRaw).sales || []; } catch(e){ cachedSales=[]; }
+      renderProductTable();
+      renderSalesFromCache();
+    }
+  } catch (e) {
+    console.error('manualRefresh failed', e);
+  }
+};
+
+
 // ==========================================
 // AUTHENTICATION
 // ==========================================
@@ -3519,6 +3693,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
