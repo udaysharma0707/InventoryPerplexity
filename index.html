@@ -8,8 +8,6 @@
   <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-  <!-- ✅ ADD THIS LINE -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
   <!-- Google Identity Services -->
@@ -267,13 +265,13 @@
 
 
 
-<!-- Authentication Screen -->
 <div id="authScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.3); text-align:center; max-width:400px; width:90%;">
     <i class="bi bi-shield-lock" style="font-size:64px; color:#667eea;"></i>
     <h2 style="margin:20px 0 10px;">Tile & Sanitaryware Inventory</h2>
     <p style="color:#666; margin-bottom:30px;">Sign in with your authorized Google account</p>
     
+    <!-- Google Sign-In Button Container -->
     <div id="googleSignInButton"></div>
     
     <p style="color:#999; font-size:12px; margin-top:30px;">
@@ -281,9 +279,6 @@
     </p>
   </div>
 </div>
-
-
-
 
 
 <!-- App Content (hidden until authenticated) -->
@@ -920,33 +915,30 @@
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw19AglfGz5n3WMaQjbxmKE-XDpBOMjxhRu11EK4shuswfbw3U2l4qk_b7E-uHETKa5/exec'; // <-- replace with your deployed URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAQ1LoVlUZ7DzbIKzif6yCcpzc1C2T8wdSdOHnON_bdZmIzLl0lG7QoyxeYtU7V1yC/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
     
-/**
- * ==========================================
- * ENHANCED AUTHENTICATION SYSTEM
- * ==========================================
- */
+// ==========================================
+// AUTHENTICATION - COMPLETE WORKING VERSION
+// ==========================================
 
-// Global auth variables
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
 
-// Initialize on page load with enhanced token management
+// Initialize on page load
 window.addEventListener('load', async function() {
   console.log('🚀 Page loaded, initializing authentication...');
   
   // Step 1: Fetch CLIENT_ID
   try {
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId&t=${Date.now()}`);
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
     const data = await response.json();
     
     if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      console.log('✅ CLIENT_ID fetched successfully');
+      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID);
     } else {
       console.error('❌ Failed to get CLIENT_ID:', data);
       alert('Failed to initialize authentication. Please refresh the page.');
@@ -958,12 +950,10 @@ window.addEventListener('load', async function() {
     return;
   }
   
-  // Step 2: Check for saved token and restore session
+  // Step 2: Check for saved token
   const savedToken = localStorage.getItem('googleIdToken');
-  
   if (savedToken) {
-    console.log('🔑 Found saved token, attempting to restore session...');
-    googleIdToken = savedToken; // ✅ CRITICAL: Set global variable immediately
+    console.log('🔑 Found saved token, attempting authentication...');
     await authenticateWithToken(savedToken);
   } else {
     console.log('👤 No saved token, showing auth screen...');
@@ -972,7 +962,7 @@ window.addEventListener('load', async function() {
   }
 });
 
-// Initialize Google Sign-In with retry logic
+// Initialize Google Sign-In
 function initializeGoogleSignIn() {
   console.log('🔧 Initializing Google Sign-In...');
   
@@ -980,11 +970,6 @@ function initializeGoogleSignIn() {
   if (typeof google === 'undefined') {
     console.log('⏳ Waiting for Google library...');
     setTimeout(initializeGoogleSignIn, 500);
-    return;
-  }
-  
-  if (!GOOGLE_CLIENT_ID) {
-    console.error('❌ CLIENT_ID not available');
     return;
   }
   
@@ -1023,14 +1008,9 @@ async function handleGoogleSignIn(response) {
   await authenticateWithToken(idToken);
 }
 
-// Authenticate with token (enhanced with better error handling)
+// Authenticate with token
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
-  
-  if (!idToken) {
-    showAuthError('No authentication token provided', true);
-    return;
-  }
   
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1043,28 +1023,28 @@ async function authenticateWithToken(idToken) {
     console.log('📋 Authentication response:', data);
     
     if (data.ok && data.user) {
-      // ✅ SUCCESS - Store everything
+      // Success
       currentUser = data.user;
-      googleIdToken = idToken; // ✅ CRITICAL: Set global variable
+      googleIdToken = idToken;
       localStorage.setItem('googleIdToken', idToken);
       
-      // Verify token was saved
-      console.log('✅ Authentication successful');
-      console.log('✅ Token saved:', !!googleIdToken);
-      console.log('✅ User:', currentUser.email);
+      console.log('✅ Authentication successful:', currentUser);
       
       showApp();
       updateUserUI();
       await syncFromGoogleSheets();
     } else {
-      // ❌ FAILED
+      // Failed
       console.error('❌ Authentication failed:', data);
-      const errorMsg = data.message || 'Your account is not authorized to access this inventory.';
-      showAuthError(errorMsg, true);
+      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
+      localStorage.removeItem('googleIdToken');
+      showAuthScreen();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    showAuthError('Authentication failed. Please try again.', true);
+    alert('Authentication failed. Please try again.');
+    localStorage.removeItem('googleIdToken');
+    showAuthScreen();
   }
 }
 
@@ -1093,62 +1073,6 @@ function updateUserUI() {
     }
   }
 }
-
-// Enhanced showAuthError function (from above)
-function showAuthError(message, autoRedirect = true) {
-  console.error('🚨 AUTH ERROR:', message);
-  
-  console.log('Auth State:', {
-    hasToken: !!googleIdToken,
-    hasCurrentUser: !!currentUser,
-    tokenInStorage: !!localStorage.getItem('googleIdToken'),
-    timestamp: new Date().toISOString()
-  });
-  
-  const userMessage = `🔒 Authentication Error\n\n${message}\n\nYou will be redirected to the sign-in screen.`;
-  
-  googleIdToken = null;
-  currentUser = null;
-  localStorage.removeItem('googleIdToken');
-  
-  alert(userMessage);
-  
-  if (autoRedirect) {
-    setTimeout(() => {
-      showAuthScreen();
-      if (typeof initializeGoogleSignIn === 'function') {
-        initializeGoogleSignIn();
-      }
-    }, 500);
-  }
-}
-
-/**
- * ==========================================
- * DIAGNOSTIC: Check Auth State Anywhere
- * ==========================================
- */
-function checkAuthState(location = 'unknown') {
-  console.log(`
-╔════════════════════════════════════════════════════════════
-║ 🔍 AUTH STATE CHECK (from: ${location})
-╠════════════════════════════════════════════════════════════
-║ googleIdToken: ${googleIdToken ? '✅ EXISTS (length: ' + googleIdToken.length + ')' : '❌ NULL'}
-║ currentUser: ${currentUser ? '✅ EXISTS (' + currentUser.email + ')' : '❌ NULL'}
-║ localStorage token: ${localStorage.getItem('googleIdToken') ? '✅ EXISTS' : '❌ NULL'}
-║ Window token var: ${typeof window.googleIdToken !== 'undefined' ? '✅ DEFINED' : '❌ UNDEFINED'}
-║ Timestamp: ${new Date().toISOString()}
-╚════════════════════════════════════════════════════════════
-  `);
-  
-  return {
-    hasToken: !!googleIdToken,
-    hasUser: !!currentUser,
-    hasStorageToken: !!localStorage.getItem('googleIdToken')
-  };
-}
-
-    
 
 // Sign out
 function signOut() {
@@ -1444,123 +1368,41 @@ async function syncFromGoogleSheets() {
   /***********************
    * Save helpers (server calls)
    ***********************/
- async function saveProductToSheet(product, isEdit=false) {
-  // ✅ CRITICAL: Check and restore token
-  if (!googleIdToken) {
-    const savedToken = localStorage.getItem('googleIdToken');
-    if (savedToken) {
-      console.warn('⚠️ Token was null, restoring from localStorage');
-      googleIdToken = savedToken;
-    } else {
-      console.error('❌ No token available anywhere!');
-      showAuthError('Session expired. Please sign in again.');
-      return null;
-    }
+  async function saveProductToSheet(product, isEdit=false){
+    try{
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct':'addProduct'}`, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body: JSON.stringify(product)
+      });
+      const parsed = await safeParseResponse(res);
+      return parsed.json || null;
+    }catch(e){ console.error('saveProductToSheet', e); return null; }
   }
-  
-  // Log auth state
-  checkAuthState('saveProductToSheet');
 
-  try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(product))}`
-    });
-    
-    const parsed = await safeParseResponse(res);
-    
-    if (parsed.json && (parsed.json.error === 'unauthorized')) {
-      console.error('❌ Backend returned unauthorized');
-      showAuthError('Session expired. Please sign in again.');
-      return null;
-    }
-    
-    return parsed.json || null;
-  } catch(e) {
-    console.error('saveProductToSheet error:', e);
-    return null;
+  async function saveSaleToSheet(item){
+    try{
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=addSale`, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body: JSON.stringify(item)
+      });
+      const parsed = await safeParseResponse(res);
+      return parsed.json || null;
+    }catch(e){ console.error('saveSaleToSheet', e); return null; }
   }
-}
 
-
- async function saveSaleToSheet(item) {
-  // ✅ CRITICAL: Check and restore token
-  if (!googleIdToken) {
-    const savedToken = localStorage.getItem('googleIdToken');
-    if (savedToken) {
-      console.warn('⚠️ Token was null, restoring from localStorage');
-      googleIdToken = savedToken;
-    } else {
-      console.error('❌ No token available anywhere!');
-      showAuthError('Session expired. Please sign in again.');
-      return null;
-    }
+  async function deleteProductFromSheet(id){
+    try{
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteProduct`, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body: JSON.stringify({ id })
+      });
+      const parsed = await safeParseResponse(res);
+      return parsed.json && parsed.json.success;
+    }catch(e){ console.error('deleteProductFromSheet', e); return false; }
   }
-  
-  // Log auth state
-  checkAuthState('saveSaleToSheet');
-
-  try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `action=addSale&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify(item))}`
-    });
-    
-    const parsed = await safeParseResponse(res);
-    
-    if (parsed.json && (parsed.json.error === 'unauthorized')) {
-      console.error('❌ Backend returned unauthorized');
-      showAuthError('Session expired. Please sign in again.');
-      return null;
-    }
-    
-    return parsed.json || null;
-  } catch(e) {
-    console.error('saveSaleToSheet error:', e);
-    return null;
-  }
-}
-
-  async function deleteProductFromSheet(id) {
-  // ✅ CRITICAL: Check and restore token
-  if (!googleIdToken) {
-    const savedToken = localStorage.getItem('googleIdToken');
-    if (savedToken) {
-      console.warn('⚠️ Token was null, restoring from localStorage');
-      googleIdToken = savedToken;
-    } else {
-      console.error('❌ No token available anywhere!');
-      showAuthError('Session expired. Please sign in again.');
-      return false;
-    }
-  }
-  
-  // Log auth state
-  checkAuthState('deleteProductFromSheet');
-
-  try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}&data=${encodeURIComponent(JSON.stringify({ id }))}`
-    });
-    
-    const parsed = await safeParseResponse(res);
-    
-    if (parsed.json && (parsed.json.error === 'unauthorized')) {
-      console.error('❌ Backend returned unauthorized');
-      showAuthError('Session expired. Please sign in again.');
-      return false;
-    }
-    
-    return parsed.json && parsed.json.success;
-  } catch(e) {
-    console.error('deleteProductFromSheet error:', e);
-    return false;
-  }
-}
 
   /***********************
    * Product CRUD UI
@@ -2082,197 +1924,144 @@ function populateRowWithCustom(rowIndex, cp){
     return null;
   }
 
- async function completeSale() {
-  // ✅ STEP 1: Verify authentication FIRST
-  if (!googleIdToken) {
-    const savedToken = localStorage.getItem('googleIdToken');
-    if (savedToken) {
-      console.warn('⚠️ Restoring token from localStorage');
-      googleIdToken = savedToken;
-    } else {
-      alert('⚠️ Authentication Error\n\nYour session has expired. Please sign in again.');
-      showAuthScreen();
-      return;
-    }
-  }
+  /***********************
+   * COMPLETE SALE (fire-and-forget background saves)
+   ***********************/
+  async function completeSale(){
+    const rows = document.querySelectorAll('#product-grid-body .product-row');
+    const saleItems = [];
+    let hasErrors = false;
 
-  console.log('✅ Authentication verified, token exists:', !!googleIdToken);
+    rows.forEach((r,i)=>{
+      const idx = i+1;
+      const sel = document.getElementById(`product-${idx}`);
+      const qtyEl = document.getElementById(`qty-${idx}`);
+      const priceEl = document.getElementById(`price-${idx}`);
+      const unitEl = document.getElementById(`unit-${idx}`);
+      const sizeEl = document.getElementById(`size-${idx}`);
+      if(!sel) return;
+      // Skip empty rows
+      if(!sel.value) return;
 
-  const rows = document.querySelectorAll('#product-grid-body .product-row');
-  const saleItems = [];
-  let hasErrors = false;
+      const qty = Number(qtyEl.value || 0);
+      if(!qty || qty <= 0){ alert(`âŒ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
+      const maxStock = Number(qtyEl.max || Infinity);
+      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`âŒ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
 
-  rows.forEach((r, i) => {
-    const idx = i + 1;
-    const sel = document.getElementById(`product-${idx}`);
-    const qtyEl = document.getElementById(`qty-${idx}`);
-    const priceEl = document.getElementById(`price-${idx}`);
-    const unitEl = document.getElementById(`unit-${idx}`);
-    const sizeEl = document.getElementById(`size-${idx}`);
-    
-    if (!sel) return;
-    if (!sel.value) return; // Skip empty rows
+      // Determine if custom (temp) or normal product
+      let isCustom = sel.value.startsWith('CUST_TMP_');
+      let productId = isCustom ? null : sel.value;
+      let productName = '';
+      let size = sizeEl.value || 'N/A';
+      let unitType = unitEl.value || '';
+      let unitPrice = Number(priceEl.value || 0);
+      let lineTotal = unitPrice * qty;
 
-    const qty = Number(qtyEl?.value || 0);
-    if (!qty || qty <= 0) {
-      alert(`❌ Row ${idx}: Enter a valid quantity`);
-      hasErrors = true;
-      return;
-    }
-
-    const maxStock = Number(qtyEl?.max || Infinity);
-    if (!sel.value.startsWith('CUST_TMP_') && qty > maxStock) {
-      alert(`❌ Row ${idx}: Quantity exceeds available stock (${maxStock})`);
-      hasErrors = true;
-      return;
-    }
-
-    // Determine if custom (temp) or normal product
-    let isCustom = sel.value.startsWith('CUST_TMP_');
-    let productId = isCustom ? null : sel.value;
-    let productName = '';
-    let size = sizeEl?.value || 'N/A';
-    let unitType = unitEl?.value || 'Piece';
-    let unitPrice = Number(priceEl?.value || 0);
-
-    if (isCustom) {
-      const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
-      productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom Product');
-      size = cp.size || size;
-      unitType = cp.unitType || unitType;
-      unitPrice = cp.price || unitPrice;
-    } else {
-      const prod = (cachedProducts || []).find(p => p.id === productId);
-      if (!prod) {
-        alert(`❌ Row ${idx}: Product not found in cache`);
-        hasErrors = true;
-        return;
+      if(isCustom){
+        const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
+        productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
+      } else {
+        const prod = (cachedProducts||[]).find(p => p.id === productId);
+        if(!prod){ alert(`âŒ Row ${idx}: Product not found`); hasErrors = true; return; }
+        productName = prod.name;
+        size = prod.size || size;
+        unitType = prod.unitType || unitType;
+        unitPrice = prod.price || unitPrice;
       }
-      productName = prod.name;
-      size = prod.size || size;
-      unitType = prod.unitType || unitType;
-      unitPrice = Number(prod.price) || unitPrice;
-    }
 
-    // ✅ VALIDATE productName
-    if (!productName || productName.trim() === '') {
-      productName = sel.options[sel.selectedIndex]?.text || 'Unknown Product';
-      console.warn(`Row ${idx}: Product name was empty, using: ${productName}`);
-    }
-
-    let lineTotal = unitPrice * qty;
-
-    console.log(`✅ Row ${idx} prepared:`, { productName, quantity: qty, unitPrice, totalAmount: lineTotal });
-
-    saleItems.push({
-      productId,
-      productName,
-      size,
-      quantity: qty,
-      unitType,
-      unitPrice,
-      totalAmount: lineTotal,
-      isCustomProduct: isCustom
+      saleItems.push({
+        productId,
+        productName,
+        size,
+        quantity: qty,
+        unitType,
+        unitPrice,
+        totalAmount: lineTotal,
+        isCustomProduct: isCustom
+      });
     });
-  });
 
-  if (hasErrors) return;
-  if (saleItems.length === 0) {
-    alert('❌ Please add at least one product to the sale');
-    return;
-  }
+    if(hasErrors) return;
+    if(saleItems.length === 0){ alert('âŒ Please add at least one product to the sale'); return; }
 
-  console.log('📦 Total sale items:', saleItems.length);
-
-  // OPTIMISTIC: update local cache & UI immediately
-  const saleId = 'SALE_' + Date.now();
-  const nowIso = new Date().toISOString();
-  
-  // push each line to cachedSales and deduct stock for non-custom
-  saleItems.forEach(item => {
-    const line = {
-      id: generateId(),
-      saleId,
-      productId: item.productId || '',
-      productName: item.productName,
-      size: item.size,
-      quantity: item.quantity,
-      unitType: item.unitType,
-      unitPrice: item.unitPrice,
-      totalAmount: item.totalAmount,
-      date: nowIso,
-      isCustomProduct: item.isCustomProduct
-    };
-    cachedSales.unshift(line);
-    
-    // Deduct stock optimistically
-    if (!item.isCustomProduct && item.productId) {
-      const pi = cachedProducts.findIndex(p => p.id === item.productId);
-      if (pi !== -1) {
-        cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
-        if (cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
+    // OPTIMISTIC: update local cache & UI immediately
+    const saleId = 'SALE_' + Date.now();
+    const nowIso = new Date().toISOString();
+    // push each line to cachedSales and deduct stock for non-custom
+    saleItems.forEach(item => {
+      const line = {
+        id: generateId(),
+        saleId,
+        productId: item.productId || '',
+        productName: item.productName,
+        size: item.size,
+        quantity: item.quantity,
+        unitType: item.unitType,
+        unitPrice: item.unitPrice,
+        totalAmount: item.totalAmount,
+        date: nowIso,
+        isCustomProduct: item.isCustomProduct
+      };
+      cachedSales.unshift(line);
+      // Deduct stock optimistically
+      if(!item.isCustomProduct && item.productId){
+        const pi = cachedProducts.findIndex(p => p.id === item.productId);
+        if(pi !== -1){
+          cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
+          if(cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
+        }
       }
-    }
-  });
-
-  // Sort sales by date after adding new sales
-  sortSalesByDateDescending();
-  renderProducts();
-  renderSales();
-
-  // Close modal immediately (fast UX)
-  const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
-  if (modal) modal.hide();
-
-  // Show immediate success message
-  const grandTotal = saleItems.reduce((s, it) => s + Number(it.totalAmount || 0), 0);
-  setTimeout(() => alert(`✅ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
-
-  // ✅ STEP 2: Save to backend with proper error handling
-  console.log('📤 Starting background save with auth token...');
-  
-  const saves = saleItems.map(item => {
-    const payload = {
-      saleId,
-      productId: item.productId || '',
-      productName: item.productName,
-      size: item.size,
-      quantity: item.quantity,
-      unitType: item.unitType,
-      unitPrice: item.unitPrice,
-      totalAmount: item.totalAmount,
-      isCustomProduct: item.isCustomProduct || false
-    };
-    
-    console.log('📤 Saving item:', payload.productName);
-    
-    return saveSaleToSheet(payload).then(resp => {
-      if (!(resp && resp.success)) {
-        console.error('❌ Sale line failed:', payload.productName, resp);
-        return { ok: false, payload, resp };
-      }
-      console.log('✅ Saved:', payload.productName);
-      return { ok: true, payload, resp };
-    }).catch(err => {
-      console.error('❌ Save error:', payload.productName, err);
-      return { ok: false, payload, err };
     });
-  });
 
-  // handle results when finished
-  Promise.allSettled(saves).then(results => {
-    const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
-    if (failed.length) {
-      console.warn(`⚠️ ${failed.length} items failed to save`);
-      setTimeout(() => alert(`⚠️ Some items failed to sync to Google Sheets.\n\nPlease click Refresh to sync again.`), 800);
-    } else {
-      console.log('✅ All items saved successfully!');
-      // re-sync to get canonical server state
-      syncFromGoogleSheets();
-    }
-  });
-}
+      // Ã¢Å“â€¦ NEW: Sort sales by date after adding new sales
+    sortSalesByDateDescending();
+    renderProducts();
+    renderSales();
 
+    // Close modal immediately (fast UX)
+    const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+    if(modal) modal.hide();
+
+    // Show immediate success message and that save happens in background
+    const grandTotal = saleItems.reduce((s,it) => s + Number(it.totalAmount || 0), 0);
+    setTimeout(()=> alert(`Ã¢Å“â€¦ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
+
+    // FIRE AND FORGET: save each item in background (don't block UI)
+    const saves = saleItems.map(item => {
+      const payload = {
+        saleId,
+        productId: item.productId || '',
+        productName: item.productName,
+        size: item.size,
+        quantity: item.quantity,
+        unitType: item.unitType,
+        unitPrice: item.unitPrice,
+        totalAmount: item.totalAmount,
+        isCustomProduct: item.isCustomProduct || false
+      };
+      return saveSaleToSheet(payload).then(resp=>{
+        if(!(resp && resp.success)){
+          console.error('Sale line failed to save', payload, resp);
+          // optionally: mark a small flag in UI or show toast later
+          return { ok:false, payload, resp };
+        }
+        return { ok:true, payload, resp };
+      }).catch(err => { console.error('saveSale error', err); return { ok:false, payload, err }; });
+    });
+
+    // handle results when finished (optional)
+    Promise.allSettled(saves).then(results => {
+      const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
+      if(failed.length){
+        console.warn('Some rows failed to save', failed);
+        // show a gentle non-blocking alert
+        setTimeout(()=> alert(`Ã¢Å¡ Ã¯Â¸Â Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
+      } else {
+        // re-sync to get canonical server state (ids, timestamps, stock)
+        syncFromGoogleSheets();
+      }
+    });
+  }
 
   /***********************
    * Load sale product select helper (if needed elsewhere)
@@ -3169,15 +2958,6 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
 
 
