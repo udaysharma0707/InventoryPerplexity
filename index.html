@@ -1126,53 +1126,94 @@ function storeIdToken(token) {
 
 
     
-// Handle Google Sign-In callback
+// Handle Google Sign-In callback (safe)
 async function handleGoogleSignIn(response) {
-  console.log('🔐 Google Sign-In callback triggered');
-  const idToken = response.credential;
-  await authenticateWithToken(idToken);
+  try {
+    console.log('🔐 Google Sign-In callback triggered');
+
+    // Defensive check: response and credential must exist
+    if (!response || !response.credential) {
+      console.warn('No credential returned from Google callback', response);
+      showAuthError('Sign-in failed (no credential). Please try again.');
+      return;
+    }
+
+    const idToken = response.credential;
+    await authenticateWithToken(idToken);
+  } catch (err) {
+    console.error('handleGoogleSignIn error', err);
+    showAuthError('Sign-in failed. Please try again.');
+  }
 }
 
-// Authenticate with token
+
+/// Authenticate with token
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
-  
+
+  if (!idToken) {
+    showAuthError('Missing authentication token.');
+    return;
+  }
+
+  // quick local expiry check (avoid calling server if already expired)
+  if (isTokenExpired()) {
+    console.log('Token either not stored previously or appears expired — storing new token and continuing.');
+    // still store new token so we have expiry (server will validate)
+    storeIdToken(idToken);
+  } else {
+    // ensure global variable matches stored token
+    googleIdToken = localStorage.getItem('googleIdToken') || idToken;
+  }
+
   try {
+    // call backend to verify & get user info
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `action=authenticate&idToken=${encodeURIComponent(idToken)}`
     });
-    
+
+    // If network error / no response, handle gracefully
+    if (!response || !response.ok) {
+      const text = response ? await response.text().catch(()=> '') : '';
+      console.error('Network/auth request failed:', response && response.status, text);
+      showAuthError('Network error while authenticating. Please try again.');
+      return;
+    }
+
     const data = await response.json();
     console.log('📋 Authentication response:', data);
-    
-    if (data.ok && data.user) {
-      // Success
+
+    if (data && data.ok && data.user) {
+      // Success: save user and token
       currentUser = data.user;
       googleIdToken = idToken;
       storeIdToken(idToken);
 
-      
       console.log('✅ Authentication successful:', currentUser);
-      
       showApp();
       updateUserUI();
+
+      // load app data
       await syncFromGoogleSheets();
     } else {
-      // Failed
-      console.error('❌ Authentication failed:', data);
-      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
-      localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
-      showAuthScreen();
+      // Auth failed on server side (not authorized, etc.)
+      console.error('❌ Authentication failed (server):', data);
+      // remove any saved token/expiry
+      localStorage.removeItem('googleIdToken');
+      localStorage.removeItem('googleIdTokenExpiry');
+      showAuthError(data && (data.message || data.error) ? (data.message || data.error) : 'Access denied. Your account may not be authorized.');
     }
   } catch (error) {
-    console.error('❌ Authentication error:', error);
-    alert('Authentication failed. Please try again.');
-    localStorage.removeItem('googleIdToken'); localStorage.removeItem('googleIdTokenExpiry');
-    showAuthScreen();
+    console.error('❌ Authentication error (exception):', error);
+    // clear token(s)
+    localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('googleIdTokenExpiry');
+    showAuthError('Authentication failed. Please try again.');
   }
 }
+
 
 // Show authentication screen
 function showAuthScreen() {
@@ -3139,6 +3180,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
