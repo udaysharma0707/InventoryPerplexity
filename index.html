@@ -1175,11 +1175,12 @@ async function syncFromGoogleSheets() {
       throw new Error(data.message || 'Failed to fetch data');
     }
     
-    cachedProducts = data.products || [];
-    console.log('Products loaded:', cachedProducts.length);
-    
-    renderProductTable();
-    hideLoading();
+  cachedProducts = data.products || [];
+console.log('Products loaded:', cachedProducts.length);
+
+renderProducts();  // ✅ CORRECT function name
+hideLoading();
+
     
   } catch (error) {
     console.error('Sync error:', error);
@@ -1260,35 +1261,58 @@ try {
   /***********************
    * Sync / Fetch
    ***********************/
-  async function syncFromGoogleSheets() {
+ async function syncFromGoogleSheets() {
   // Check authentication
   if (!googleIdToken) {
     showAuthError('Please sign in to continue');
     return;
   }
-  
+
   showLoading('Syncing data...');
   
   try {
-    // Add idToken to request
-    const url = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (!data.ok) {
-      if (data.error === 'unauthorized') {
+    // Fetch both products AND sales
+    const urlProducts = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
+    const urlSales = `${GOOGLE_SCRIPT_URL}?action=getSales&idToken=${encodeURIComponent(googleIdToken)}`;
+
+    // Fetch both in parallel
+    const [prodRes, salesRes] = await Promise.all([
+      fetch(urlProducts),
+      fetch(urlSales)
+    ]);
+
+    const prodData = await prodRes.json();
+    const salesData = await salesRes.json();
+
+    // Check products response
+    if (!prodData.ok) {
+      if (prodData.error === 'unauthorized') {
         showAuthError('Session expired. Please sign in again.');
         signOut();
         return;
       }
-      throw new Error(data.message || 'Failed to fetch data');
+      throw new Error(prodData.message || 'Failed to fetch products');
     }
+
+    // Check sales response (non-fatal if fails)
+    if (!salesData.ok) {
+      console.warn('Sales fetch failed:', salesData);
+    }
+
+    // Update caches
+    cachedProducts = prodData.products || [];
+    cachedSales = salesData.sales || [];
+
+    console.log('Sync complete - Products:', cachedProducts.length, 'Sales:', cachedSales.length);
+
+    // Render both
+    renderProducts();  // ✅ Correct function
+    renderSales();     // ✅ Correct function
     
-    // Process data...
-    cachedProducts = data.products || [];
-    renderProductTable();
+    updateSummaryFromCache();  // Update dashboard metrics
+
     hideLoading();
-    
+
   } catch (error) {
     console.error('Sync error:', error);
     alert('Failed to sync data: ' + error.message);
@@ -3319,6 +3343,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
