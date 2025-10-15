@@ -1000,7 +1000,51 @@ function initializeGoogleSignIn() {
     });
     
     console.log('✅ Google Sign-In button rendered successfully');
-  } catch (error) {
+  }
+  // ---------------------------
+// Small defensive check: if GSI button not rendered after a short delay,
+// show a helpful hint inside the googleSignInButton or console.
+// Paste this RIGHT AFTER the initializeGoogleSignIn() function closing brace.
+// ---------------------------
+setTimeout(() => {
+  try {
+    const btn = document.getElementById('googleSignInButton');
+    if (!btn) {
+      console.warn('Debug: #googleSignInButton element not found in DOM.');
+      return;
+    }
+
+    // If library not loaded
+    if (typeof google === 'undefined') {
+      btn.innerHTML = '<div class="text-muted small">Google Identity library not loaded — retrying shortly...</div>';
+      console.warn('GSI library not loaded yet (google is undefined).');
+      return;
+    }
+
+    // If CLIENT_ID not available yet
+    if (!GOOGLE_CLIENT_ID) {
+      btn.innerHTML = '<div class="text-muted small">Waiting for CLIENT_ID from server...</div>';
+      console.warn('CLIENT_ID not set yet; fetchClientId may still be in progress.');
+      return;
+    }
+
+    // If button container exists but no children were injected by GSI
+    if (btn.children.length === 0) {
+      // Friendly message for user + console hint for developer
+      btn.innerHTML = '<div class="text-muted small">Sign-in button not visible. Open console for details.</div>';
+      console.warn('GSI button container exists but button was not rendered. Possible reasons: client id mismatch, popup blocked, or GSI errors.');
+    } else {
+      // Button exists — nothing to do
+      console.log('Debug: GSI button appears to have rendered correctly.');
+    }
+  } catch (err) {
+    console.error('Debug helper error:', err);
+  }
+}, 2500);
+
+  
+  
+  catch (error) {
     console.error('❌ Error initializing Google Sign-In:', error);
   }
 }
@@ -3180,6 +3224,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
