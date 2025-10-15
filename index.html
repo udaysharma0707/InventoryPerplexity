@@ -20,7 +20,19 @@
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
     .table-explorer { background:#fff; border-radius:6px; overflow:hidden; }
-    .file-icon { font-size:1.15rem; display:inline-block; width:1.6rem; text-align:center; }
+    .file-icon { 
+  font-size: 1.15rem; 
+  display: inline-block; 
+  width: 1.6rem; 
+  text-align: center; 
+}
+
+/* Bootstrap color classes for icons */
+.text-primary { color: #0d6efd !important; }
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+
     .stock-badge{font-size:.85rem;padding:.25rem .5rem;border-radius:.5rem}
     .mobile-list{display:none}
     .mobile-item{background:#fff;padding:.75rem;border-radius:.5rem;margin-bottom:.7rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
@@ -1330,28 +1342,27 @@ function signOut() {
 // API CALLS WITH AUTHENTICATION
 // ==========================================
 
-// === REPLACE existing syncFromGoogleSheets() with this improved version ===
 async function syncFromGoogleSheets() {
   if (!googleIdToken) {
     showAuthError('Please sign in to continue');
     return;
   }
 
-  console.log('Syncing data from Google Sheets (products + sales)...');
+  console.log('Syncing data from Google Sheets...');
   showLoading('Syncing data...');
 
   try {
     const urlProducts = `${GOOGLE_SCRIPT_URL}?action=getProducts&idToken=${encodeURIComponent(googleIdToken)}`;
-    const urlSales    = `${GOOGLE_SCRIPT_URL}?action=getSales&idToken=${encodeURIComponent(googleIdToken)}`;
+    const urlSales = `${GOOGLE_SCRIPT_URL}?action=getSales&idToken=${encodeURIComponent(googleIdToken)}`;
 
-    // Fetch both endpoints in parallel to save time
-    const [prodRes, salesRes] = await Promise.all([fetch(urlProducts), fetch(urlSales)]);
+    // Fetch both in parallel
+    const [prodRes, salesRes] = await Promise.all([
+      fetch(urlProducts).catch(e => ({ ok: false, statusText: e.message })),
+      fetch(urlSales).catch(e => ({ ok: false, statusText: e.message }))
+    ]);
 
-    // Parse JSON (handle non-OK responses)
-    const prodJson = await prodRes.json().catch(()=>({ ok:false, error:'invalid_json' }));
-    const salesJson = await salesRes.json().catch(()=>({ ok:false, error:'invalid_json' }));
-
-    // Handle errors
+    // Parse products
+    const prodJson = prodRes.ok ? await prodRes.json().catch(() => ({ ok: false })) : { ok: false };
     if (!prodJson.ok) {
       if (prodJson.error === 'unauthorized') {
         showAuthError('Session expired. Please sign in again.');
@@ -1359,29 +1370,37 @@ async function syncFromGoogleSheets() {
         hideLoading();
         return;
       }
-      throw new Error('Failed to fetch products: ' + (prodJson.message || prodJson.error || 'unknown'));
+      throw new Error('Failed to fetch products');
     }
 
+    // Parse sales (non-fatal if fails)
+    const salesJson = salesRes.ok ? await salesRes.json().catch(() => ({ ok: false, sales: [] })) : { ok: false, sales: [] };
     if (!salesJson.ok) {
-      // Non-fatal: log and continue (we still show products)
-      console.warn('Failed to fetch sales:', salesJson);
-      // continue without throwing so products still render
+      console.warn('Sales fetch failed, using empty array:', salesJson);
     }
 
-    // Store caches
+    // Update caches
     cachedProducts = prodJson.products || [];
     cachedSales = salesJson.sales || [];
 
-    // Render UI
-    try { renderProductTable(); } catch (e) { console.warn('renderProductTable failed', e); }
-    try { renderSalesFromCache(); } catch (e) { console.warn('renderSalesFromCache failed', e); }
+    console.log('Sync OK - Products:', cachedProducts.length, 'Sales:', cachedSales.length);
+
+    // Render both (even if sales is empty)
+    renderProductTable();
+    renderSalesFromCache(); // ← CRITICAL: Must call this!
 
     hideLoading();
-    console.log('Sync completed. Products:', (cachedProducts||[]).length, 'Sales:', (cachedSales||[]).length);
+
   } catch (error) {
     console.error('Sync error:', error);
     hideLoading();
-    alert('Failed to sync data: ' + (error.message || error));
+    alert('Failed to sync data: ' + error.message);
+    
+    // Fallback: Show empty state
+    cachedProducts = cachedProducts || [];
+    cachedSales = cachedSales || [];
+    renderProductTable();
+    renderSalesFromCache();
   }
 }
 
@@ -3693,6 +3712,7 @@ function hideLoading() {
   </script>
 </body>
 </html>
+
 
 
 
