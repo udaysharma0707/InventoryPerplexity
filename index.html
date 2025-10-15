@@ -1079,6 +1079,13 @@ function updateUserUI() {
   }
 }
 
+    // ✅ ADD THIS NEW FUNCTION HERE
+// Show authentication error
+function showAuthError(message) {
+  alert('🔒 Authentication Error\n\n' + message);
+  console.error('Auth error:', message);
+}
+
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
@@ -2963,6 +2970,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
