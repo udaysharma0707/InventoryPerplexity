@@ -924,26 +924,29 @@
   let cachedProducts = [];
   let cachedSales = [];
     
-// ==========================================
-// AUTHENTICATION - COMPLETE WORKING VERSION
-// ==========================================
+/**
+ * ==========================================
+ * ENHANCED AUTHENTICATION SYSTEM
+ * ==========================================
+ */
 
+// Global auth variables
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
 
-// Initialize on page load
+// Initialize on page load with enhanced token management
 window.addEventListener('load', async function() {
   console.log('🚀 Page loaded, initializing authentication...');
   
   // Step 1: Fetch CLIENT_ID
   try {
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId&t=${Date.now()}`);
     const data = await response.json();
     
     if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID);
+      console.log('✅ CLIENT_ID fetched successfully');
     } else {
       console.error('❌ Failed to get CLIENT_ID:', data);
       alert('Failed to initialize authentication. Please refresh the page.');
@@ -955,10 +958,12 @@ window.addEventListener('load', async function() {
     return;
   }
   
-  // Step 2: Check for saved token
+  // Step 2: Check for saved token and restore session
   const savedToken = localStorage.getItem('googleIdToken');
+  
   if (savedToken) {
-    console.log('🔑 Found saved token, attempting authentication...');
+    console.log('🔑 Found saved token, attempting to restore session...');
+    googleIdToken = savedToken; // ✅ CRITICAL: Set global variable immediately
     await authenticateWithToken(savedToken);
   } else {
     console.log('👤 No saved token, showing auth screen...');
@@ -967,7 +972,7 @@ window.addEventListener('load', async function() {
   }
 });
 
-// Initialize Google Sign-In
+// Initialize Google Sign-In with retry logic
 function initializeGoogleSignIn() {
   console.log('🔧 Initializing Google Sign-In...');
   
@@ -975,6 +980,11 @@ function initializeGoogleSignIn() {
   if (typeof google === 'undefined') {
     console.log('⏳ Waiting for Google library...');
     setTimeout(initializeGoogleSignIn, 500);
+    return;
+  }
+  
+  if (!GOOGLE_CLIENT_ID) {
+    console.error('❌ CLIENT_ID not available');
     return;
   }
   
@@ -1013,9 +1023,14 @@ async function handleGoogleSignIn(response) {
   await authenticateWithToken(idToken);
 }
 
-// Authenticate with token
+// Authenticate with token (enhanced with better error handling)
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
+  
+  if (!idToken) {
+    showAuthError('No authentication token provided', true);
+    return;
+  }
   
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1028,28 +1043,28 @@ async function authenticateWithToken(idToken) {
     console.log('📋 Authentication response:', data);
     
     if (data.ok && data.user) {
-      // Success
+      // ✅ SUCCESS - Store everything
       currentUser = data.user;
-      googleIdToken = idToken;
+      googleIdToken = idToken; // ✅ CRITICAL: Set global variable
       localStorage.setItem('googleIdToken', idToken);
       
-      console.log('✅ Authentication successful:', currentUser);
+      // Verify token was saved
+      console.log('✅ Authentication successful');
+      console.log('✅ Token saved:', !!googleIdToken);
+      console.log('✅ User:', currentUser.email);
       
       showApp();
       updateUserUI();
       await syncFromGoogleSheets();
     } else {
-      // Failed
+      // ❌ FAILED
       console.error('❌ Authentication failed:', data);
-      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
-      localStorage.removeItem('googleIdToken');
-      showAuthScreen();
+      const errorMsg = data.message || 'Your account is not authorized to access this inventory.';
+      showAuthError(errorMsg, true);
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    alert('Authentication failed. Please try again.');
-    localStorage.removeItem('googleIdToken');
-    showAuthScreen();
+    showAuthError('Authentication failed. Please try again.', true);
   }
 }
 
@@ -1057,7 +1072,7 @@ async function authenticateWithToken(idToken) {
 function showAuthScreen() {
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('appContent').style.display = 'none';
-
+}
 
 // Show app
 function showApp() {
@@ -1079,14 +1094,10 @@ function updateUserUI() {
   }
 }
 
-    /**
- * Enhanced Authentication Error Handler
- * Shows user-friendly error messages and handles token cleanup
- */
+// Enhanced showAuthError function (from above)
 function showAuthError(message, autoRedirect = true) {
   console.error('🚨 AUTH ERROR:', message);
   
-  // Log detailed debug info
   console.log('Auth State:', {
     hasToken: !!googleIdToken,
     hasCurrentUser: !!currentUser,
@@ -1094,22 +1105,17 @@ function showAuthError(message, autoRedirect = true) {
     timestamp: new Date().toISOString()
   });
   
-  // Show user-friendly message
   const userMessage = `🔒 Authentication Error\n\n${message}\n\nYou will be redirected to the sign-in screen.`;
   
-  // Clean up invalid auth state
   googleIdToken = null;
   currentUser = null;
   localStorage.removeItem('googleIdToken');
   
-  // Show alert
   alert(userMessage);
   
-  // Auto-redirect to sign-in screen
   if (autoRedirect) {
     setTimeout(() => {
       showAuthScreen();
-      // Force Google Sign-In button refresh
       if (typeof initializeGoogleSignIn === 'function') {
         initializeGoogleSignIn();
       }
@@ -3001,6 +3007,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
