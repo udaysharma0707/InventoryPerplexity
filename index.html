@@ -272,32 +272,56 @@
           <i class="bi bi-building" style="font-size: 4rem; color: #0d6efd;"></i>
         </div>
         <h2 class="mb-3">Tile & Sanitaryware Inventory</h2>
-        <p class="text-muted mb-4">Enter your authorized email to access</p>
+        <p class="text-muted mb-4">Sign in to access inventory</p>
         
-        <!-- ✅ NEW: Email Input Form -->
-        <form id="emailAuthForm" onsubmit="handleEmailAuth(event)">
+        <!-- ✅ NEW: Email + Password Form -->
+        <form id="emailAuthForm" onsubmit="handleEmailPasswordAuth(event)">
           <div class="mb-3">
             <input 
               type="email" 
               id="userEmailInput" 
               class="form-control form-control-lg" 
-              placeholder="your.email@example.com" 
+              placeholder="Email address" 
               required
+              autocomplete="email"
               style="border-radius: 10px; text-align: center;"
             >
           </div>
-          <button type="submit" class="btn btn-primary btn-lg w-100" style="border-radius: 10px;">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Access Inventory
+          
+          <!-- ✅ NEW: Password Input with Toggle -->
+          <div class="mb-3 position-relative">
+            <input 
+              type="password" 
+              id="userPasswordInput" 
+              class="form-control form-control-lg" 
+              placeholder="Password" 
+              required
+              autocomplete="current-password"
+              style="border-radius: 10px; text-align: center; padding-right: 45px;"
+            >
+            <button 
+              type="button" 
+              class="btn btn-link position-absolute" 
+              onclick="togglePasswordVisibility()"
+              style="right: 10px; top: 50%; transform: translateY(-50%); text-decoration: none; color: #6c757d;"
+            >
+              <i id="passwordToggleIcon" class="bi bi-eye"></i>
+            </button>
+          </div>
+          
+          <button type="submit" id="loginButton" class="btn btn-primary btn-lg w-100" style="border-radius: 10px;">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
           </button>
         </form>
         
         <div class="text-muted mt-4" style="font-size: 0.875rem;">
-          <i class="bi bi-lock-fill me-1"></i> Only authorized emails can access
+          <i class="bi bi-lock-fill me-1"></i> Secure access with password
         </div>
       </div>
     </div>
   </div>
 </div>
+
 
 
 
@@ -318,15 +342,20 @@
         <button id="refreshBtn" class="btn btn-light btn-sm me-2" onclick="manualRefresh()"><i id="refreshIcon" class="bi bi-arrow-clockwise"></i> Refresh</button>
         <button class="btn btn-light btn-sm me-2" onclick="exportData()"><i class="bi bi-download"></i> Backup</button>
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
-        <!-- Add this to your navbar -->
-<div class="d-flex align-items-center ms-auto">
+        <div class="d-flex align-items-center">
   <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
-
-  <span id="userName" style="margin-right:15px; color:white;"></span>
-  <button class="btn btn-sm btn-outline-light" onclick="signOut()">
-    <i class="bi bi-box-arrow-right"></i> Sign Out
+  <span id="userName" class="me-3">User</span>
+  
+  <!-- ✅ NEW: Change Password Button -->
+  <button class="btn btn-outline-light btn-sm me-2" onclick="openChangePasswordModal()">
+    <i class="bi bi-key me-1"></i>Change Password
+  </button>
+  
+  <button class="btn btn-outline-light btn-sm" onclick="signOut()">
+    <i class="bi bi-box-arrow-right me-1"></i>Sign Out
   </button>
 </div>
+
 
 
         <!-- âœ… NEW: View Invoices Button -->
@@ -942,102 +971,146 @@
     
 
 // ==========================================
-// EMAIL-BASED AUTHENTICATION (PERMANENT)
+// EMAIL + PASSWORD AUTHENTICATION (WITH HASH)
 // ==========================================
 
 let currentUser = null;
 let userEmail = null;
+let userHash = null; // ✅ NEW: Store encrypted hash
 
-// ✅ CRITICAL FIX: Check authentication on page load
+// Simple hash function (matches backend)
+function simpleHash(text) {
+  let hash = 0;
+  if (text.length === 0) return hash.toString();
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// Toggle password visibility
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById('userPasswordInput');
+  const toggleIcon = document.getElementById('passwordToggleIcon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.className = 'bi bi-eye-slash';
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.className = 'bi bi-eye';
+  }
+}
+
+// Check authentication on page load
 window.addEventListener('load', async function() {
   console.log('🚀 Page loaded, checking authentication...');
   
-  // FIRST: Check localStorage immediately
+  // Check localStorage for saved credentials
   const savedEmail = localStorage.getItem('userEmail');
+  const savedHash = localStorage.getItem('userHash');
   const savedUser = localStorage.getItem('currentUser');
   
   console.log('📦 Checking localStorage:', {
     hasEmail: !!savedEmail,
-    hasUser: !!savedUser,
-    email: savedEmail
+    hasHash: !!savedHash,
+    hasUser: !!savedUser
   });
   
-  if (savedEmail && savedUser) {
+  if (savedEmail && savedHash) {
     console.log('✅ Found saved credentials, auto-logging in...');
     
     try {
-      // ✅ SET VARIABLES FIRST (before any function calls)
+      // ✅ SET VARIABLES FIRST
       userEmail = savedEmail;
-      currentUser = JSON.parse(savedUser);
+      userHash = savedHash;
       
-      console.log('✅ Variables set:', { userEmail, currentUser: currentUser.email });
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+      } else {
+        currentUser = {
+          email: savedEmail,
+          name: savedEmail.split('@')[0],
+          authorized: true
+        };
+      }
+      
+      console.log('✅ Session restored:', { userEmail, hasHash: !!userHash });
       
       // ✅ Show app IMMEDIATELY
       showApp();
       updateUserUI();
       
-      // ✅ Small delay to ensure everything is ready
+      // ✅ Wait before syncing
       setTimeout(async () => {
         console.log('🔄 Starting data sync...');
         await syncFromGoogleSheets();
-      }, 200);
+      }, 500);
       
     } catch (error) {
-      console.error('❌ Error loading saved session:', error);
-      clearAuth();
+      console.error('❌ Error restoring session:', error);
       showAuthScreen();
     }
   } else {
-    console.log('👤 No saved credentials, showing auth screen...');
+    console.log('👤 No saved credentials, showing login screen...');
     showAuthScreen();
   }
 });
 
-// Handle email authentication form submission
-async function handleEmailAuth(event) {
+// Handle email + password authentication
+async function handleEmailPasswordAuth(event) {
   event.preventDefault();
   
   const emailInput = document.getElementById('userEmailInput');
-  const email = emailInput.value.trim();
+  const passwordInput = document.getElementById('userPasswordInput');
+  const loginButton = document.getElementById('loginButton');
   
-  if (!email) {
-    alert('Please enter your email address');
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
+  
+  if (!email || !password) {
+    alert('Please enter both email and password');
     return;
   }
   
-  console.log('🔐 Authenticating email:', email);
+  console.log('🔐 Authenticating:', email);
   
   // Show loading state
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.innerHTML;
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+  const originalText = loginButton.innerHTML;
+  loginButton.disabled = true;
+  loginButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
   
   try {
-    // Authenticate with backend
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}`, {
+    // ✅ Send email + password to backend
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
       method: 'POST'
     });
     
     const data = await response.json();
     
-    if (data.ok && data.user) {
-      // ✅ SUCCESS - Set variables FIRST
+    if (data.ok && data.user && data.hash) {
+      // ✅ SUCCESS - Save email + hash
       userEmail = email;
+      userHash = data.hash;
       currentUser = data.user;
       
-      // ✅ Save permanently to localStorage
+      // ✅ Save to localStorage for permanent login
       localStorage.setItem('userEmail', email);
+      localStorage.setItem('userHash', data.hash);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
       
-      console.log('✅ Authentication successful:', currentUser.email);
-      console.log('✅ Saved to localStorage');
+      console.log('✅ Authentication successful');
+      console.log('✅ Hash saved to localStorage');
+      
+      // Clear password field
+      passwordInput.value = '';
       
       // Show app and load data
       showApp();
       updateUserUI();
       
-      // Small delay before syncing
       setTimeout(async () => {
         await syncFromGoogleSheets();
       }, 300);
@@ -1045,26 +1118,30 @@ async function handleEmailAuth(event) {
     } else {
       // ❌ FAILED
       console.error('❌ Authentication failed:', data);
-      alert(data.message || 'Access denied. Your email is not authorized.');
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
+      alert(data.message || 'Invalid email or password');
+      loginButton.disabled = false;
+      loginButton.innerHTML = originalText;
+      passwordInput.value = '';
+      passwordInput.focus();
     }
     
   } catch (error) {
     console.error('❌ Authentication error:', error);
     alert('Failed to authenticate. Please check your internet connection and try again.');
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
+    loginButton.disabled = false;
+    loginButton.innerHTML = originalText;
   }
 }
 
 // Clear authentication
 function clearAuth() {
+  console.log('🗑️ Clearing authentication...');
   userEmail = null;
+  userHash = null;
   currentUser = null;
   localStorage.removeItem('userEmail');
+  localStorage.removeItem('userHash');
   localStorage.removeItem('currentUser');
-  console.log('🗑️ Authentication cleared');
 }
 
 // Show authentication screen
@@ -1072,6 +1149,13 @@ function showAuthScreen() {
   console.log('📱 Showing auth screen');
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('appContent').style.display = 'none';
+  
+  // Pre-fill email if saved
+  const savedEmail = localStorage.getItem('userEmail');
+  if (savedEmail) {
+    document.getElementById('userEmailInput').value = savedEmail;
+    document.getElementById('userPasswordInput').focus();
+  }
 }
 
 // Show app
@@ -1085,143 +1169,10 @@ function showApp() {
 function updateUserUI() {
   if (currentUser) {
     const userNameEl = document.getElementById('userName');
-    const userAvatarEl = document.getElementById('userAvatar');
     
     if (userNameEl) {
       userNameEl.textContent = currentUser.name || currentUser.email;
       console.log('👤 Updated username:', currentUser.email);
-    }
-    
-    // Hide avatar (no Google profile pic)
-    if (userAvatarEl) {
-      userAvatarEl.style.display = 'none';
-    }
-  }
-}
-
-// Show auth error - FIXED VERSION
-function showAuthError(message) {
-  console.warn('🚨 Auth error:', message);
-  
-  // ✅ CRITICAL FIX: Don't clear auth or show alert on initial sync
-  // Only clear if there's an actual authentication problem
-  if (message && message.includes('unauthorized')) {
-    // Real auth problem - clear and show alert
-    clearAuth();
-    alert('🔒 ' + message);
-    showAuthScreen();
-  } else {
-    // Just a sync issue - don't clear auth, just log it
-    console.log('⚠️ Non-critical error, keeping credentials');
-  }
-}
-
-
-// Sign out
-function signOut() {
-  if (confirm('Are you sure you want to sign out?')) {
-    console.log('👋 Signing out...');
-    clearAuth();
-    showAuthScreen();
-    setTimeout(() => location.reload(), 300);
-  }
-}
-
-
-// Handle email authentication form submission
-async function handleEmailAuth(event) {
-  event.preventDefault();
-  
-  const emailInput = document.getElementById('userEmailInput');
-  const email = emailInput.value.trim();
-  
-  if (!email) {
-    alert('Please enter your email address');
-    return;
-  }
-  
-  console.log('🔐 Authenticating email:', email);
-  
-  // Show loading state
-  const submitBtn = event.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.innerHTML;
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
-  
-  try {
-    // Authenticate with backend
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}`, {
-      method: 'POST'
-    });
-    
-    const data = await response.json();
-    
-    if (data.ok && data.user) {
-      // ✅ SUCCESS
-      userEmail = email;
-      currentUser = data.user;
-      
-      // Save permanently to localStorage
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-      
-      console.log('✅ Authentication successful:', currentUser.email);
-      
-      // Show app and load data
-      showApp();
-      updateUserUI();
-      await syncFromGoogleSheets();
-      
-    } else {
-      // ❌ FAILED
-      console.error('❌ Authentication failed:', data);
-      alert(data.message || 'Access denied. Your email is not authorized.');
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
-    }
-    
-  } catch (error) {
-    console.error('❌ Authentication error:', error);
-    alert('Failed to authenticate. Please check your internet connection and try again.');
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
-  }
-}
-
-// Clear authentication
-function clearAuth() {
-  userEmail = null;
-  currentUser = null;
-  localStorage.removeItem('userEmail');
-  localStorage.removeItem('currentUser');
-  console.log('🗑️ Authentication cleared');
-}
-
-// Show authentication screen
-function showAuthScreen() {
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('appContent').style.display = 'none';
-}
-
-// Show app
-function showApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
-}
-
-// Update user UI
-function updateUserUI() {
-  if (currentUser) {
-    const userNameEl = document.getElementById('userName');
-    const userAvatarEl = document.getElementById('userAvatar');
-    
-    if (userNameEl) {
-      userNameEl.textContent = currentUser.name || currentUser.email;
-    }
-    
-    // Hide avatar (no Google profile pic)
-    if (userAvatarEl) {
-      userAvatarEl.style.display = 'none';
     }
   }
 }
@@ -1229,9 +1180,14 @@ function updateUserUI() {
 // Show auth error
 function showAuthError(message) {
   console.warn('🚨 Auth error:', message);
-  clearAuth();
-  alert('🔒 ' + (message || 'Authentication error. Please sign in again.'));
-  showAuthScreen();
+  
+  if (message && (message.includes('unauthorized') || message.includes('not authorized') || message.includes('expired'))) {
+    clearAuth();
+    alert('🔒 ' + message);
+    showAuthScreen();
+  } else {
+    console.log('⚠️ Non-critical error, keeping credentials');
+  }
 }
 
 // Sign out
@@ -1241,6 +1197,141 @@ function signOut() {
     clearAuth();
     showAuthScreen();
     setTimeout(() => location.reload(), 300);
+  }
+}
+
+// ==========================================
+// CHANGE PASSWORD FUNCTIONALITY
+// ==========================================
+
+let changePasswordModalInstance = null;
+
+// Open change password modal
+function openChangePasswordModal() {
+  console.log('🔑 Opening change password modal');
+  
+  // Reset form
+  document.getElementById('verifyPasswordStep').style.display = 'block';
+  document.getElementById('newPasswordStep').style.display = 'none';
+  document.getElementById('currentPasswordInput').value = '';
+  document.getElementById('newPasswordInput').value = '';
+  document.getElementById('confirmPasswordInput').value = '';
+  
+  // Show modal
+  const modalEl = document.getElementById('changePasswordModal');
+  if (!changePasswordModalInstance) {
+    changePasswordModalInstance = new bootstrap.Modal(modalEl);
+  }
+  changePasswordModalInstance.show();
+}
+
+// Verify current password (Step 1)
+async function verifyCurrentPassword() {
+  const currentPasswordInput = document.getElementById('currentPasswordInput');
+  const currentPassword = currentPasswordInput.value;
+  
+  if (!currentPassword) {
+    alert('Please enter your current password');
+    return;
+  }
+  
+  console.log('🔐 Verifying current password...');
+  
+  try {
+    // Verify by attempting authentication
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(userEmail)}&password=${encodeURIComponent(currentPassword)}`, {
+      method: 'POST'
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      // ✅ Password correct - show step 2
+      console.log('✅ Current password verified');
+      document.getElementById('verifyPasswordStep').style.display = 'none';
+      document.getElementById('newPasswordStep').style.display = 'block';
+      document.getElementById('newPasswordInput').focus();
+    } else {
+      // ❌ Wrong password
+      alert('Current password is incorrect');
+      currentPasswordInput.value = '';
+      currentPasswordInput.focus();
+    }
+    
+  } catch (error) {
+    console.error('❌ Error verifying password:', error);
+    alert('Failed to verify password. Please try again.');
+  }
+}
+
+// Submit new password (Step 2)
+async function submitNewPassword() {
+  const currentPasswordInput = document.getElementById('currentPasswordInput');
+  const newPasswordInput = document.getElementById('newPasswordInput');
+  const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+  
+  const oldPassword = currentPasswordInput.value;
+  const newPassword = newPasswordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+  
+  // Validate inputs
+  if (!newPassword || !confirmPassword) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  if (newPassword.length < 6) {
+    alert('New password must be at least 6 characters');
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    alert('Passwords do not match');
+    confirmPasswordInput.value = '';
+    confirmPasswordInput.focus();
+    return;
+  }
+  
+  if (newPassword === oldPassword) {
+    alert('New password must be different from current password');
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    newPasswordInput.focus();
+    return;
+  }
+  
+  console.log('🔄 Changing password...');
+  
+  try {
+    // Send change password request
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=changePassword&email=${encodeURIComponent(userEmail)}&oldPassword=${encodeURIComponent(oldPassword)}&newPassword=${encodeURIComponent(newPassword)}`, {
+      method: 'POST'
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok && data.hash) {
+      // ✅ SUCCESS - Update hash in localStorage
+      userHash = data.hash;
+      localStorage.setItem('userHash', data.hash);
+      
+      console.log('✅ Password changed successfully');
+      console.log('✅ New hash saved');
+      
+      // Close modal
+      changePasswordModalInstance.hide();
+      
+      // Show success message
+      alert('✅ Password changed successfully!');
+      
+    } else {
+      // ❌ FAILED
+      alert(data.message || 'Failed to change password');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error changing password:', error);
+    alert('Failed to change password. Please try again.');
   }
 }
 
@@ -1296,15 +1387,16 @@ try {
  * Combines authentication check + complete data fetching + sales filtering
  */
 async function syncFromGoogleSheets() {
-  // ✅ Check email authentication first
-  if (!userEmail) {
-    console.warn('⚠️ No userEmail, checking localStorage...');
+  if (!userEmail || !userHash) {
+    console.warn('⚠️ No credentials, checking localStorage...');
     const savedEmail = localStorage.getItem('userEmail');
-    if (savedEmail) {
+    const savedHash = localStorage.getItem('userHash');
+    if (savedEmail && savedHash) {
       userEmail = savedEmail;
-      console.log('✅ Restored email from localStorage:', userEmail);
+      userHash = savedHash;
+      console.log('✅ Restored credentials from localStorage');
     } else {
-      console.log('👤 No email found, user needs to sign in');
+      console.log('👤 No credentials found');
       showAuthScreen();
       return;
     }
@@ -1313,8 +1405,9 @@ async function syncFromGoogleSheets() {
   showSyncIndicator('Refreshing...');
   
   try {
-    // ✅ Fetch with email authentication
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&email=${encodeURIComponent(userEmail)}&t=${Date.now()}`;
+    // ✅ Send email + hash for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
+
     const res = await fetch(url);
     
     if (!res.ok) {
@@ -1534,15 +1627,15 @@ async function syncFromGoogleSheets() {
  * Save product to Google Sheets
  */
 async function saveProductToSheet(product, isEdit=false) {
-  // ✅ Check email authentication
-  if (!userEmail) { 
+  if (!userEmail || !userHash) { 
     showAuthError('Please sign in to save product'); 
     return null; 
   }
   
   try {
-    // ✅ Include email in query string for authentication
-    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&email=${encodeURIComponent(userEmail)}`;
+    // ✅ Send hash for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // "simple" content-type -> no preflight
@@ -1568,15 +1661,15 @@ async function saveProductToSheet(product, isEdit=false) {
  * Save sale to Google Sheets
  */
 async function saveSaleToSheet(item) {
-  // ✅ Check email authentication
-  if (!userEmail) { 
+  if (!userEmail || !userHash) { 
     showAuthError('Please sign in to save sale'); 
     return null; 
   }
   
   try {
-    // ✅ Include email in query string for authentication
-    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&email=${encodeURIComponent(userEmail)}`;
+    // ✅ Send hash for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
@@ -1602,15 +1695,15 @@ async function saveSaleToSheet(item) {
  * Delete product from Google Sheets
  */
 async function deleteProductFromSheet(id) {
-  // ✅ Check email authentication
-  if (!userEmail) { 
+  if (!userEmail || !userHash) { 
     showAuthError('Please sign in to delete product'); 
     return false; 
   }
   
   try {
-    // ✅ Include email in query string for authentication
-    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&email=${encodeURIComponent(userEmail)}`;
+    // ✅ Send hash for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
@@ -3183,10 +3276,79 @@ function deleteSavedInvoice(index) {
   viewSavedInvoices();
 }
 
+    <!-- ✅ NEW: Change Password Modal -->
+<div id="changePasswordModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-key me-2"></i>Change Password
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Step 1: Verify Current Password -->
+        <div id="verifyPasswordStep">
+          <p class="text-muted">Enter your current password to continue</p>
+          <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input 
+              type="password" 
+              id="currentPasswordInput" 
+              class="form-control" 
+              placeholder="Enter current password"
+              required
+            >
+          </div>
+          <div class="d-grid">
+            <button class="btn btn-primary" onclick="verifyCurrentPassword()">
+              Continue
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 2: Enter New Password -->
+        <div id="newPasswordStep" style="display: none;">
+          <p class="text-muted">Choose a new password (minimum 6 characters)</p>
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input 
+              type="password" 
+              id="newPasswordInput" 
+              class="form-control" 
+              placeholder="Enter new password"
+              minlength="6"
+              required
+            >
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm New Password</label>
+            <input 
+              type="password" 
+              id="confirmPasswordInput" 
+              class="form-control" 
+              placeholder="Re-enter new password"
+              minlength="6"
+              required
+            >
+          </div>
+          <div class="d-grid">
+            <button class="btn btn-success" onclick="submitNewPassword()">
+              <i class="bi bi-check-circle me-2"></i>Change Password
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
     
   </script>
 </body>
 </html>
+
 
 
 
