@@ -13,8 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
-  <!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 
 
   <style>
@@ -268,20 +267,41 @@
 
 
 
-<div id="authScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.3); text-align:center; max-width:400px; width:90%;">
-    <i class="bi bi-shield-lock" style="font-size:64px; color:#667eea;"></i>
-    <h2 style="margin:20px 0 10px;">Tile & Sanitaryware Inventory</h2>
-    <p style="color:#666; margin-bottom:30px;">Sign in with your authorized Google account</p>
-    
-    <!-- Google Sign-In Button Container -->
-    <div id="googleSignInButton"></div>
-    
-    <p style="color:#999; font-size:12px; margin-top:30px;">
-      🔒 Secure authentication via Google
-    </p>
+<div id="authScreen" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 9999;">
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow-lg" style="max-width: 420px; width: 100%; border-radius: 15px;">
+      <div class="card-body text-center p-5">
+        <div class="mb-4">
+          <i class="bi bi-building" style="font-size: 4rem; color: #0d6efd;"></i>
+        </div>
+        <h2 class="mb-3">Tile & Sanitaryware Inventory</h2>
+        <p class="text-muted mb-4">Enter your authorized email to access</p>
+        
+        <!-- ✅ NEW: Email Input Form -->
+        <form id="emailAuthForm" onsubmit="handleEmailAuth(event)">
+          <div class="mb-3">
+            <input 
+              type="email" 
+              id="userEmailInput" 
+              class="form-control form-control-lg" 
+              placeholder="your.email@example.com" 
+              required
+              style="border-radius: 10px; text-align: center;"
+            >
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-100" style="border-radius: 10px;">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Access Inventory
+          </button>
+        </form>
+        
+        <div class="text-muted mt-4" style="font-size: 0.875rem;">
+          <i class="bi bi-lock-fill me-1"></i> Only authorized emails can access
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 
 
 <!-- App Content (hidden until authenticated) -->
@@ -303,7 +323,8 @@
         <button class="btn btn-light btn-sm" onclick="importData()"><i class="bi bi-upload"></i> Restore</button>
         <!-- Add this to your navbar -->
 <div class="d-flex align-items-center ms-auto">
-  <img id="userAvatar" src="" alt="User" style="width:32px; height:32px; border-radius:50%; margin-right:10px; display:none;">
+  <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
+
   <span id="userName" style="margin-right:15px; color:white;"></span>
   <button class="btn btn-sm btn-outline-light" onclick="signOut()">
     <i class="bi bi-box-arrow-right"></i> Sign Out
@@ -923,329 +944,158 @@
   let cachedSales = [];
     
 // ==========================================
-// AUTHENTICATION - BULLETPROOF VERSION
+// EMAIL-BASED AUTHENTICATION (PERMANENT)
 // ==========================================
 
 let currentUser = null;
-let googleIdToken = null;
-let GOOGLE_CLIENT_ID = null;
+let userEmail = null;
 
-// ✅ STEP 1: Hide both screens immediately on DOM load
-document.addEventListener('DOMContentLoaded', function() {
-  const authScreen = document.getElementById('authScreen');
-  const appContent = document.getElementById('appContent');
-  
-  // Start with BOTH hidden
-  if (authScreen) authScreen.style.display = 'none';
-  if (appContent) appContent.style.display = 'none';
-  
-  console.log('🎬 DOM loaded, screens hidden');
-});
-
-// ✅ STEP 2: Check authentication on window load
+// Check authentication on page load
 window.addEventListener('load', async function() {
-  console.log('🚀 Window loaded, checking authentication...');
+  console.log('🚀 Page loaded, checking authentication...');
   
-  // Check for saved token FIRST
-  const savedToken = localStorage.getItem('googleIdToken');
+  // Check for saved email
+  const savedEmail = localStorage.getItem('userEmail');
   const savedUser = localStorage.getItem('currentUser');
   
-  console.log('📦 localStorage check:', {
-    hasToken: !!savedToken,
-    hasUser: !!savedUser,
-    tokenLength: savedToken ? savedToken.length : 0
-  });
-  
-  if (savedToken && savedUser) {
-    console.log('🔑 Found saved credentials, attempting auto-login...');
+  if (savedEmail && savedUser) {
+    console.log('✅ Found saved email:', savedEmail);
     
     try {
-      // Parse saved user
+      userEmail = savedEmail;
       currentUser = JSON.parse(savedUser);
-      googleIdToken = savedToken;
       
-      // Show app immediately (optimistic)
-      console.log('✅ Showing app optimistically...');
+      // Show app immediately
       showApp();
       updateUserUI();
       
-      // Validate in background
-      const isValid = await validateTokenInBackground(savedToken);
-      
-      if (isValid) {
-        console.log('✅ Token validated, syncing data...');
-        await syncFromGoogleSheets();
-      } else {
-        console.warn('❌ Token expired, redirecting to sign-in...');
-        clearAuth();
-        showAuthScreen();
-        await initAuth();
-      }
-      
+      // Load data in background
+      await syncFromGoogleSheets();
     } catch (error) {
-      console.error('❌ Auto-login failed:', error);
+      console.error('❌ Error loading saved session:', error);
       clearAuth();
       showAuthScreen();
-      await initAuth();
     }
-    
   } else {
-    console.log('👤 No saved credentials, showing sign-in...');
+    console.log('👤 No saved email, showing auth screen...');
     showAuthScreen();
-    await initAuth();
   }
 });
 
-/**
- * ✅ Validate token in background without blocking UI
- */
-async function validateTokenInBackground(token) {
-  try {
-    console.log('🔍 Validating token...');
-    
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(token)}&t=${Date.now()}`;
-    const response = await fetch(url, { 
-      method: 'GET',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    
-    if (!response.ok) {
-      console.error('❌ Validation request failed:', response.status);
-      return false;
-    }
-    
-    const data = await response.json();
-    console.log('📊 Validation response:', { success: data.success, error: data.error });
-    
-    // Token is valid if request succeeded and not unauthorized
-    return data.success && data.error !== 'unauthorized';
-    
-  } catch (error) {
-    console.error('❌ Token validation error:', error);
-    return false;
-  }
-}
-
-/**
- * ✅ Initialize authentication (fetch CLIENT_ID and setup Google Sign-In)
- */
-async function initAuth() {
-  console.log('🔧 Initializing authentication...');
+// Handle email authentication form submission
+async function handleEmailAuth(event) {
+  event.preventDefault();
   
-  try {
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId&t=${Date.now()}`);
-    const data = await response.json();
-    
-    if (data.ok && data.clientId) {
-      GOOGLE_CLIENT_ID = data.clientId;
-      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
-      initializeGoogleSignIn();
-    } else {
-      console.error('❌ Failed to get CLIENT_ID:', data);
-      alert('Failed to initialize authentication. Please refresh the page.');
-    }
-  } catch (error) {
-    console.error('❌ Error fetching CLIENT_ID:', error);
-    alert('Failed to connect to server. Please check your internet connection.');
-  }
-}
-
-/**
- * ✅ Clear all authentication data
- */
-function clearAuth() {
-  console.log('🗑️ Clearing authentication...');
-  googleIdToken = null;
-  currentUser = null;
-  localStorage.removeItem('googleIdToken');
-  localStorage.removeItem('currentUser');
-}
-
-// Initialize Google Sign-In
-function initializeGoogleSignIn() {
-  console.log('🔧 Setting up Google Sign-In button...');
+  const emailInput = document.getElementById('userEmailInput');
+  const email = emailInput.value.trim();
   
-  if (typeof google === 'undefined') {
-    console.log('⏳ Google library not loaded yet, retrying...');
-    setTimeout(initializeGoogleSignIn, 500);
+  if (!email) {
+    alert('Please enter your email address');
     return;
   }
   
-  try {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleSignIn,
-      ux_mode: 'popup',
-      auto_select: false
-    });
-    
-    const buttonDiv = document.getElementById('googleSignInButton');
-    if (!buttonDiv) {
-      console.error('❌ Sign-in button container not found!');
-      return;
-    }
-    
-    google.accounts.id.renderButton(buttonDiv, {
-      type: 'standard',
-      theme: 'outline',
-      size: 'large',
-      text: 'signin_with',
-      width: 300
-    });
-    
-    console.log('✅ Google Sign-In button rendered');
-  } catch (error) {
-    console.error('❌ Error initializing Google Sign-In:', error);
-  }
-}
-
-// Handle Google Sign-In callback
-async function handleGoogleSignIn(response) {
-  console.log('🔐 Google Sign-In callback received');
-  const idToken = response.credential;
+  console.log('🔐 Authenticating email:', email);
   
-  if (!idToken) {
-    console.error('❌ No credential in response');
-    alert('Sign-in failed. Please try again.');
-    return;
-  }
-  
-  console.log('📝 ID Token received, length:', idToken.length);
-  await authenticateWithToken(idToken);
-}
-
-// Authenticate with token
-async function authenticateWithToken(idToken) {
-  console.log('🔒 Authenticating with backend...');
+  // Show loading state
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
   
   try {
-    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&idToken=${encodeURIComponent(idToken)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    // Authenticate with backend
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}`, {
+      method: 'POST'
     });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
     
     const data = await response.json();
-    console.log('📋 Authentication response:', { ok: data.ok, hasUser: !!data.user });
     
     if (data.ok && data.user) {
       // ✅ SUCCESS
+      userEmail = email;
       currentUser = data.user;
-      googleIdToken = idToken;
       
-      // Save to localStorage
-      localStorage.setItem('googleIdToken', idToken);
+      // Save permanently to localStorage
+      localStorage.setItem('userEmail', email);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
       
-      console.log('✅ Authenticated as:', currentUser.email);
+      console.log('✅ Authentication successful:', currentUser.email);
       
-      // Show app
+      // Show app and load data
       showApp();
       updateUserUI();
-      
-      // Load data
       await syncFromGoogleSheets();
       
     } else {
       // ❌ FAILED
       console.error('❌ Authentication failed:', data);
-      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
-      clearAuth();
-      showAuthScreen();
+      alert(data.message || 'Access denied. Your email is not authorized.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
     }
     
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    alert('Authentication failed: ' + error.message);
-    clearAuth();
-    showAuthScreen();
+    alert('Failed to authenticate. Please check your internet connection and try again.');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
   }
+}
+
+// Clear authentication
+function clearAuth() {
+  userEmail = null;
+  currentUser = null;
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('currentUser');
+  console.log('🗑️ Authentication cleared');
 }
 
 // Show authentication screen
 function showAuthScreen() {
-  console.log('📱 Showing auth screen');
-  const authScreen = document.getElementById('authScreen');
-  const appContent = document.getElementById('appContent');
-  
-  if (authScreen) authScreen.style.display = 'flex';
-  if (appContent) appContent.style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
 }
 
 // Show app
 function showApp() {
-  console.log('📱 Showing app');
-  const authScreen = document.getElementById('authScreen');
-  const appContent = document.getElementById('appContent');
-  
-  if (authScreen) authScreen.style.display = 'none';
-  if (appContent) appContent.style.display = 'block';
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
 }
 
 // Update user UI
 function updateUserUI() {
-  if (!currentUser) {
-    console.warn('⚠️ Cannot update UI: no currentUser');
-    return;
-  }
-  
-  console.log('👤 Updating user UI for:', currentUser.email);
-  
-  const userNameEl = document.getElementById('userName');
-  const userAvatarEl = document.getElementById('userAvatar');
-  
-  if (userNameEl) {
-    userNameEl.textContent = currentUser.name || currentUser.email;
-  }
-  
-  if (userAvatarEl && currentUser.picture) {
-    userAvatarEl.src = currentUser.picture;
-    userAvatarEl.style.display = 'inline-block';
+  if (currentUser) {
+    const userNameEl = document.getElementById('userName');
+    const userAvatarEl = document.getElementById('userAvatar');
+    
+    if (userNameEl) {
+      userNameEl.textContent = currentUser.name || currentUser.email;
+    }
+    
+    // Hide avatar (no Google profile pic)
+    if (userAvatarEl) {
+      userAvatarEl.style.display = 'none';
+    }
   }
 }
 
 // Show auth error
 function showAuthError(message) {
   console.warn('🚨 Auth error:', message);
-  
   clearAuth();
-  
-  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-    try { 
-      google.accounts.id.disableAutoSelect(); 
-    } catch(e) {
-      console.warn('Could not disable auto-select:', e);
-    }
-  }
-  
   alert('🔒 ' + (message || 'Authentication error. Please sign in again.'));
   showAuthScreen();
-  
-  initAuth().catch(e => console.error('Failed to reinit auth:', e));
 }
 
 // Sign out
 function signOut() {
-  if (!confirm('Are you sure you want to sign out?')) {
-    return;
+  if (confirm('Are you sure you want to sign out?')) {
+    console.log('👋 Signing out...');
+    clearAuth();
+    showAuthScreen();
+    setTimeout(() => location.reload(), 300);
   }
-  
-  console.log('👋 Signing out...');
-  
-  clearAuth();
-  
-  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-    google.accounts.id.disableAutoSelect();
-  }
-  
-  showAuthScreen();
-  
-  setTimeout(() => {
-    location.reload();
-  }, 300);
 }
 
 
@@ -1300,8 +1150,8 @@ try {
  * Combines authentication check + complete data fetching + sales filtering
  */
 async function syncFromGoogleSheets() {
-  // Check authentication first
-  if (!googleIdToken) {
+  // ✅ Check email authentication first
+  if (!userEmail) {
     showAuthError('Please sign in to continue');
     return;
   }
@@ -1309,8 +1159,8 @@ async function syncFromGoogleSheets() {
   showSyncIndicator('Refreshing...');
   
   try {
-    // Fetch with authentication token
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
+    // ✅ Fetch with email authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&email=${encodeURIComponent(userEmail)}&t=${Date.now()}`;
     const res = await fetch(url);
     
     if (!res.ok) {
@@ -1321,8 +1171,9 @@ async function syncFromGoogleSheets() {
     
     // Check for unauthorized response
     if (!data.success && data.error === 'unauthorized') {
-      showAuthError('Session expired. Please sign in again.');
-      signOut();
+      showAuthError('Your email is not authorized. Please contact administrator.');
+      clearAuth();
+      showAuthScreen();
       hideSyncIndicator();
       return;
     }
@@ -1522,17 +1373,32 @@ async function syncFromGoogleSheets() {
  /***********************
  * Save helpers (server calls) - safe against CORS preflight + include idToken
  ***********************/
+/**
+ * Save product to Google Sheets
+ */
 async function saveProductToSheet(product, isEdit=false) {
-  if (!googleIdToken) { showAuthError('Please sign in to save product'); return null; }
+  // ✅ Check email authentication
+  if (!userEmail) { 
+    showAuthError('Please sign in to save product'); 
+    return null; 
+  }
+  
   try {
-    // include idToken in query string so Apps Script can verify
-    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&idToken=${encodeURIComponent(googleIdToken)}`;
+    // ✅ Include email in query string for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&email=${encodeURIComponent(userEmail)}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // "simple" content-type -> no preflight
       body: JSON.stringify(product)
     });
     const parsed = await safeParseResponse(res);
+    
+    // Check for unauthorized response
+    if (parsed.json && parsed.json.error === 'unauthorized') {
+      showAuthError('Your session has expired. Please sign in again.');
+      return null;
+    }
+    
     return parsed.json || null;
   } catch (e) {
     console.error('saveProductToSheet error', e);
@@ -1540,16 +1406,33 @@ async function saveProductToSheet(product, isEdit=false) {
   }
 }
 
+
+/**
+ * Save sale to Google Sheets
+ */
 async function saveSaleToSheet(item) {
-  if (!googleIdToken) { showAuthError('Please sign in to save sale'); return null; }
+  // ✅ Check email authentication
+  if (!userEmail) { 
+    showAuthError('Please sign in to save sale'); 
+    return null; 
+  }
+  
   try {
-    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&idToken=${encodeURIComponent(googleIdToken)}`;
+    // ✅ Include email in query string for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=addSale&email=${encodeURIComponent(userEmail)}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
       body: JSON.stringify(item)
     });
     const parsed = await safeParseResponse(res);
+    
+    // Check for unauthorized response
+    if (parsed.json && parsed.json.error === 'unauthorized') {
+      showAuthError('Your session has expired. Please sign in again.');
+      return null;
+    }
+    
     return parsed.json || null;
   } catch (e) {
     console.error('saveSaleToSheet error', e);
@@ -1557,22 +1440,40 @@ async function saveSaleToSheet(item) {
   }
 }
 
+
+/**
+ * Delete product from Google Sheets
+ */
 async function deleteProductFromSheet(id) {
-  if (!googleIdToken) { showAuthError('Please sign in to delete product'); return false; }
+  // ✅ Check email authentication
+  if (!userEmail) { 
+    showAuthError('Please sign in to delete product'); 
+    return false; 
+  }
+  
   try {
-    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&idToken=${encodeURIComponent(googleIdToken)}`;
+    // ✅ Include email in query string for authentication
+    const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&email=${encodeURIComponent(userEmail)}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, // avoid preflight
       body: JSON.stringify({ id })
     });
     const parsed = await safeParseResponse(res);
+    
+    // Check for unauthorized response
+    if (parsed.json && parsed.json.error === 'unauthorized') {
+      showAuthError('Your session has expired. Please sign in again.');
+      return false;
+    }
+    
     return parsed.json && parsed.json.success;
   } catch (e) {
     console.error('deleteProductFromSheet error', e);
     return false;
   }
 }
+
 
 
   /***********************
@@ -3129,6 +3030,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
