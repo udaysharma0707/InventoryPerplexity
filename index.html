@@ -1,3 +1,5 @@
+Google sign in , entry getting registered inventory working index.html and appscript
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1011,75 +1013,45 @@ async function handleGoogleSignIn(response) {
   await authenticateWithToken(idToken);
 }
 
-// Authenticate with token and create session
+// Authenticate with token
 async function authenticateWithToken(idToken) {
   console.log('🔒 Authenticating with token...');
   
-  if (!idToken) {
-    console.error('No idToken provided');
-    alert('Authentication failed: No token received');
-    clearSession();
-    showAuthScreen();
-    return;
-  }
-  
   try {
-    // ✅ CRITICAL FIX: Use URL-encoded form data instead of JSON
-    const url = `${GOOGLE_SCRIPT_URL}?action=authenticate&idToken=${encodeURIComponent(idToken)}`;
-    
-    const response = await fetch(url, {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: '' // Empty body - data is in URL
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `action=authenticate&idToken=${encodeURIComponent(idToken)}`
     });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
     
     const data = await response.json();
     console.log('📋 Authentication response:', data);
     
-    if (data.ok && data.sessionId && data.user) {
-      // ✅ SUCCESS - Store session
+    if (data.ok && data.user) {
+      // Success
       currentUser = data.user;
-      sessionId = data.sessionId;
+      googleIdToken = idToken;
+      localStorage.setItem('googleIdToken', idToken);
       
-      localStorage.setItem('sessionId', sessionId);
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      console.log('✅ Authentication successful:', currentUser);
       
-      console.log('✅ Session created:', sessionId);
-      console.log('✅ User:', currentUser.email);
-      
-      // Show app and load data
       showApp();
       updateUserUI();
-      
-      // Wait a bit before syncing
-      setTimeout(async () => {
-        await syncFromGoogleSheets();
-      }, 500);
-      
+      await syncFromGoogleSheets();
     } else {
-      // ❌ FAILED
+      // Failed
       console.error('❌ Authentication failed:', data);
-      const errorMsg = data.message || 'Your account is not authorized to access this inventory.';
-      alert('Access denied: ' + errorMsg);
-      clearSession();
+      alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
+      localStorage.removeItem('googleIdToken');
       showAuthScreen();
-      initializeGoogleSignIn();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
-    alert('Authentication failed: ' + error.message + '\n\nPlease check your internet connection and try again.');
-    clearSession();
+    alert('Authentication failed. Please try again.');
+    localStorage.removeItem('googleIdToken');
     showAuthScreen();
-    initializeGoogleSignIn();
   }
 }
-
 
 // Show authentication screen
 function showAuthScreen() {
@@ -1216,68 +1188,71 @@ try {
  * Sync / Fetch from Google Sheets
  * Combines authentication check + complete data fetching + sales filtering
  */
-/**
- * Sync data from Google Sheets using session authentication
- */
 async function syncFromGoogleSheets() {
-  // ✅ Check for valid session (not googleIdToken)
-  if (!sessionId) {
-    console.warn('⚠️ No session ID, cannot sync');
+  // Check authentication first
+  if (!googleIdToken) {
     showAuthError('Please sign in to continue');
     return;
   }
 
-  console.log('🔄 Syncing from Google Sheets...');
   showSyncIndicator('Refreshing...');
   
   try {
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&sessionId=${encodeURIComponent(sessionId)}&t=${Date.now()}`;
-    const response = await fetch(url);
+    // Fetch with authentication token
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
+    const res = await fetch(url);
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    if (!res.ok) {
+      throw new Error(`Network error: ${res.status}`);
     }
     
-    const data = await response.json();
-    console.log('📦 Sync response received');
+    const data = await res.json();
     
-    // Check for unauthorized (session expired)
-    if (data.error === 'unauthorized' || !data.success) {
-      console.error('❌ Session expired or unauthorized');
-      showAuthError('Your session has expired. Please sign in again.');
+    // Check for unauthorized response
+    if (!data.success && data.error === 'unauthorized') {
+      showAuthError('Session expired. Please sign in again.');
+      signOut();
+      hideSyncIndicator();
       return;
     }
     
-    // Update cache with fresh data
-    if (data.success) {
+    // Verify successful response
+    if (data && data.success) {
+      // Update products
       cachedProducts = data.products || [];
       
-      // Filter out deleted sales
+      // Update sales with filtering for deleted items
       let allSales = data.sales || [];
-      cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
       
-      // Sort sales by date
+      // ✅ FIX 1: Filter out manually deleted sales
+      cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
+      console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+      
+      // ✅ FIX 2: Sort sales by date (newest first)
       sortSalesByDateDescending();
       
+      // Mark initial load complete
       hasInitialLoaded = true;
       
-      // Update UI
+      // Render both products and sales
       renderProducts();
       renderSales();
+      
+      // Update dashboard metrics
       updateSummaryFromCache();
       
-      console.log('✅ Sync complete:', cachedProducts.length, 'products,', cachedSales.length, 'sales');
       showSyncIndicator('Synced!', 900);
+      
     } else {
-      throw new Error(data.error || 'Unknown sync error');
+      throw new Error(data.error || 'Failed to fetch data');
     }
-  } catch (error) {
-    console.error('❌ Sync error:', error);
-    alert('Failed to sync data: ' + error.message);
+    
+  } catch (err) {
+    console.error('Sync error:', err);
+    alert('Failed to sync data: ' + err.message);
     hideSyncIndicator();
   }
 }
-
 
 
   async function fallbackGetProductsAndSales() {
@@ -3043,9 +3018,6 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
-
-
-
 
 
 
