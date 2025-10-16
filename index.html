@@ -1,5 +1,3 @@
-Google sign in , entry getting registered inventory working index.html and appscript
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -925,47 +923,110 @@ Google sign in , entry getting registered inventory working index.html and appsc
   let cachedSales = [];
     
 // ==========================================
-// AUTHENTICATION - COMPLETE WORKING VERSION
+// AUTHENTICATION - ZERO-FLASH VERSION
 // ==========================================
 
 let currentUser = null;
 let googleIdToken = null;
 let GOOGLE_CLIENT_ID = null;
 
+// ✅ CRITICAL: Hide auth screen initially - will show only if needed
+document.addEventListener('DOMContentLoaded', function() {
+  const authScreen = document.getElementById('authScreen');
+  const appContent = document.getElementById('appContent');
+  
+  // Start with BOTH hidden during check
+  if (authScreen) authScreen.style.display = 'none';
+  if (appContent) appContent.style.display = 'none';
+});
+
 // Initialize on page load
 window.addEventListener('load', async function() {
-  console.log('🚀 Page loaded, initializing authentication...');
+  console.log('🚀 Page loaded, checking authentication...');
   
-  // Step 1: Fetch CLIENT_ID
+  // Step 1: Check for saved token FIRST (before showing anything)
+  const savedToken = localStorage.getItem('googleIdToken');
+  
+  if (savedToken) {
+    console.log('🔑 Found saved token, validating...');
+    
+    // ✅ Try to use saved token WITHOUT showing auth screen
+    const isValid = await quickValidateToken(savedToken);
+    
+    if (isValid) {
+      console.log('✅ Saved token valid, loading app directly...');
+      // Show app immediately - NO auth screen shown
+      showApp();
+      await loadAppWithToken(savedToken);
+      return; // ✅ EXIT - user is authenticated
+    } else {
+      console.log('⚠️ Saved token expired, will show sign-in...');
+      localStorage.removeItem('googleIdToken');
+    }
+  }
+  
+  // Step 2: No valid token - NOW show auth screen and fetch CLIENT_ID
+  console.log('👤 No valid token, showing auth screen...');
+  showAuthScreen();
+  
   try {
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getClientId`);
     const data = await response.json();
     
     if (data.ok && data.clientId) {
       GOOGLE_CLIENT_ID = data.clientId;
-      console.log('✅ CLIENT_ID fetched:', GOOGLE_CLIENT_ID);
+      console.log('✅ CLIENT_ID fetched');
+      initializeGoogleSignIn();
     } else {
       console.error('❌ Failed to get CLIENT_ID:', data);
       alert('Failed to initialize authentication. Please refresh the page.');
-      return;
     }
   } catch (error) {
     console.error('❌ Error fetching CLIENT_ID:', error);
     alert('Failed to connect to server. Please check your internet connection.');
-    return;
-  }
-  
-  // Step 2: Check for saved token
-  const savedToken = localStorage.getItem('googleIdToken');
-  if (savedToken) {
-    console.log('🔑 Found saved token, attempting authentication...');
-    await authenticateWithToken(savedToken);
-  } else {
-    console.log('👤 No saved token, showing auth screen...');
-    showAuthScreen();
-    initializeGoogleSignIn();
   }
 });
+
+/**
+ * ✅ NEW: Quick token validation (checks if token works)
+ * Returns true if token is valid, false otherwise
+ */
+async function quickValidateToken(token) {
+  try {
+    // Quick test: try to fetch data with this token
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(token)}&t=${Date.now()}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    // If successful and not unauthorized, token is valid
+    return data.success && data.error !== 'unauthorized';
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return false;
+  }
+}
+
+/**
+ * ✅ NEW: Load app with validated token (no re-authentication needed)
+ */
+async function loadAppWithToken(token) {
+  googleIdToken = token;
+  
+  // Load user info from token (decode JWT or fetch from cache)
+  try {
+    // Try to get cached user info
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      updateUserUI();
+    }
+  } catch (e) {
+    console.warn('Could not load cached user info:', e);
+  }
+  
+  // Sync data from Google Sheets
+  await syncFromGoogleSheets();
+}
 
 // Initialize Google Sign-In
 function initializeGoogleSignIn() {
@@ -1031,7 +1092,10 @@ async function authenticateWithToken(idToken) {
       // Success
       currentUser = data.user;
       googleIdToken = idToken;
+      
+      // ✅ Save BOTH token AND user info
       localStorage.setItem('googleIdToken', idToken);
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
       
       console.log('✅ Authentication successful:', currentUser);
       
@@ -1043,64 +1107,34 @@ async function authenticateWithToken(idToken) {
       console.error('❌ Authentication failed:', data);
       alert('Access denied: ' + (data.message || 'Your account is not authorized.'));
       localStorage.removeItem('googleIdToken');
+      localStorage.removeItem('currentUser');
       showAuthScreen();
     }
   } catch (error) {
     console.error('❌ Authentication error:', error);
     alert('Authentication failed. Please try again.');
     localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('currentUser');
     showAuthScreen();
   }
 }
 
 // Show authentication screen
 function showAuthScreen() {
-  document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('appContent').style.display = 'none';
+  const authScreen = document.getElementById('authScreen');
+  const appContent = document.getElementById('appContent');
+  
+  if (authScreen) authScreen.style.display = 'flex';
+  if (appContent) appContent.style.display = 'none';
 }
 
-/**
- * showAuthError(message)
- * - Gracefully handle authentication failures.
- * - Clears saved token, shows auth screen, disables auto-select and prompts user to re-sign-in.
- */
-function showAuthError(message) {
-  try {
-    console.warn('Auth error:', message);
-    // Clear local state
-    localStorage.removeItem('googleIdToken');
-    googleIdToken = null;
-    currentUser = null;
-
-    // Disable automatic sign-in if library available
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      try { google.accounts.id.disableAutoSelect(); } catch(e){ /* ignore */ }
-    }
-
-    // show a visible message to the user (prefer non-blocking)
-    if (typeof showSyncIndicator === 'function') {
-      // showSyncIndicator(message, 'error') - some implementations accept (msg,type)
-      try { showSyncIndicator(message, 'error'); } catch(e) { console.warn('showSyncIndicator not compatible', e); }
-    } else {
-      // fallback to alert
-      alert('🔒 Authentication error: ' + (message || 'Please sign in again.'));
-    }
-
-    // Show sign-in UI
-    showAuthScreen();
-
-    // Re-initialize the Google Sign-in button so user can retry
-    try { initializeGoogleSignIn(); } catch(e) { /* ignore if not present yet */ }
-  } catch (err) {
-    console.error('showAuthError failed:', err);
-  }
-}
-
-    
 // Show app
 function showApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
+  const authScreen = document.getElementById('authScreen');
+  const appContent = document.getElementById('appContent');
+  
+  if (authScreen) authScreen.style.display = 'none';
+  if (appContent) appContent.style.display = 'block';
 }
 
 // Update user UI
@@ -1117,6 +1151,28 @@ function updateUserUI() {
   }
 }
 
+// Show auth error
+function showAuthError(message) {
+  try {
+    console.warn('Auth error:', message);
+    localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('currentUser');
+    googleIdToken = null;
+    currentUser = null;
+
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      try { google.accounts.id.disableAutoSelect(); } catch(e){ /* ignore */ }
+    }
+
+    alert('🔒 Authentication error: ' + (message || 'Please sign in again.'));
+    showAuthScreen();
+
+    try { initializeGoogleSignIn(); } catch(e) { /* ignore */ }
+  } catch (err) {
+    console.error('showAuthError failed:', err);
+  }
+}
+
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
@@ -1125,6 +1181,7 @@ function signOut() {
     currentUser = null;
     googleIdToken = null;
     localStorage.removeItem('googleIdToken');
+    localStorage.removeItem('currentUser');
     
     if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
       google.accounts.id.disableAutoSelect();
@@ -3018,6 +3075,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
