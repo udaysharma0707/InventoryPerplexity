@@ -1216,71 +1216,68 @@ try {
  * Sync / Fetch from Google Sheets
  * Combines authentication check + complete data fetching + sales filtering
  */
+/**
+ * Sync data from Google Sheets using session authentication
+ */
 async function syncFromGoogleSheets() {
-  // Check authentication first
-  if (!googleIdToken) {
+  // ✅ Check for valid session (not googleIdToken)
+  if (!sessionId) {
+    console.warn('⚠️ No session ID, cannot sync');
     showAuthError('Please sign in to continue');
     return;
   }
 
+  console.log('🔄 Syncing from Google Sheets...');
   showSyncIndicator('Refreshing...');
   
   try {
-    // Fetch with authentication token
-    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&idToken=${encodeURIComponent(googleIdToken)}&t=${Date.now()}`;
-    const res = await fetch(url);
+    const url = `${GOOGLE_SCRIPT_URL}?action=getAll&sessionId=${encodeURIComponent(sessionId)}&t=${Date.now()}`;
+    const response = await fetch(url);
     
-    if (!res.ok) {
-      throw new Error(`Network error: ${res.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const data = await res.json();
+    const data = await response.json();
+    console.log('📦 Sync response received');
     
-    // Check for unauthorized response
-    if (!data.success && data.error === 'unauthorized') {
-      showAuthError('Session expired. Please sign in again.');
-      signOut();
-      hideSyncIndicator();
+    // Check for unauthorized (session expired)
+    if (data.error === 'unauthorized' || !data.success) {
+      console.error('❌ Session expired or unauthorized');
+      showAuthError('Your session has expired. Please sign in again.');
       return;
     }
     
-    // Verify successful response
-    if (data && data.success) {
-      // Update products
+    // Update cache with fresh data
+    if (data.success) {
       cachedProducts = data.products || [];
       
-      // Update sales with filtering for deleted items
+      // Filter out deleted sales
       let allSales = data.sales || [];
-      
-      // ✅ FIX 1: Filter out manually deleted sales
       cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
-      console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
       
-      // ✅ FIX 2: Sort sales by date (newest first)
+      // Sort sales by date
       sortSalesByDateDescending();
       
-      // Mark initial load complete
       hasInitialLoaded = true;
       
-      // Render both products and sales
+      // Update UI
       renderProducts();
       renderSales();
-      
-      // Update dashboard metrics
       updateSummaryFromCache();
       
+      console.log('✅ Sync complete:', cachedProducts.length, 'products,', cachedSales.length, 'sales');
       showSyncIndicator('Synced!', 900);
-      
     } else {
-      throw new Error(data.error || 'Failed to fetch data');
+      throw new Error(data.error || 'Unknown sync error');
     }
-    
-  } catch (err) {
-    console.error('Sync error:', err);
-    alert('Failed to sync data: ' + err.message);
+  } catch (error) {
+    console.error('❌ Sync error:', error);
+    alert('Failed to sync data: ' + error.message);
     hideSyncIndicator();
   }
 }
+
 
 
   async function fallbackGetProductsAndSales() {
@@ -3046,6 +3043,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
