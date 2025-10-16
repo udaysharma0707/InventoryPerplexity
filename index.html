@@ -13,9 +13,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
-
-
-
   <style>
     body{background:#f8f9fa;font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif}
     .table-explorer { background:#fff; border-radius:6px; overflow:hidden; }
@@ -1102,23 +1099,23 @@ function updateUserUI() {
   }
 }
 
-// Show auth error
+// Show auth error - FIXED VERSION
 function showAuthError(message) {
   console.warn('🚨 Auth error:', message);
   
-  // ✅ DON'T show alert if just checking credentials on page load
-  const hasCredentials = localStorage.getItem('userEmail');
-  if (!hasCredentials) {
-    console.log('No credentials saved, skipping alert');
+  // ✅ CRITICAL FIX: Don't clear auth or show alert on initial sync
+  // Only clear if there's an actual authentication problem
+  if (message && message.includes('unauthorized')) {
+    // Real auth problem - clear and show alert
     clearAuth();
+    alert('🔒 ' + message);
     showAuthScreen();
-    return;
+  } else {
+    // Just a sync issue - don't clear auth, just log it
+    console.log('⚠️ Non-critical error, keeping credentials');
   }
-  
-  clearAuth();
-  alert('🔒 ' + (message || 'Authentication error. Please sign in again.'));
-  showAuthScreen();
 }
+
 
 // Sign out
 function signOut() {
@@ -1301,8 +1298,16 @@ try {
 async function syncFromGoogleSheets() {
   // ✅ Check email authentication first
   if (!userEmail) {
-    showAuthError('Please sign in to continue');
-    return;
+    console.warn('⚠️ No userEmail, checking localStorage...');
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+      userEmail = savedEmail;
+      console.log('✅ Restored email from localStorage:', userEmail);
+    } else {
+      console.log('👤 No email found, user needs to sign in');
+      showAuthScreen();
+      return;
+    }
   }
 
   showSyncIndicator('Refreshing...');
@@ -1320,8 +1325,10 @@ async function syncFromGoogleSheets() {
     
     // Check for unauthorized response
     if (!data.success && data.error === 'unauthorized') {
-      showAuthError('Your email is not authorized. Please contact administrator.');
+      // ✅ ONLY clear auth on real unauthorized error
+      console.error('❌ Email not authorized');
       clearAuth();
+      alert('Access denied. Your email is not authorized. Please contact administrator.');
       showAuthScreen();
       hideSyncIndicator();
       return;
@@ -1335,11 +1342,11 @@ async function syncFromGoogleSheets() {
       // Update sales with filtering for deleted items
       let allSales = data.sales || [];
       
-      // ✅ FIX 1: Filter out manually deleted sales
+      // Filter out manually deleted sales
       cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
       console.log(`📊 Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
       
-      // ✅ FIX 2: Sort sales by date (newest first)
+      // Sort sales by date (newest first)
       sortSalesByDateDescending();
       
       // Mark initial load complete
@@ -1359,11 +1366,12 @@ async function syncFromGoogleSheets() {
     }
     
   } catch (err) {
-    console.error('Sync error:', err);
-    alert('Failed to sync data: ' + err.message);
+    console.error('⚠️ Sync error (non-critical):', err);
+    // ✅ Don't show alert or clear auth on network errors
     hideSyncIndicator();
   }
 }
+
 
 
   async function fallbackGetProductsAndSales() {
@@ -3179,6 +3187,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
