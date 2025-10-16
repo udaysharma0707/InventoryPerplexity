@@ -3276,78 +3276,85 @@ function deleteSavedInvoice(index) {
   viewSavedInvoices();
 }
 
-    <!-- ✅ NEW: Change Password Modal -->
-<div id="changePasswordModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-key me-2"></i>Change Password
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Step 1: Verify Current Password -->
-        <div id="verifyPasswordStep">
-          <p class="text-muted">Enter your current password to continue</p>
-          <div class="mb-3">
-            <label class="form-label">Current Password</label>
-            <input 
-              type="password" 
-              id="currentPasswordInput" 
-              class="form-control" 
-              placeholder="Enter current password"
-              required
-            >
-          </div>
-          <div class="d-grid">
-            <button class="btn btn-primary" onclick="verifyCurrentPassword()">
-              Continue
-            </button>
-          </div>
+
+    
+  </script>
+
+    </script>
+
+  <!-- ✅ NEW: Change Password Modal -->
+  <div id="changePasswordModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-key me-2"></i>Change Password
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        
-        <!-- Step 2: Enter New Password -->
-        <div id="newPasswordStep" style="display: none;">
-          <p class="text-muted">Choose a new password (minimum 6 characters)</p>
-          <div class="mb-3">
-            <label class="form-label">New Password</label>
-            <input 
-              type="password" 
-              id="newPasswordInput" 
-              class="form-control" 
-              placeholder="Enter new password"
-              minlength="6"
-              required
-            >
+        <div class="modal-body">
+          <!-- Step 1: Verify Current Password -->
+          <div id="verifyPasswordStep">
+            <p class="text-muted">Enter your current password to continue</p>
+            <div class="mb-3">
+              <label class="form-label">Current Password</label>
+              <input 
+                type="password" 
+                id="currentPasswordInput" 
+                class="form-control" 
+                placeholder="Enter current password"
+                required
+              >
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-primary" onclick="verifyCurrentPassword()">
+                Continue
+              </button>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Confirm New Password</label>
-            <input 
-              type="password" 
-              id="confirmPasswordInput" 
-              class="form-control" 
-              placeholder="Re-enter new password"
-              minlength="6"
-              required
-            >
-          </div>
-          <div class="d-grid">
-            <button class="btn btn-success" onclick="submitNewPassword()">
-              <i class="bi bi-check-circle me-2"></i>Change Password
-            </button>
+          
+          <!-- Step 2: Enter New Password -->
+          <div id="newPasswordStep" style="display: none;">
+            <p class="text-muted">Choose a new password (minimum 6 characters)</p>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input 
+                type="password" 
+                id="newPasswordInput" 
+                class="form-control" 
+                placeholder="Enter new password"
+                minlength="6"
+                required
+              >
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm New Password</label>
+              <input 
+                type="password" 
+                id="confirmPasswordInput" 
+                class="form-control" 
+                placeholder="Re-enter new password"
+                minlength="6"
+                required
+              >
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-success" onclick="submitNewPassword()">
+                <i class="bi bi-check-circle me-2"></i>Change Password
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-
-    
-  </script>
 </body>
 </html>
+
+</body>
+</html>
+
 
 
 
