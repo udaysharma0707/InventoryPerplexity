@@ -950,37 +950,192 @@
 let currentUser = null;
 let userEmail = null;
 
-// Check authentication on page load
+// ==========================================
+// EMAIL-BASED AUTHENTICATION (PERMANENT)
+// ==========================================
+
+let currentUser = null;
+let userEmail = null;
+
+// ✅ CRITICAL FIX: Check authentication on page load
 window.addEventListener('load', async function() {
   console.log('🚀 Page loaded, checking authentication...');
   
-  // Check for saved email
+  // FIRST: Check localStorage immediately
   const savedEmail = localStorage.getItem('userEmail');
   const savedUser = localStorage.getItem('currentUser');
   
+  console.log('📦 Checking localStorage:', {
+    hasEmail: !!savedEmail,
+    hasUser: !!savedUser,
+    email: savedEmail
+  });
+  
   if (savedEmail && savedUser) {
-    console.log('✅ Found saved email:', savedEmail);
+    console.log('✅ Found saved credentials, auto-logging in...');
     
     try {
+      // ✅ SET VARIABLES FIRST (before any function calls)
       userEmail = savedEmail;
       currentUser = JSON.parse(savedUser);
       
-      // Show app immediately
+      console.log('✅ Variables set:', { userEmail, currentUser: currentUser.email });
+      
+      // ✅ Show app IMMEDIATELY
       showApp();
       updateUserUI();
       
-      // Load data in background
-      await syncFromGoogleSheets();
+      // ✅ Small delay to ensure everything is ready
+      setTimeout(async () => {
+        console.log('🔄 Starting data sync...');
+        await syncFromGoogleSheets();
+      }, 200);
+      
     } catch (error) {
       console.error('❌ Error loading saved session:', error);
       clearAuth();
       showAuthScreen();
     }
   } else {
-    console.log('👤 No saved email, showing auth screen...');
+    console.log('👤 No saved credentials, showing auth screen...');
     showAuthScreen();
   }
 });
+
+// Handle email authentication form submission
+async function handleEmailAuth(event) {
+  event.preventDefault();
+  
+  const emailInput = document.getElementById('userEmailInput');
+  const email = emailInput.value.trim();
+  
+  if (!email) {
+    alert('Please enter your email address');
+    return;
+  }
+  
+  console.log('🔐 Authenticating email:', email);
+  
+  // Show loading state
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+  
+  try {
+    // Authenticate with backend
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}`, {
+      method: 'POST'
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok && data.user) {
+      // ✅ SUCCESS - Set variables FIRST
+      userEmail = email;
+      currentUser = data.user;
+      
+      // ✅ Save permanently to localStorage
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      
+      console.log('✅ Authentication successful:', currentUser.email);
+      console.log('✅ Saved to localStorage');
+      
+      // Show app and load data
+      showApp();
+      updateUserUI();
+      
+      // Small delay before syncing
+      setTimeout(async () => {
+        await syncFromGoogleSheets();
+      }, 300);
+      
+    } else {
+      // ❌ FAILED
+      console.error('❌ Authentication failed:', data);
+      alert(data.message || 'Access denied. Your email is not authorized.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
+    
+  } catch (error) {
+    console.error('❌ Authentication error:', error);
+    alert('Failed to authenticate. Please check your internet connection and try again.');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
+}
+
+// Clear authentication
+function clearAuth() {
+  userEmail = null;
+  currentUser = null;
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('currentUser');
+  console.log('🗑️ Authentication cleared');
+}
+
+// Show authentication screen
+function showAuthScreen() {
+  console.log('📱 Showing auth screen');
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display = 'none';
+}
+
+// Show app
+function showApp() {
+  console.log('📱 Showing app');
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}
+
+// Update user UI
+function updateUserUI() {
+  if (currentUser) {
+    const userNameEl = document.getElementById('userName');
+    const userAvatarEl = document.getElementById('userAvatar');
+    
+    if (userNameEl) {
+      userNameEl.textContent = currentUser.name || currentUser.email;
+      console.log('👤 Updated username:', currentUser.email);
+    }
+    
+    // Hide avatar (no Google profile pic)
+    if (userAvatarEl) {
+      userAvatarEl.style.display = 'none';
+    }
+  }
+}
+
+// Show auth error
+function showAuthError(message) {
+  console.warn('🚨 Auth error:', message);
+  
+  // ✅ DON'T show alert if just checking credentials on page load
+  const hasCredentials = localStorage.getItem('userEmail');
+  if (!hasCredentials) {
+    console.log('No credentials saved, skipping alert');
+    clearAuth();
+    showAuthScreen();
+    return;
+  }
+  
+  clearAuth();
+  alert('🔒 ' + (message || 'Authentication error. Please sign in again.'));
+  showAuthScreen();
+}
+
+// Sign out
+function signOut() {
+  if (confirm('Are you sure you want to sign out?')) {
+    console.log('👋 Signing out...');
+    clearAuth();
+    showAuthScreen();
+    setTimeout(() => location.reload(), 300);
+  }
+}
+
 
 // Handle email authentication form submission
 async function handleEmailAuth(event) {
@@ -3030,6 +3185,7 @@ function deleteSavedInvoice(index) {
   </script>
 </body>
 </html>
+
 
 
 
