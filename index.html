@@ -576,7 +576,7 @@
       <div class="col-12 desktop-table">
         <div class="table-explorer">
           <table class="table table-sm table-striped mb-0">
-            <thead><tr><th style="width:50px">Icon</th><th>Product</th><th>Category</th><th>Brand</th><th>Size</th><th style="width:120px">Stock</th><th style="width:140px">Price</th><th style="width:150px">Actions</th></tr></thead>
+            <thead><tr><th style="width:50px">Icon</th><th>Photo</th><th>Product</th><th>Category</th><th>Brand</th><th>Size</th><th style="width:120px">Stock</th><th style="width:140px">Price</th><th style="width:150px">Actions</th></tr></thead>
             <tbody id="productsTableBody"></tbody>
           </table>
         </div>
@@ -1781,7 +1781,7 @@ async function syncFromGoogleSheets() {
   function renderProducts(){
     const tbody = document.getElementById('productsTableBody');
     if(!hasInitialLoaded){
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</div></td></tr>`;
     } else if(!cachedProducts || cachedProducts.length===0){
       tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
     } else {
@@ -1790,7 +1790,21 @@ async function syncFromGoogleSheets() {
         const iconColor = categoryIconColor(p.category);
         const priceText = (p.price!==undefined && p.price!==null) ? `â‚¹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
         html += `<tr>
-          <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>
+          <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>   
+
+<!-- ✅ NEW: Photo Thumbnail Column -->
+  <td>
+    ${p.imageUrl && p.imageUrl !== 'uploading...' ? 
+      `<img src="${p.imageUrl}" 
+           class="photo-thumbnail-small" 
+           alt="Photo" 
+           onclick="viewPhotoProduct('${p.id}')"
+           style="cursor:pointer;"
+           onerror="this.style.display='none'">` : 
+      `<i class="bi bi-image text-muted"></i>`}
+  </td>
+
+          
           <td>${escapeHtml(p.name)}</td>
           <td>${escapeHtml(p.category||'')}</td>
           <td>${escapeHtml(p.brand||'')}</td>
@@ -3857,6 +3871,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
