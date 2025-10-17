@@ -188,7 +188,116 @@
 
 
 
+/* ===== PHOTO PRODUCT STYLES ===== */
 
+/* Photo Upload Area */
+.upload-area {
+  border: 3px dashed #2196F3;
+  border-radius: 15px;
+  padding: 30px 20px;
+  margin: 20px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9ff;
+  text-align: center;
+}
+
+.upload-area:hover {
+  border-color: #1976D2;
+  background: #e3f2fd;
+}
+
+.upload-area.dragover {
+  border-color: #4CAF50;
+  background: #e8f5e8;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #2196F3;
+  margin-bottom: 10px;
+}
+
+.upload-text {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+/* Photo Preview */
+.preview-container {
+  margin: 20px 0;
+  display: none;
+  text-align: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  margin-bottom: 15px;
+}
+
+/* Photo Product Grid View */
+#photoProductGrid {
+  margin-top: 20px;
+}
+
+#photoProductGrid .card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#photoProductGrid .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+}
+
+#photoProductGrid .card-img-top {
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+#photoProductGrid .card-img-top:hover {
+  transform: scale(1.05);
+}
+
+/* Photo thumbnail in sales dropdown */
+.photo-thumbnail-small {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 2px solid #e0e0e0;
+  margin-right: 8px;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: none;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196F3;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
+
+    
     
 /* âœ… NEW: Mobile Recent Sales Table Optimization */
 @media (max-width: 768px) {
@@ -426,12 +535,21 @@
 
   <div class="container-fluid py-4">
     <!-- Actions -->
-    <div class="row mb-4">
-      <div class="col-12 text-center">
-        <button class="btn btn-success btn-lg me-2 mb-2" onclick="showAddProduct()"><i class="bi bi-plus-circle"></i> Add Product</button>
-        <button class="btn btn-info btn-lg mb-2" onclick="openSalesModal()"><i class="bi bi-cart-check"></i> Record Sale</button>
-      </div>
-    </div>
+    <div class="text-center my-3">
+  <button class="btn btn-success me-2" onclick="showAddProduct()">
+    <i class="bi bi-plus-circle"></i> Add Product
+  </button>
+  
+  <!-- ✅ NEW: Photo Product Button -->
+  <button class="btn btn-primary me-2" onclick="openPhotoProductModal()">
+    <i class="bi bi-camera"></i> Product by Photo
+  </button>
+  
+  <button class="btn btn-info" onclick="openSalesModal()">
+    <i class="bi bi-cart"></i> Record Sale
+  </button>
+</div>
+
 
     <!-- Summary -->
     <div class="row mb-4">
@@ -440,12 +558,26 @@
       <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem"></i><h3 id="lowStock" class="mt-2">0</h3><p class="text-muted mb-0">Low Stock Items</p></div></div></div>
     </div>
 
-    <!-- Search -->
-    <div class="row mb-3">
-      <div class="col-md-6 mx-auto">
-        <input id="searchInput" class="form-control form-control-lg" placeholder="ðŸ”Search products by name, brand or size..." onkeyup="searchProducts()">
-      </div>
-    </div>
+    <!-- Search bar with view toggle -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <input type="text" id="productSearch" class="form-control" placeholder="🔎 Search products..." onkeyup="searchProducts()">
+  
+  <!-- ✅ NEW: View Mode Toggle -->
+  <div class="btn-group ms-3" role="group">
+    <button type="button" class="btn btn-outline-secondary btn-sm active" id="btnAllView" onclick="showAllProducts()">
+      <i class="bi bi-list"></i> All
+    </button>
+    <button type="button" class="btn btn-outline-primary btn-sm" id="btnPhotoView" onclick="showPhotoProducts()">
+      <i class="bi bi-images"></i> Photos
+    </button>
+  </div>
+</div>
+
+<!-- ✅ NEW: Photo Product Grid (Hidden by default) -->
+<div id="photoProductGrid" style="display:none;" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+  <!-- Photo product cards will be dynamically inserted here -->
+</div>
+
 
     <!-- Products table (desktop) & mobile list -->
     <div class="row mb-4">
@@ -1967,7 +2099,7 @@ async function deleteProductFromSheet(id) {
    * Product CRUD UI
    ***********************/
   let editingProductId = null;
-  function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show(); }
+  function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show();document.getElementById('productImageUrl').value = ''; }
   function editProduct(id){
     const p = (cachedProducts||[]).find(x=>x.id===id);
     if(!p){ alert('âŒ Product not found'); return; }
@@ -2036,29 +2168,36 @@ async function deleteProductFromSheet(id) {
 
 // âœ… NEW: Multi-Select Functions
 function populateMultiSelect() {
-    const container = document.getElementById('multiSelectList');
-    if (!container) return;
-    
-    let html = '';
-    
-    cachedProducts.filter(p => p.stock > 0).forEach(product => {
-        html += `
-            <div class="multi-select-item">
-                <div class="form-check">
-                    <input class="form-check-input multi-select-checkbox" type="checkbox" 
-                           id="multi-${product.id}" 
-                           value="${product.id}"
-                           onchange="onMultiSelectChange()">
-                    <label class="form-check-label" for="multi-${product.id}">
-                        ${escapeHtml(product.name)} 
-                        <small class="text-muted">(Stock: ${product.stock} ${product.unitType})</small>
-                    </label>
-                </div>
-            </div>
-        `;
+  const container = document.getElementById('multiSelectContainer'); // Your container ID
+  
+  cachedProducts
+    .filter(p => {
+      // Include photo products ONLY if they have stock AND price
+      if (p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...') {
+        return p.stock > 0 && p.price > 0;
+      }
+      return p.stock > 0; // Regular products
+    })
+    .forEach(product => {
+      const row = document.createElement('div');
+      row.className = 'd-flex align-items-center gap-2 mb-2 p-2 border rounded';
+      
+      // Photo thumbnail (if available)
+      const photoHTML = (product.imageUrl && product.imageUrl !== 'uploading...') ? 
+        `<img src="${product.imageUrl}" class="photo-thumbnail-small" alt="${product.name}">` : '';
+      
+      row.innerHTML = `
+        <input type="checkbox" class="form-check-input" id="multi_${product.id}" value="${product.id}">
+        ${photoHTML}
+        <label class="flex-fill" for="multi_${product.id}">
+          ${product.name} <small class="text-muted">(Stock: ${product.stock})</small>
+        </label>
+        <input type="number" class="form-control form-control-sm" style="width:80px;" 
+               placeholder="Qty" id="qty_${product.id}" min="1" max="${product.stock}">
+      `;
+      
+      container.appendChild(row);
     });
-    
-    container.innerHTML = html || '<small class="text-muted">No products available</small>';
 }
 
 function toggleMultiSelect() {
@@ -3562,6 +3701,379 @@ function deleteSavedInvoice(index) {
   viewSavedInvoices();
 }
 
+    /**
+ * ==========================================
+ * ✅ PHOTO PRODUCT FUNCTIONALITY
+ * ==========================================
+ */
+
+// Photo selection variables
+let selectedPhotoFile = null;
+let selectedPhotoBase64 = null;
+
+// Open photo product modal
+function openPhotoProductModal() {
+  // Reset form
+  document.getElementById('photoProductName').value = '';
+  document.getElementById('photoProductBrand').value = '';
+  document.getElementById('photoProductSize').value = '';
+  document.getElementById('photoProductStock').value = '';
+  document.getElementById('photoProductPrice').value = '';
+  document.getElementById('photoPreviewContainer').style.display = 'none';
+  document.getElementById('photoLoadingSpinner').style.display = 'none';
+  selectedPhotoFile = null;
+  selectedPhotoBase64 = null;
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('photoProductModal'));
+  modal.show();
+}
+
+// Handle photo selection (from camera or gallery)
+function handlePhotoSelect(event) {
+  const file = event.target.files[0];
+  if (!file || !file.type.startsWith('image/')) {
+    showErrorToast('Please select a valid image file');
+    return;
+  }
+  
+  selectedPhotoFile = file;
+  
+  // Create preview and compress image
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Compress image to reasonable size
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const maxWidth = 1920;
+      const maxHeight = 1080;
+      let width = img.width;
+      let height = img.height;
+      
+      // Calculate new dimensions
+      if (width > height) {
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Get compressed base64 image
+      selectedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+      
+      // Show preview
+      document.getElementById('photoPreviewImage').src = selectedPhotoBase64;
+      document.getElementById('photoPreviewContainer').style.display = 'block';
+      
+      console.log('Photo selected and compressed:', file.name);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Clear photo selection
+function clearPhotoSelection() {
+  selectedPhotoFile = null;
+  selectedPhotoBase64 = null;
+  document.getElementById('photoFileInput').value = '';
+  document.getElementById('photoCameraInput').value = '';
+  document.getElementById('photoPreviewContainer').style.display = 'none';
+}
+
+// Save photo product (INSTANT UI + BACKGROUND UPLOAD)
+async function savePhotoProduct() {
+  // Validation
+  const productName = document.getElementById('photoProductName').value.trim();
+  if (!productName) {
+    showErrorToast('Product name is required!');
+    return;
+  }
+  
+  if (!selectedPhotoBase64) {
+    showErrorToast('Please take or select a photo!');
+    return;
+  }
+  
+  // Collect form data
+  const productData = {
+    id: generateId(),
+    name: productName,
+    category: 'Photo Products',
+    brand: document.getElementById('photoProductBrand').value.trim() || '',
+    size: document.getElementById('photoProductSize').value.trim() || '',
+    unitType: 'Piece',
+    piecesPerBox: '',
+    sftPerBox: '',
+    price: parseFloat(document.getElementById('photoProductPrice').value) || 0,
+    stock: parseFloat(document.getElementById('photoProductStock').value) || 0,
+    minStock: 0,
+    imageUrl: 'uploading...' // Temporary placeholder
+  };
+  
+  // ✅ INSTANT UI UPDATE
+  cachedProducts.push(productData);
+  renderProductsTable();
+  
+  // Close modal immediately
+  const modalEl = document.getElementById('photoProductModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  modal.hide();
+  
+  showSuccessToast('Photo product added! Uploading image...');
+  
+  // ✅ BACKGROUND UPLOAD
+  uploadPhotoToBackend(productData, selectedPhotoBase64);
+}
+
+// Upload photo to Google Drive via Apps Script
+async function uploadPhotoToBackend(productData, photoBase64) {
+  try {
+    console.log('Uploading photo to Google Drive...');
+    
+    // Show loading indicator (optional)
+    document.getElementById('photoLoadingSpinner').style.display = 'block';
+    
+    // Upload photo to backend
+    const formData = new URLSearchParams({
+      action: 'uploadPhoto',
+      email: userEmail,
+      hash: userHash,
+      imageData: photoBase64,
+      fileName: `product_${productData.id}_${Date.now()}.jpg`
+    });
+    
+    const photoResponse = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    
+    const photoResult = await photoResponse.json();
+    
+    if (photoResult.success && photoResult.photoUrl) {
+      console.log('Photo uploaded successfully:', photoResult.photoUrl);
+      
+      // Update product with real photo URL
+      productData.imageUrl = photoResult.photoUrl;
+      
+      // Find product in cache and update
+      const productIndex = cachedProducts.findIndex(p => p.id === productData.id);
+      if (productIndex !== -1) {
+        cachedProducts[productIndex].imageUrl = photoResult.photoUrl;
+      }
+      
+      // Save product to Google Sheets with photo URL
+      await saveProductToSheet(productData);
+      
+      // Update UI
+      renderProductsTable();
+      showSuccessToast('✅ Photo uploaded successfully!');
+      
+    } else {
+      throw new Error(photoResult.error || 'Photo upload failed');
+    }
+    
+  } catch (error) {
+    console.error('Photo upload error:', error);
+    showErrorToast('Failed to upload photo. Product saved without image.');
+    
+    // Save product without photo as fallback
+    productData.imageUrl = '';
+    
+    // Update in cache
+    const productIndex = cachedProducts.findIndex(p => p.id === productData.id);
+    if (productIndex !== -1) {
+      cachedProducts[productIndex].imageUrl = '';
+    }
+    
+    await saveProductToSheet(productData);
+    renderProductsTable();
+    
+  } finally {
+    // Hide loading indicator
+    document.getElementById('photoLoadingSpinner').style.display = 'none';
+  }
+}
+
+/**
+ * ==========================================
+ * VIEW MANAGEMENT (All Products vs Photo Products)
+ * ==========================================
+ */
+
+// Show all products (default table view)
+function showAllProducts() {
+  // Update button states
+  document.getElementById('btnAllView').classList.add('active');
+  document.getElementById('btnPhotoView').classList.remove('active');
+  
+  // Show table, hide grid
+  document.querySelector('.table-explorer').style.display = 'block';
+  document.getElementById('photoProductGrid').style.display = 'none';
+  
+  // Re-render table
+  renderProductsTable();
+}
+
+// Show photo products (grid view)
+function showPhotoProducts() {
+  // Update button states
+  document.getElementById('btnAllView').classList.remove('active');
+  document.getElementById('btnPhotoView').classList.add('active');
+  
+  // Hide table, show grid
+  document.querySelector('.table-explorer').style.display = 'none';
+  const photoGrid = document.getElementById('photoProductGrid');
+  photoGrid.style.display = 'flex';
+  photoGrid.innerHTML = '';
+  
+  // Filter photo products (those with imageUrl)
+  const photoProducts = cachedProducts.filter(p => p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...');
+  
+  if (photoProducts.length === 0) {
+    photoGrid.innerHTML = `
+      <div class="col-12">
+        <div class="alert alert-info text-center">
+          <i class="bi bi-images"></i><br>
+          No photo products yet. Click <strong>"Product by Photo"</strong> to add one!
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Create photo product cards
+  photoProducts.forEach(product => {
+    const stockBadge = product.stock > 0 ? 
+      `<span class="badge bg-success">Stock: ${product.stock}</span>` : 
+      `<span class="badge bg-danger">Out of Stock</span>`;
+    
+    const priceDisplay = product.price > 0 ? `₹${formatCurrency(product.price)}` : 'Price not set';
+    
+    const card = `
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          <img src="${product.imageUrl}" 
+               class="card-img-top" 
+               alt="${product.name}" 
+               style="height:200px; object-fit:cover; cursor:pointer;" 
+               onclick="viewPhotoProduct('${product.id}')"
+               onerror="this.src='https://via.placeholder.com/200?text=Image+Not+Found'">
+          <div class="card-body">
+            <h6 class="card-title">${product.name}</h6>
+            <p class="card-text small mb-2">
+              ${product.brand ? `<strong>Brand:</strong> ${product.brand}<br>` : ''}
+              ${product.size ? `<strong>Size:</strong> ${product.size}<br>` : ''}
+              ${stockBadge}<br>
+              <strong>Price:</strong> ${priceDisplay}
+            </p>
+          </div>
+          <div class="card-footer bg-white border-0 d-flex gap-2">
+            <button class="btn btn-sm btn-primary flex-fill" onclick="editProduct('${product.id}')">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-danger flex-fill" onclick="deleteProduct('${product.id}')">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    photoGrid.innerHTML += card;
+  });
+}
+
+// View photo product in enlarged modal
+function viewPhotoProduct(productId) {
+  const product = cachedProducts.find(p => p.id === productId);
+  if (!product) {
+    showErrorToast('Product not found');
+    return;
+  }
+  
+  // Set modal content
+  document.getElementById('viewPhotoModalTitle').textContent = product.name;
+  document.getElementById('viewPhotoModalBody').innerHTML = `
+    <div class="text-center">
+      <img src="${product.imageUrl}" 
+           class="img-fluid mb-3" 
+           alt="${product.name}"
+           style="max-height: 500px; border-radius: 10px;"
+           onerror="this.src='https://via.placeholder.com/500?text=Image+Not+Found'">
+      <table class="table table-bordered mt-3">
+        <tr><th>Product Name</th><td>${product.name}</td></tr>
+        <tr><th>Category</th><td>${product.category || 'N/A'}</td></tr>
+        <tr><th>Brand</th><td>${product.brand || 'N/A'}</td></tr>
+        <tr><th>Size</th><td>${product.size || 'N/A'}</td></tr>
+        <tr><th>Stock</th><td>${product.stock || 0} ${product.unitType || 'Pieces'}</td></tr>
+        <tr><th>Price</th><td>₹${formatCurrency(product.price || 0)}</td></tr>
+        <tr><th>Minimum Stock Alert</th><td>${product.minStock || 0}</td></tr>
+      </table>
+    </div>
+  `;
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('viewPhotoModal'));
+  modal.show();
+}
+
+/**
+ * ==========================================
+ * MODIFY EXISTING FUNCTIONS
+ * ==========================================
+ */
+
+// ✅ UPDATE: renderProductsTable() - Add photo thumbnail column
+// Find your existing renderProductsTable() function and ADD this inside the loop:
+/*
+  <td>
+    ${product.imageUrl && product.imageUrl !== 'uploading...' ? 
+      `<img src="${product.imageUrl}" 
+           class="photo-thumbnail-small" 
+           alt="Product photo" 
+           onclick="viewPhotoProduct('${product.id}')"
+           onerror="this.style.display='none'">` : 
+      `<i class="bi bi-image text-muted"></i>`}
+  </td>
+*/
+
+// ✅ UPDATE: openSalesModal() - Filter photo products with stock & price
+// Modify the product dropdown population to include photo products:
+/*
+cachedProducts
+  .filter(p => {
+    // Include photo products ONLY if they have stock AND price
+    if (p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...') {
+      return p.stock > 0 && p.price > 0;
+    }
+    return p.stock > 0; // Include all regular products with stock
+  })
+  .forEach(product => {
+    // Add photo thumbnail if available
+    const photoIcon = (product.imageUrl && product.imageUrl !== 'uploading...') ? 
+      `<img src="${product.imageUrl}" class="photo-thumbnail-small" alt="">` : '';
+    
+    const option = `<option value="${product.id}">${photoIcon}${product.name} (Stock: ${product.stock})</option>`;
+    productSelect.innerHTML += option;
+  });
+*/
+
+
 
     
   </script>
@@ -3635,11 +4147,108 @@ function deleteSavedInvoice(index) {
     </div>
   </div>
 
+<!-- ✅ NEW: Photo Product Modal -->
+<div class="modal fade" id="photoProductModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📷 Add Product by Photo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Photo Upload Area -->
+        <div class="upload-area" id="photoUploadArea" onclick="document.getElementById('photoFileInput').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click to take photo or select from gallery</div>
+        </div>
+        
+        <!-- Hidden file inputs -->
+        <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="handlePhotoSelect(event)">
+        <input type="file" id="photoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(event)">
+        
+        <!-- Photo Preview -->
+        <div id="photoPreviewContainer" class="preview-container">
+          <img id="photoPreviewImage" class="preview-image" alt="Product Photo">
+          <button type="button" class="btn btn-sm btn-warning" onclick="clearPhotoSelection()">Change Photo</button>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="photoLoadingSpinner" class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Uploading photo...</p>
+        </div>
+        
+        <!-- Product Details Form -->
+        <div class="mb-3">
+          <label class="form-label">Product Name <span class="text-danger">*</span></label>
+          <input type="text" id="photoProductName" class="form-control" placeholder="e.g., White Marble Tile" required>
+        </div>
+        
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="form-label">Brand</label>
+            <input type="text" id="photoProductBrand" class="form-control" placeholder="Optional">
+          </div>
+          <div class="col-6 mb-3">
+            <label class="form-label">Size</label>
+            <input type="text" id="photoProductSize" class="form-control" placeholder="e.g., 2x2">
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="form-label">Current Stock</label>
+            <input type="number" id="photoProductStock" class="form-control" min="0" placeholder="0">
+          </div>
+          <div class="col-6 mb-3">
+            <label class="form-label">Unit Price (₹)</label>
+            <input type="number" id="photoProductPrice" class="form-control" min="0" step="0.01" placeholder="0.00">
+          </div>
+        </div>
+        
+        <div class="alert alert-info">
+          <small><i class="bi bi-info-circle"></i> Only products with stock and price can be sold.</small>
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="savePhotoProduct()">
+          <i class="bi bi-check-circle"></i> Save Product
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ NEW: View Photo Modal (Enlarged View) -->
+<div class="modal fade" id="viewPhotoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewPhotoModalTitle">Product Photo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewPhotoModalBody">
+        <!-- Content will be dynamically loaded -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+  
 </body>
 </html>
 
 </body>
 </html>
+
 
 
 
