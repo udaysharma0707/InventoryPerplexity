@@ -2256,7 +2256,7 @@ async function deleteProductFromSheet(id) {
     }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('Ã¢ÂÅ’ Save failed - reverted locally.'); });   // Clear the temporary imageUrl variable
   window.editingProductImageUrl = '';
 }
-  }
+  
 
   function deleteProduct(id) {
   if (!confirm('Are you sure you want to delete this product?')) {
@@ -4236,6 +4236,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
