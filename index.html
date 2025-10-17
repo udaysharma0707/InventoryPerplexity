@@ -2221,41 +2221,77 @@ async function deleteProductFromSheet(id) {
     new bootstrap.Modal(document.getElementById('productModal')).show();
   }
 
-  async function saveProduct(){
-    const name = document.getElementById('productName').value.trim();
-    const category = document.getElementById('category').value;
-    const brand = document.getElementById('brand').value.trim();
-    const size = document.getElementById('size').value.trim();
-    const unitType = document.getElementById('unitType').value;
-    const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value)||1;
-    const sftPerBox = parseFloat(document.getElementById('sftPerBox').value)||0;
-    const price = parseFloat(document.getElementById('price').value);
-    const stock = parseInt(document.getElementById('stock').value);
-    const minStock = parseInt(document.getElementById('minStock').value)||5;
-    if(!name||!category||isNaN(price)||isNaN(stock)||stock<0){ alert('Ã¢ÂÅ’ Fill required fields'); return; }
-    
-    const product = { id: editingProductId || (Date.now().toString(36)+Math.random().toString(36).substr(2)), name, category, brand, size, unitType, piecesPerBox, sftPerBox, price, stock, minStock 
-                    imageUrl: window.editingProductImageUrl || ''  // ✅ PRESERVE IMAGE URL
- 
-                    };
-
-    
-    const idx = (cachedProducts||[]).findIndex(p=>p.id===product.id);
-    const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
-    if(idx !== -1) cachedProducts[idx] = product; else cachedProducts.push(product);
-    renderProducts();
-    const modal = bootstrap.Modal.getInstance(document.getElementById('productModal')); if(modal) modal.hide();
-    showSyncIndicator('Saving product...');
-    // background save but update local id if server returns id
-    saveProductToSheet(product, !!editingProductId).then(resp=>{
-      if(resp && resp.success && resp.id){
-        const localIdx = cachedProducts.findIndex(p=>p.id===product.id);
-        if(localIdx!==-1){ cachedProducts[localIdx].id = resp.id; renderProducts(); }
+ async function saveProduct() {
+  const name = document.getElementById('productName').value.trim();
+  const category = document.getElementById('category').value;
+  const brand = document.getElementById('brand').value.trim();
+  const size = document.getElementById('size').value.trim();
+  const unitType = document.getElementById('unitType').value;
+  const piecesPerBox = parseInt(document.getElementById('piecesPerBox').value) || 1;
+  const sftPerBox = parseFloat(document.getElementById('sftPerBox').value) || 0;
+  const price = parseFloat(document.getElementById('price').value);
+  const stock = parseInt(document.getElementById('stock').value);
+  const minStock = parseInt(document.getElementById('minStock').value) || 5;
+  
+  if (!name || !category || isNaN(price) || isNaN(stock) || stock < 0) {
+    alert('Fill required fields');
+    return;
+  }
+  
+  const product = {
+    id: editingProductId || (Date.now().toString(36) + Math.random().toString(36).substr(2)),
+    name: name,
+    category: category,
+    brand: brand,
+    size: size,
+    unitType: unitType,
+    piecesPerBox: piecesPerBox,
+    sftPerBox: sftPerBox,
+    price: price,
+    stock: stock,
+    minStock: minStock,
+    imageUrl: window.editingProductImageUrl || ''  // ✅ PRESERVE IMAGE URL
+  };
+  
+  const idx = cachedProducts.findIndex(p => p.id === product.id);
+  const previous = idx !== -1 ? Object.assign({}, cachedProducts[idx]) : null;
+  
+  if (idx !== -1) {
+    cachedProducts[idx] = product;
+  } else {
+    cachedProducts.push(product);
+  }
+  
+  renderProducts();
+  
+  const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+  if (modal) modal.hide();
+  
+  showSyncIndicator('Saving product...');
+  
+  // Background save
+  saveProductToSheet(product, !!editingProductId).then(resp => {
+    if (resp && resp.success) {
+      if (resp.id) {
+        const localIdx = cachedProducts.findIndex(p => p.id === product.id);
+        if (localIdx !== -1) cachedProducts[localIdx].id = resp.id;
+        renderProducts();
       }
-      showSyncIndicator('Saved',900);
-    }).catch(err=>{ console.error(err); if(previous) cachedProducts[idx]=previous; renderProducts(); alert('Ã¢ÂÅ’ Save failed - reverted locally.'); });   // Clear the temporary imageUrl variable
+      showSyncIndicator('Saved', 900);
+    }
+  }).catch(err => {
+    console.error(err);
+    if (previous) {
+      cachedProducts[idx] = previous;
+      renderProducts();
+    }
+    alert('Save failed - reverted locally.');
+  });
+  
+  // Clear the temporary imageUrl variable
   window.editingProductImageUrl = '';
 }
+
   
 
   function deleteProduct(id) {
@@ -4236,6 +4272,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
