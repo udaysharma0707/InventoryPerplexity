@@ -2265,37 +2265,46 @@ async function deleteProductFromSheet(id) {
   new bootstrap.Modal(document.getElementById('salesModal')).show();
 }
 
+// ✅ CORRECTED: Multi-Select Functions with Photo Support
 function populateMultiSelect() {
-  const container = document.getElementById('multiSelectContainer'); // Your container ID
-  
-  cachedProducts
-    .filter(p => {
-      // Include photo products ONLY if they have stock AND price
-      if (p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...') {
-        return p.stock > 0 && p.price > 0;
-      }
-      return p.stock > 0; // Regular products
-    })
-    .forEach(product => {
-      const row = document.createElement('div');
-      row.className = 'd-flex align-items-center gap-2 mb-2 p-2 border rounded';
-      
-      // Photo thumbnail (if available)
-      const photoHTML = (product.imageUrl && product.imageUrl !== 'uploading...') ? 
-        `<img src="${product.imageUrl}" class="photo-thumbnail-small" alt="${product.name}">` : '';
-      
-      row.innerHTML = `
-        <input type="checkbox" class="form-check-input" id="multi_${product.id}" value="${product.id}">
-        ${photoHTML}
-        <label class="flex-fill" for="multi_${product.id}">
-          ${product.name} <small class="text-muted">(Stock: ${product.stock})</small>
-        </label>
-        <input type="number" class="form-control form-control-sm" style="width:80px;" 
-               placeholder="Qty" id="qty_${product.id}" min="1" max="${product.stock}">
-      `;
-      
-      container.appendChild(row);
-    });
+    const container = document.getElementById('multiSelectList');
+    if (!container) return;
+    
+    let html = '';
+    
+    // Filter products: photo products need stock AND price, regular products just need stock
+    cachedProducts
+        .filter(p => {
+            // Include photo products ONLY if they have stock AND price
+            if (p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...') {
+                return p.stock > 0 && p.price > 0;
+            }
+            // Include regular products with stock
+            return p.stock > 0;
+        })
+        .forEach(product => {
+            // Add photo thumbnail if available
+            const photoHTML = (product.imageUrl && product.imageUrl !== 'uploading...') ? 
+                `<img src="${product.imageUrl}" class="photo-thumbnail-small" alt="${escapeHtml(product.name)}" style="vertical-align: middle; margin-right: 8px;">` : '';
+            
+            html += `
+                <div class="multi-select-item">
+                    <div class="form-check">
+                        <input class="form-check-input multi-select-checkbox" type="checkbox" 
+                               id="multi-${product.id}" 
+                               value="${product.id}"
+                               onchange="onMultiSelectChange()">
+                        ${photoHTML}
+                        <label class="form-check-label" for="multi-${product.id}">
+                            ${escapeHtml(product.name)} 
+                            <small class="text-muted">(Stock: ${product.stock} ${product.unitType})</small>
+                        </label>
+                    </div>
+                </div>
+            `;
+        });
+    
+    container.innerHTML = html || '<small class="text-muted">No products available</small>';
 }
 
 
@@ -3879,6 +3888,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
