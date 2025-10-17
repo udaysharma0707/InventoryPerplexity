@@ -828,6 +828,14 @@
         </a>
       </li>
       <li><hr class="dropdown-divider"></li>
+
+ <!-- ✅ NEW: Share image on specific WhatsApp number -->
+  <li>
+    <a class="dropdown-item" href="javascript:void(0);" onclick="shareImageToWhatsAppNumber()">
+      <i class="bi bi-whatsapp text-success"></i> Share Image on WhatsApp
+    </a>
+  </li>
+      
       <li>
         <a class="dropdown-item" href="javascript:void(0);" onclick="shareViaWhatsApp()">
           <i class="bi bi-whatsapp text-success"></i> WhatsApp (Text)
@@ -3719,12 +3727,8 @@ function viewPhotoProduct(productId) {
 let invoiceCounter = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
 
 function generateInvoice() {
-  
-  
   // Collect products from sale grid
   const rows = document.querySelectorAll('#product-grid-body .product-row');
- 
-  
   const items = [];
   
   rows.forEach((r, i) => {
@@ -3740,13 +3744,13 @@ function generateInvoice() {
     }
     
     // Get clean product name without stock info
-let productName = sel.options[sel.selectedIndex]?.text || 'Product';
-// Remove stock information (e.g., "(Stock: 147 Box)")
-productName = productName.replace(/\(Stock:.*?\)/g, '').trim();
-
+    let productName = sel.options[sel.selectedIndex]?.text || 'Product';
+    // Remove stock information (e.g., "Stock: 147 Box")
+    productName = productName.replace(/\(Stock:.*?\)/g, '').trim();
+    
     const quantity = Number(qtyEl.value);
-    const rate = Number(priceEl.value || 0);
-    const size = sizeEl.value || '';
+    const rate = Number(priceEl.value) || 0;
+    const size = sizeEl.value;
     
     items.push({
       name: productName,
@@ -3757,23 +3761,26 @@ productName = productName.replace(/\(Stock:.*?\)/g, '').trim();
     });
   });
   
-  
   if (items.length === 0) {
-    
+    alert('⚠️ No products in the sale! Add products before generating invoice.');
     return;
   }
-  
-
   
   // Store items temporarily
   window.tempInvoiceItems = items;
   
+  // ✅ FIX: Close Sales Modal BEFORE opening Invoice Modal
+  const salesModal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+  if (salesModal) {
+    salesModal.hide();
+  }
   
-  
-  // Open invoice modal
-  openInvoiceModal();
-  
+  // Wait for sales modal to close, then open invoice modal
+  setTimeout(() => {
+    openInvoiceModal();
+  }, 300); // 300ms delay ensures smooth transition
 }
+
 
 
 function openInvoiceModal() {
@@ -4348,6 +4355,167 @@ async function shareInvoiceAsImage() {
   }
 }
 
+/**
+ * ==========================================
+ * ✅ NEW: Share Invoice Image on WhatsApp Number
+ * ==========================================
+ */
+
+// Open WhatsApp number input modal
+function shareImageToWhatsAppNumber() {
+  // Validate customer name first
+  const customerName = document.getElementById('invoiceCustomerName').value.trim();
+  if (!customerName) {
+    alert('❌ Please enter customer name before sharing');
+    return;
+  }
+  
+  // Load saved number if exists
+  const savedNumber = localStorage.getItem('whatsappNumber');
+  if (savedNumber) {
+    document.getElementById('whatsappNumberInput').value = savedNumber;
+    document.getElementById('saveWhatsAppNumber').checked = true;
+  }
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('whatsappNumberModal'));
+  modal.show();
+  
+  // Focus input after modal opens
+  setTimeout(() => {
+    document.getElementById('whatsappNumberInput').focus();
+  }, 500);
+}
+
+// Send invoice image to specific WhatsApp number
+async function sendInvoiceToWhatsApp() {
+  const numberInput = document.getElementById('whatsappNumberInput');
+  const phoneNumber = numberInput.value.trim();
+  
+  // Validation
+  if (!phoneNumber) {
+    alert('❌ Please enter WhatsApp number');
+    numberInput.focus();
+    return;
+  }
+  
+  if (!/^[0-9]{10}$/.test(phoneNumber)) {
+    alert('❌ Please enter a valid 10-digit mobile number');
+    numberInput.focus();
+    return;
+  }
+  
+  // Save number if checkbox checked
+  if (document.getElementById('saveWhatsAppNumber').checked) {
+    localStorage.setItem('whatsappNumber', phoneNumber);
+  }
+  
+  // Close number input modal
+  const numberModal = bootstrap.Modal.getInstance(document.getElementById('whatsappNumberModal'));
+  if (numberModal) {
+    numberModal.hide();
+  }
+  
+  // Show loading
+  showLoading('Generating invoice image...');
+  
+  try {
+    // Get invoice data
+    const invoiceData = collectInvoiceData();
+    
+    // Generate invoice HTML in hidden container
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;width:800px;padding:40px;';
+    tempContainer.innerHTML = generateInvoiceHTMLForImage(invoiceData);
+    document.body.appendChild(tempContainer);
+    
+    // Wait for fonts to load
+    await document.fonts.ready;
+    
+    // Convert to canvas
+    const canvas = await html2canvas(tempContainer, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      logging: false,
+      windowWidth: 800,
+      windowHeight: tempContainer.scrollHeight
+    });
+    
+    // Remove temp container
+    document.body.removeChild(tempContainer);
+    
+    hideLoading();
+    
+    // Convert canvas to blob
+    canvas.toBlob(async (blob) => {
+      const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.customerName.replace(/\s+/g, '_')}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+      
+      // Full phone number with country code
+      const fullNumber = '91' + phoneNumber; // India country code
+      
+      // Try Web Share API with specific WhatsApp number
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          // Open WhatsApp first
+          const whatsappUrl = `https://wa.me/${fullNumber}`;
+          window.open(whatsappUrl, '_blank');
+          
+          // Then trigger share (user can send the image in that chat)
+          await navigator.share({
+            title: `Invoice ${invoiceData.invoiceNumber}`,
+            text: `Invoice for ${invoiceData.customerName} - ₹${invoiceData.total.toFixed(2)}`,
+            files: [file]
+          });
+          
+          console.log('✅ Opened WhatsApp chat and shared invoice image');
+          
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error('Share failed:', err);
+            // Fallback: Open WhatsApp Web with text and download image
+            fallbackWhatsAppShare(fullNumber, invoiceData, canvas, fileName);
+          }
+        }
+      } else {
+        // Fallback: Open WhatsApp Web and download image
+        fallbackWhatsAppShare(fullNumber, invoiceData, canvas, fileName);
+      }
+    }, 'image/png', 0.95);
+    
+  } catch (error) {
+    hideLoading();
+    console.error('Error generating invoice image:', error);
+    alert('❌ Error generating invoice image. Please try again.');
+  }
+}
+
+// Fallback: Open WhatsApp Web with message and download image
+function fallbackWhatsAppShare(phoneNumber, invoiceData, canvas, fileName) {
+  // Download image
+  const link = document.createElement('a');
+  link.download = fileName;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  
+  // Open WhatsApp Web with pre-filled message
+  const message = encodeURIComponent(
+    `📄 Invoice ${invoiceData.invoiceNumber}\n` +
+    `Customer: ${invoiceData.customerName}\n` +
+    `Amount: ₹${invoiceData.total.toFixed(2)}\n\n` +
+    `Invoice image downloaded. Please attach and send.`
+  );
+  
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+  window.open(whatsappUrl, '_blank');
+  
+  alert('✅ Invoice image downloaded!\n📱 WhatsApp opened - please attach the downloaded image and send.');
+}
+
+
+
+
+    
 // Fallback: Download image if share not supported
 function fallbackDownloadImage(canvas, fileName) {
   const link = document.createElement('a');
@@ -4630,12 +4798,64 @@ function hideLoading() {
     </div>
   </div>
 
+<!-- ✅ NEW: WhatsApp Number Input Modal -->
+<div class="modal fade" id="whatsappNumberModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-whatsapp"></i> Share Invoice on WhatsApp
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> Enter the recipient's WhatsApp number (with country code)
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">WhatsApp Number</label>
+          <div class="input-group">
+            <span class="input-group-text">+91</span>
+            <input type="tel" 
+                   class="form-control" 
+                   id="whatsappNumberInput" 
+                   placeholder="9876543210" 
+                   maxlength="10"
+                   pattern="[0-9]{10}"
+                   required>
+          </div>
+          <small class="text-muted">Enter 10-digit mobile number (without +91)</small>
+        </div>
+        
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="saveWhatsAppNumber">
+          <label class="form-check-label" for="saveWhatsAppNumber">
+            Remember this number for next time
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-success" onclick="sendInvoiceToWhatsApp()">
+          <i class="bi bi-whatsapp"></i> Send to WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
+
+
+    
 </body>
 </html>
 
 </body>
 </html>
+
 
 
 
