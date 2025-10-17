@@ -141,7 +141,55 @@
     }
 }
 
+/* ==========================================
+   SUCCESS TOAST NOTIFICATION
+   ========================================== */
 
+.toast-notification {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-left: 4px solid #28a745;
+  z-index: 10000;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s ease;
+  max-width: 350px;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Background sync indicator (optional) */
+#backgroundSyncStatus {
+  display: none;
+  font-size: 0.85rem;
+  color: #6c757d;
+  padding: 0.25rem 0.75rem;
+  background: rgba(13, 110, 253, 0.1);
+  border-radius: 20px;
+}
+
+#backgroundSyncStatus i {
+  color: #0d6efd;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
+
+    
 /* âœ… NEW: Mobile Recent Sales Table Optimization */
 @media (max-width: 768px) {
     .table-responsive {
@@ -345,7 +393,15 @@
         <div class="d-flex align-items-center">
   <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
   <span id="userName" class="me-3">User</span>
-  
+
+  <!-- ✅ NEW: Background sync indicator -->
+  <div id="backgroundSyncStatus">
+    <i class="bi bi-cloud-upload-fill"></i>
+    <span>Syncing</span>
+  </div>
+
+
+          
   <!-- ✅ NEW: Change Password Button -->
   <button class="btn btn-outline-light btn-sm me-2" onclick="openChangePasswordModal()">
     <i class="bi bi-key me-1"></i>Change Password
@@ -961,6 +1017,8 @@
 
   <script>
 
+
+    
     
   /***********************
    * CONFIG
@@ -969,6 +1027,13 @@
   let cachedProducts = [];
   let cachedSales = [];
     
+// ==========================================
+// BACKGROUND SAVE QUEUE
+// ==========================================
+
+const backgroundSaveQueue = [];
+let isProcessingQueue = false;
+let backgroundSyncActive = false;
 
 // ==========================================
 // EMAIL + PASSWORD AUTHENTICATION (WITH HASH)
@@ -1690,6 +1755,178 @@ async function saveSaleToSheet(item) {
   }
 }
 
+    // ==========================================
+// HELPER: Delay function
+// ==========================================
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ==========================================
+// HELPER: Success Toast Notification
+// ==========================================
+function showSuccessToast(message) {
+  // Remove existing toast if any
+  const existingToast = document.getElementById('successToast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.id = 'successToast';
+  toast.className = 'toast-notification';
+  toast.innerHTML = `
+    <div class="d-flex align-items-center">
+      <i class="bi bi-check-circle-fill text-success me-2" style="font-size: 1.5rem;"></i>
+      <div><strong>${message}</strong></div>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Show toast with animation
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+  
+  // Hide and remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast && toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// ==========================================
+// HELPER: Update sync indicator
+// ==========================================
+function updateSyncIndicator(active) {
+  const indicator = document.getElementById('backgroundSyncStatus');
+  if (indicator) {
+    indicator.style.display = active ? 'flex' : 'none';
+  }
+}
+
+
+
+
+  // ==========================================
+// BACKGROUND QUEUE PROCESSOR
+// ==========================================
+async function processBackgroundSaveQueue() {
+  if (isProcessingQueue) {
+    console.log('⏳ Queue processor already running');
+    return;
+  }
+  
+  if (backgroundSaveQueue.length === 0) {
+    console.log('✅ Queue empty, processor stopping');
+    backgroundSyncActive = false;
+    updateSyncIndicator(false);
+    return;
+  }
+  
+  isProcessingQueue = true;
+  backgroundSyncActive = true;
+  updateSyncIndicator(true);
+  
+  console.log(`🔄 Processing ${backgroundSaveQueue.length} items in background queue...`);
+  
+  while (backgroundSaveQueue.length > 0) {
+    const item = backgroundSaveQueue[0]; // Peek at first item
+    
+    console.log(`📤 Background saving: "${item.productName}" (${backgroundSaveQueue.length} remaining)`);
+    
+    // Try to save with retry logic
+    let saved = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await saveSaleToSheet(item);
+        
+        if (response && response.success) {
+          console.log(`✅ Background saved: "${item.productName}"`);
+          saved = true;
+          break;
+        }
+        
+        // If not last attempt, wait before retry
+        if (attempt < 3) {
+          console.log(`⚠️ Retry ${attempt}/3 for "${item.productName}" in ${attempt}s...`);
+          await delay(1000 * attempt); // 1s, 2s backoff
+        }
+        
+      } catch (error) {
+        console.error(`❌ Attempt ${attempt}/3 failed for "${item.productName}":`, error);
+        
+        if (attempt < 3) {
+          await delay(1000 * attempt);
+        }
+      }
+    }
+    
+    if (saved) {
+      // Successfully saved - remove from queue
+      backgroundSaveQueue.shift();
+    } else {
+      // Failed after 3 retries - log error and remove
+      console.error(`❌ PERMANENT FAILURE: Could not save "${item.productName}" after 3 attempts`);
+      console.error('Failed item data:', item);
+      
+      // Remove from queue to prevent infinite loop
+      backgroundSaveQueue.shift();
+      
+      // Optional: Store in localStorage for manual recovery
+      try {
+        const failedItems = JSON.parse(localStorage.getItem('failedSales') || '[]');
+        failedItems.push({
+          item: item,
+          timestamp: new Date().toISOString(),
+          error: 'Max retries exceeded'
+        });
+        localStorage.setItem('failedSales', JSON.stringify(failedItems));
+        console.log('💾 Failed item saved to localStorage for recovery');
+      } catch (e) {
+        console.error('Could not save to localStorage:', e);
+      }
+    }
+    
+    // ✅ CRITICAL: Delay between items to prevent throttling
+    if (backgroundSaveQueue.length > 0) {
+      await delay(500); // 500ms delay between saves
+    }
+  }
+  
+  isProcessingQueue = false;
+  backgroundSyncActive = false;
+  updateSyncIndicator(false);
+  
+  console.log('✅ Background queue processing complete!');
+  
+  // Optional: Silent background sync after all saves complete
+  setTimeout(() => {
+    console.log('🔄 Starting background sync from Google Sheets...');
+    syncFromGoogleSheets();
+  }, 2000);
+}
+
+
+// Helper: Delay function
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper: Update sync indicator
+function updateSyncIndicator(active) {
+  const indicator = document.getElementById('backgroundSyncStatus');
+  if (indicator) {
+    indicator.style.display = active ? 'block' : 'none';
+  }
+}
+
 
 /**
  * Delete product from Google Sheets
@@ -2255,8 +2492,15 @@ function populateRowWithCustom(rowIndex, cp){
  * ==========================================
  */
 
+// ==========================================
+// COMPLETE SALE - OPTIMISTIC UI + BACKGROUND SAVE
+// ==========================================
+
+// ==========================================
+// COMPLETE SALE - OPTIMISTIC UI + BACKGROUND SAVE
+// ==========================================
 async function completeSale() {
-  // Collect valid sale items
+  // Collect valid sale items from the form
   const saleItems = [];
   const rows = document.querySelectorAll('#product-grid-body .product-row');
   const saleId = 'SALE_' + Date.now().toString(36);
@@ -2308,136 +2552,19 @@ async function completeSale() {
     return;
   }
   
-  if (!confirm(`📦 Complete sale with ${saleItems.length} item(s)?\n\nTotal: ${formatCurrency(saleItems.reduce((sum, item) => sum + item.totalAmount, 0))}`)) {
+  const totalAmount = saleItems.reduce((sum, item) => sum + item.totalAmount, 0);
+  
+  if (!confirm(`📦 Complete sale with ${saleItems.length} item(s)?\n\nTotal: ${formatCurrency(totalAmount)}`)) {
     return;
   }
   
-  console.log(`🔄 Starting sequential save of ${saleItems.length} items...`);
+  console.log(`✅ Sale confirmed: ${saleItems.length} items, total ${formatCurrency(totalAmount)}`);
   
-  // ✅ DISABLE BUTTON & SHOW PROGRESS
-  const completeBtn = document.querySelector('#salesModal .modal-footer .btn-success');
-  const originalBtnText = completeBtn.innerHTML;
-  completeBtn.disabled = true;
+  // ==========================================
+  // ✅ STEP 1: INSTANT UI UPDATES (< 100ms)
+  // ==========================================
   
-  // ✅ CREATE PROGRESS INDICATOR
-  const progressDiv = document.createElement('div');
-  progressDiv.id = 'saveProgress';
-  progressDiv.className = 'alert alert-info mt-3';
-  progressDiv.innerHTML = `
-    <div class="d-flex align-items-center">
-      <div class="spinner-border spinner-border-sm me-2"></div>
-      <div>
-        <strong>Saving sales...</strong>
-        <div class="progress mt-2" style="height: 20px;">
-          <div id="saveProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-               style="width: 0%;" role="progressbar">
-            0 / ${saleItems.length}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  const modalBody = document.querySelector('#salesModal .modal-body');
-  modalBody.appendChild(progressDiv);
-  
-  // ✅ HELPER: Update progress
-  function updateProgress(current, total) {
-    const percent = Math.round((current / total) * 100);
-    const progressBar = document.getElementById('saveProgressBar');
-    if (progressBar) {
-      progressBar.style.width = `${percent}%`;
-      progressBar.textContent = `${current} / ${total}`;
-    }
-  }
-  
-  // ✅ HELPER: Delay function
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  
-  // ✅ HELPER: Save with retry
-  async function saveSaleWithRetry(item, maxRetries = 3) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`📤 Saving "${item.productName}" (attempt ${attempt}/${maxRetries})...`);
-        
-        const response = await saveSaleToSheet(item);
-        
-        if (response && response.success) {
-          console.log(`✅ Saved "${item.productName}"`);
-          return { success: true, item, attempt };
-        }
-        
-        // If failed but not last attempt, wait before retry
-        if (attempt < maxRetries) {
-          console.log(`⚠️ Save failed, retrying in ${attempt}s...`);
-          await delay(1000 * attempt); // 1s, 2s, 3s backoff
-        }
-        
-      } catch (error) {
-        console.error(`❌ Error saving "${item.productName}":`, error);
-        
-        if (attempt < maxRetries) {
-          await delay(1000 * attempt);
-        }
-      }
-    }
-    
-    // All retries failed
-    return { success: false, item, error: 'Max retries exceeded' };
-  }
-  
-  // ✅ SAVE SEQUENTIALLY WITH DELAY
-  const results = [];
-  
-  for (let i = 0; i < saleItems.length; i++) {
-    const item = saleItems[i];
-    
-    // Update progress
-    updateProgress(i, saleItems.length);
-    
-    // Save with retry
-    const result = await saveSaleWithRetry(item, 3);
-    results.push(result);
-    
-    // ✅ CRITICAL: 500ms delay between requests
-    if (i < saleItems.length - 1) {
-      await delay(500);
-    }
-  }
-  
-  // Final progress update
-  updateProgress(saleItems.length, saleItems.length);
-  
-  // ✅ CHECK RESULTS
-  const successful = results.filter(r => r.success);
-  const failed = results.filter(r => !r.success);
-  
-  console.log(`📊 Save complete: ${successful.length} succeeded, ${failed.length} failed`);
-  
-  // Remove progress indicator
-  if (progressDiv && progressDiv.parentNode) {
-    progressDiv.parentNode.removeChild(progressDiv);
-  }
-  
-  // Re-enable button
-  completeBtn.disabled = false;
-  completeBtn.innerHTML = originalBtnText;
-  
-  if (failed.length > 0) {
-    // ❌ SOME FAILED
-    const failedNames = failed.map(f => f.item.productName).join('\n');
-    alert(`⚠️ ${failed.length} item(s) failed to save:\n\n${failedNames}\n\nPlease try again or contact support.`);
-    
-    // Keep modal open so user can retry
-    return;
-  }
-  
-  // ✅ ALL SAVED SUCCESSFULLY
-  console.log('✅ All sales saved successfully!');
-  
-  // Update local cache optimistically
+  // Add to local cache immediately
   saleItems.forEach(item => {
     const newSale = {
       id: generateId(),
@@ -2463,26 +2590,85 @@ async function completeSale() {
     }
   });
   
-  // Re-render
+  // Re-render UI immediately
   renderProducts();
   renderSales();
   updateSummaryFromCache();
   
-  // Close modal
+  // Close modal immediately
   const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
   if (modal) modal.hide();
   
   // Reset custom products array
   customProductsInSale = [];
   
-  // Show success message
-  alert(`✅ Sale completed successfully!\n\n${saleItems.length} item(s) saved\nTotal: ${formatCurrency(saleItems.reduce((sum, item) => sum + item.totalAmount, 0))}`);
+  // Show success toast notification
+  showSuccessToast(`✅ Sale completed! ${saleItems.length} item(s) recorded.`);
   
-  // Refresh from server after a delay
-  setTimeout(async () => {
-    await syncFromGoogleSheets();
-  }, 2000);
+  console.log(`✅ UI updated instantly - ${saleItems.length} items displayed`);
+  
+  // ==========================================
+  // 🔄 STEP 2: BACKGROUND SAVE TO GOOGLE SHEETS
+  // ==========================================
+  
+  // Add items to background save queue
+  saleItems.forEach(item => {
+    backgroundSaveQueue.push(item);
+  });
+  
+  console.log(`🔄 Added ${saleItems.length} items to background save queue (queue size: ${backgroundSaveQueue.length})`);
+  
+  // Start background processor (if not already running)
+  if (!isProcessingQueue) {
+    setTimeout(() => {
+      processBackgroundSaveQueue();
+    }, 100); // Small delay to let UI settle
+  } else {
+    console.log('⏳ Background processor already running, items will be processed in sequence');
+  }
 }
+
+
+    // ==========================================
+// SUCCESS TOAST NOTIFICATION
+// ==========================================
+
+function showSuccessToast(message) {
+  // Remove existing toast if any
+  const existingToast = document.getElementById('successToast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.id = 'successToast';
+  toast.className = 'toast-notification';
+  toast.innerHTML = `
+    <div class="d-flex align-items-center">
+      <i class="bi bi-check-circle-fill text-success me-2" style="font-size: 1.5rem;"></i>
+      <div>${message}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Show toast
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+  
+  // Hide after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3000);
+}
+
+  
+  
 
 
   /***********************
@@ -3454,6 +3640,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
