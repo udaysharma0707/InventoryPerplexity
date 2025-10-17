@@ -802,12 +802,55 @@
       </div>
       
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="bi bi-x-circle"></i> Close
-        </button>
-        <button type="button" class="btn btn-info" onclick="previewInvoice()">
-          <i class="bi bi-eye"></i> Preview
-        </button>
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+    <i class="bi bi-x-circle"></i> Close
+  </button>
+  <button type="button" class="btn btn-info" onclick="previewInvoice()">
+    <i class="bi bi-eye"></i> Preview
+  </button>
+  
+  <!-- ✅ FIXED: Share Invoice Dropdown with proper attributes -->
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-primary dropdown-toggle" 
+            data-bs-toggle="dropdown" 
+            aria-expanded="false">
+      <i class="bi bi-share"></i> Share Invoice
+    </button>
+    <ul class="dropdown-menu">
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" onclick="shareInvoiceAsImage()">
+          <i class="bi bi-image"></i> Share as Image (Recommended)
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" onclick="shareInvoiceAsPDF()">
+          <i class="bi bi-file-pdf"></i> Share as PDF
+        </a>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" onclick="shareViaWhatsApp()">
+          <i class="bi bi-whatsapp text-success"></i> WhatsApp (Text)
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" onclick="shareViaEmail()">
+          <i class="bi bi-envelope"></i> Email (Text)
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" onclick="shareViaSMS()">
+          <i class="bi bi-phone"></i> SMS (Text)
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <button type="button" class="btn btn-success" onclick="saveInvoice()">
+    <i class="bi bi-save"></i> Save Invoice
+  </button>
+</div>
+
         <button type="button" class="btn btn-success" onclick="saveInvoice()">
           <i class="bi bi-save"></i> Save Invoice
         </button>
@@ -4598,6 +4641,7 @@ function hideLoading() {
 
 </body>
 </html>
+
 
 
 
