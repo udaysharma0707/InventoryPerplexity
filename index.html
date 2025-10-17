@@ -965,7 +965,7 @@
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXG3llAddYZ90VaxI8-cGpZ80nni1_18Nei5PeDUpCYKJzyGr1M-jie4_9atV8grqv/exec'; // <-- replace with your deployed URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAZKHUCc52f_nwGtWo91rPFazLH8uGjWHX-k6P75f86mnBOA9EcnUJFvL-YGbbOOh5/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
     
@@ -2249,141 +2249,241 @@ function populateRowWithCustom(rowIndex, cp){
   /***********************
    * COMPLETE SALE (fire-and-forget background saves)
    ***********************/
-  async function completeSale(){
-    const rows = document.querySelectorAll('#product-grid-body .product-row');
-    const saleItems = [];
-    let hasErrors = false;
+ /**
+ * ==========================================
+ * ✅ FIXED: Sequential sale saving with delay
+ * ==========================================
+ */
 
-    rows.forEach((r,i)=>{
-      const idx = i+1;
-      const sel = document.getElementById(`product-${idx}`);
-      const qtyEl = document.getElementById(`qty-${idx}`);
-      const priceEl = document.getElementById(`price-${idx}`);
-      const unitEl = document.getElementById(`unit-${idx}`);
-      const sizeEl = document.getElementById(`size-${idx}`);
-      if(!sel) return;
-      // Skip empty rows
-      if(!sel.value) return;
-
-      const qty = Number(qtyEl.value || 0);
-      if(!qty || qty <= 0){ alert(`âŒ Row ${idx}: Enter a valid quantity`); hasErrors = true; return; }
-      const maxStock = Number(qtyEl.max || Infinity);
-      if(!sel.value.startsWith('CUST_TMP_') && qty > maxStock){ alert(`âŒ Row ${idx}: Quantity exceeds available stock (${maxStock})`); hasErrors = true; return; }
-
-      // Determine if custom (temp) or normal product
-      let isCustom = sel.value.startsWith('CUST_TMP_');
-      let productId = isCustom ? null : sel.value;
-      let productName = '';
-      let size = sizeEl.value || 'N/A';
-      let unitType = unitEl.value || '';
-      let unitPrice = Number(priceEl.value || 0);
-      let lineTotal = unitPrice * qty;
-
-      if(isCustom){
-        const cp = customProductsInSale.find(c => c.tempId === sel.value) || {};
-        productName = cp.name || (sel.options[sel.selectedIndex]?.text || 'Custom');
-      } else {
-        const prod = (cachedProducts||[]).find(p => p.id === productId);
-        if(!prod){ alert(`âŒ Row ${idx}: Product not found`); hasErrors = true; return; }
-        productName = prod.name;
-        size = prod.size || size;
-        unitType = prod.unitType || unitType;
-        unitPrice = prod.price || unitPrice;
-      }
-
-      saleItems.push({
-        productId,
-        productName,
-        size,
-        quantity: qty,
-        unitType,
-        unitPrice,
-        totalAmount: lineTotal,
-        isCustomProduct: isCustom
-      });
+async function completeSale() {
+  // Collect valid sale items
+  const saleItems = [];
+  const rows = document.querySelectorAll('#product-grid-body .product-row');
+  const saleId = 'SALE_' + Date.now().toString(36);
+  
+  rows.forEach((r, i) => {
+    const idx = i + 1;
+    const sel = document.getElementById(`product-${idx}`);
+    const qtyEl = document.getElementById(`qty-${idx}`);
+    
+    if (!sel || !sel.value || !qtyEl || !qtyEl.value || Number(qtyEl.value) <= 0) {
+      return; // Skip empty rows
+    }
+    
+    const productId = sel.value;
+    const quantity = Number(qtyEl.value);
+    const unitPrice = Number(document.getElementById(`price-${idx}`).value || 0);
+    const totalAmount = quantity * unitPrice;
+    const size = document.getElementById(`size-${idx}`).value || 'N/A';
+    const unitType = document.getElementById(`unit-${idx}`).value || '';
+    
+    // Check if custom product
+    const isCustom = productId.startsWith('CUST_TMP_');
+    let productName = '';
+    
+    if (isCustom) {
+      const cp = customProductsInSale.find(c => c.tempId === productId);
+      productName = cp ? cp.name : 'Custom Product';
+    } else {
+      const prod = cachedProducts.find(p => p.id === productId);
+      productName = prod ? prod.name : 'Unknown Product';
+    }
+    
+    saleItems.push({
+      saleId: saleId,
+      productId: isCustom ? '' : productId,
+      productName: productName,
+      size: size,
+      quantity: quantity,
+      unitType: unitType,
+      unitPrice: unitPrice,
+      totalAmount: totalAmount,
+      isCustomProduct: isCustom
     });
-
-    if(hasErrors) return;
-    if(saleItems.length === 0){ alert('âŒ Please add at least one product to the sale'); return; }
-
-    // OPTIMISTIC: update local cache & UI immediately
-    const saleId = 'SALE_' + Date.now();
-    const nowIso = new Date().toISOString();
-    // push each line to cachedSales and deduct stock for non-custom
-    saleItems.forEach(item => {
-      const line = {
-        id: generateId(),
-        saleId,
-        productId: item.productId || '',
-        productName: item.productName,
-        size: item.size,
-        quantity: item.quantity,
-        unitType: item.unitType,
-        unitPrice: item.unitPrice,
-        totalAmount: item.totalAmount,
-        date: nowIso,
-        isCustomProduct: item.isCustomProduct
-      };
-      cachedSales.unshift(line);
-      // Deduct stock optimistically
-      if(!item.isCustomProduct && item.productId){
-        const pi = cachedProducts.findIndex(p => p.id === item.productId);
-        if(pi !== -1){
-          cachedProducts[pi].stock = Number(cachedProducts[pi].stock || 0) - Number(item.quantity);
-          if(cachedProducts[pi].stock < 0) cachedProducts[pi].stock = 0;
-        }
-      }
-    });
-
-      // Ã¢Å“â€¦ NEW: Sort sales by date after adding new sales
-    sortSalesByDateDescending();
-    renderProducts();
-    renderSales();
-
-    // Close modal immediately (fast UX)
-    const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
-    if(modal) modal.hide();
-
-    // Show immediate success message and that save happens in background
-    const grandTotal = saleItems.reduce((s,it) => s + Number(it.totalAmount || 0), 0);
-    setTimeout(()=> alert(`Ã¢Å“â€¦ Sale recorded locally!\nItems: ${saleItems.length}\nTotal: ${formatCurrency(grandTotal)}\n\nSaving to Google Sheets in background...`), 300);
-
-    // FIRE AND FORGET: save each item in background (don't block UI)
-    const saves = saleItems.map(item => {
-      const payload = {
-        saleId,
-        productId: item.productId || '',
-        productName: item.productName,
-        size: item.size,
-        quantity: item.quantity,
-        unitType: item.unitType,
-        unitPrice: item.unitPrice,
-        totalAmount: item.totalAmount,
-        isCustomProduct: item.isCustomProduct || false
-      };
-      return saveSaleToSheet(payload).then(resp=>{
-        if(!(resp && resp.success)){
-          console.error('Sale line failed to save', payload, resp);
-          // optionally: mark a small flag in UI or show toast later
-          return { ok:false, payload, resp };
-        }
-        return { ok:true, payload, resp };
-      }).catch(err => { console.error('saveSale error', err); return { ok:false, payload, err }; });
-    });
-
-    // handle results when finished (optional)
-    Promise.allSettled(saves).then(results => {
-      const failed = results.filter(r => r.status === 'fulfilled' && r.value && r.value.ok === false);
-      if(failed.length){
-        console.warn('Some rows failed to save', failed);
-        // show a gentle non-blocking alert
-        setTimeout(()=> alert(`Ã¢Å¡ Ã¯Â¸Â Some items failed to sync to Google Sheets. Please click Refresh later.`), 800);
-      } else {
-        // re-sync to get canonical server state (ids, timestamps, stock)
-        syncFromGoogleSheets();
-      }
-    });
+  });
+  
+  // Validation
+  if (saleItems.length === 0) {
+    alert('⚠️ No products selected. Please add at least one product to complete the sale.');
+    return;
   }
+  
+  if (!confirm(`📦 Complete sale with ${saleItems.length} item(s)?\n\nTotal: ${formatCurrency(saleItems.reduce((sum, item) => sum + item.totalAmount, 0))}`)) {
+    return;
+  }
+  
+  console.log(`🔄 Starting sequential save of ${saleItems.length} items...`);
+  
+  // ✅ DISABLE BUTTON & SHOW PROGRESS
+  const completeBtn = document.querySelector('#salesModal .modal-footer .btn-success');
+  const originalBtnText = completeBtn.innerHTML;
+  completeBtn.disabled = true;
+  
+  // ✅ CREATE PROGRESS INDICATOR
+  const progressDiv = document.createElement('div');
+  progressDiv.id = 'saveProgress';
+  progressDiv.className = 'alert alert-info mt-3';
+  progressDiv.innerHTML = `
+    <div class="d-flex align-items-center">
+      <div class="spinner-border spinner-border-sm me-2"></div>
+      <div>
+        <strong>Saving sales...</strong>
+        <div class="progress mt-2" style="height: 20px;">
+          <div id="saveProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+               style="width: 0%;" role="progressbar">
+            0 / ${saleItems.length}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const modalBody = document.querySelector('#salesModal .modal-body');
+  modalBody.appendChild(progressDiv);
+  
+  // ✅ HELPER: Update progress
+  function updateProgress(current, total) {
+    const percent = Math.round((current / total) * 100);
+    const progressBar = document.getElementById('saveProgressBar');
+    if (progressBar) {
+      progressBar.style.width = `${percent}%`;
+      progressBar.textContent = `${current} / ${total}`;
+    }
+  }
+  
+  // ✅ HELPER: Delay function
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  // ✅ HELPER: Save with retry
+  async function saveSaleWithRetry(item, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📤 Saving "${item.productName}" (attempt ${attempt}/${maxRetries})...`);
+        
+        const response = await saveSaleToSheet(item);
+        
+        if (response && response.success) {
+          console.log(`✅ Saved "${item.productName}"`);
+          return { success: true, item, attempt };
+        }
+        
+        // If failed but not last attempt, wait before retry
+        if (attempt < maxRetries) {
+          console.log(`⚠️ Save failed, retrying in ${attempt}s...`);
+          await delay(1000 * attempt); // 1s, 2s, 3s backoff
+        }
+        
+      } catch (error) {
+        console.error(`❌ Error saving "${item.productName}":`, error);
+        
+        if (attempt < maxRetries) {
+          await delay(1000 * attempt);
+        }
+      }
+    }
+    
+    // All retries failed
+    return { success: false, item, error: 'Max retries exceeded' };
+  }
+  
+  // ✅ SAVE SEQUENTIALLY WITH DELAY
+  const results = [];
+  
+  for (let i = 0; i < saleItems.length; i++) {
+    const item = saleItems[i];
+    
+    // Update progress
+    updateProgress(i, saleItems.length);
+    
+    // Save with retry
+    const result = await saveSaleWithRetry(item, 3);
+    results.push(result);
+    
+    // ✅ CRITICAL: 500ms delay between requests
+    if (i < saleItems.length - 1) {
+      await delay(500);
+    }
+  }
+  
+  // Final progress update
+  updateProgress(saleItems.length, saleItems.length);
+  
+  // ✅ CHECK RESULTS
+  const successful = results.filter(r => r.success);
+  const failed = results.filter(r => !r.success);
+  
+  console.log(`📊 Save complete: ${successful.length} succeeded, ${failed.length} failed`);
+  
+  // Remove progress indicator
+  if (progressDiv && progressDiv.parentNode) {
+    progressDiv.parentNode.removeChild(progressDiv);
+  }
+  
+  // Re-enable button
+  completeBtn.disabled = false;
+  completeBtn.innerHTML = originalBtnText;
+  
+  if (failed.length > 0) {
+    // ❌ SOME FAILED
+    const failedNames = failed.map(f => f.item.productName).join('\n');
+    alert(`⚠️ ${failed.length} item(s) failed to save:\n\n${failedNames}\n\nPlease try again or contact support.`);
+    
+    // Keep modal open so user can retry
+    return;
+  }
+  
+  // ✅ ALL SAVED SUCCESSFULLY
+  console.log('✅ All sales saved successfully!');
+  
+  // Update local cache optimistically
+  saleItems.forEach(item => {
+    const newSale = {
+      id: generateId(),
+      saleId: item.saleId,
+      productId: item.productId,
+      productName: item.productName,
+      size: item.size,
+      quantity: item.quantity,
+      unitType: item.unitType,
+      unitPrice: item.unitPrice,
+      totalAmount: item.totalAmount,
+      date: new Date().toISOString(),
+      isCustomProduct: item.isCustomProduct
+    };
+    cachedSales.unshift(newSale);
+    
+    // Update stock locally (for non-custom products)
+    if (!item.isCustomProduct && item.productId) {
+      const prod = cachedProducts.find(p => p.id === item.productId);
+      if (prod) {
+        prod.stock -= item.quantity;
+      }
+    }
+  });
+  
+  // Re-render
+  renderProducts();
+  renderSales();
+  updateSummaryFromCache();
+  
+  // Close modal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
+  if (modal) modal.hide();
+  
+  // Reset custom products array
+  customProductsInSale = [];
+  
+  // Show success message
+  alert(`✅ Sale completed successfully!\n\n${saleItems.length} item(s) saved\nTotal: ${formatCurrency(saleItems.reduce((sum, item) => sum + item.totalAmount, 0))}`);
+  
+  // Refresh from server after a delay
+  setTimeout(async () => {
+    await syncFromGoogleSheets();
+  }, 2000);
+}
+
 
   /***********************
    * Load sale product select helper (if needed elsewhere)
@@ -3354,6 +3454,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
