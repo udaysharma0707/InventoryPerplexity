@@ -1240,7 +1240,7 @@
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrru8-1kr7ZVxtbQ1k1nCYRyOd44-wLAwHQexPBbJ9XAw9AyhA0_Hz7rFrSt8sb7uE/exec'; // <-- replace with your deployed URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6W0Fe07oEpE7pKrKFBmyWCW7EkaEF_Jje1U5LANvud-Woxb3sT2Kqe1OdU00NTSXB/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
     
@@ -1791,19 +1791,17 @@ async function syncFromGoogleSheets() {
         const priceText = (p.price!==undefined && p.price!==null) ? `â‚¹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
         html += `<tr>
           <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>   
-
-<!-- ✅ NEW: Photo Thumbnail Column -->
-  <td>
-    ${p.imageUrl && p.imageUrl !== 'uploading...' ? 
+<!-- ✅ Photo Thumbnail Column -->
+  <td style="text-align: center;">
+    ${p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...' ? 
       `<img src="${p.imageUrl}" 
            class="photo-thumbnail-small" 
            alt="Photo" 
            onclick="viewPhotoProduct('${p.id}')"
-           style="cursor:pointer;"
-           onerror="this.style.display='none'">` : 
+           style="cursor:pointer; width:40px; height:40px; object-fit:cover; border-radius:4px; border:2px solid #e0e0e0;"
+           onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=No+Img'; console.error('Image load failed for product: ${escapeHtml(p.name)}');">` : 
       `<i class="bi bi-image text-muted"></i>`}
   </td>
-
           
           <td>${escapeHtml(p.name)}</td>
           <td>${escapeHtml(p.category||'')}</td>
@@ -2272,12 +2270,13 @@ function populateMultiSelect() {
     
     let html = '';
     
-    // Filter products: photo products need stock AND price, regular products just need stock
     cachedProducts
         .filter(p => {
             // Include photo products ONLY if they have stock AND price
             if (p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...') {
-                return p.stock > 0 && p.price > 0;
+                const hasStockAndPrice = p.stock > 0 && p.price > 0;
+                console.log(`Photo product "${p.name}": stock=${p.stock}, price=${p.price}, showing=${hasStockAndPrice}`);
+                return hasStockAndPrice;
             }
             // Include regular products with stock
             return p.stock > 0;
@@ -2285,7 +2284,11 @@ function populateMultiSelect() {
         .forEach(product => {
             // Add photo thumbnail if available
             const photoHTML = (product.imageUrl && product.imageUrl !== 'uploading...') ? 
-                `<img src="${product.imageUrl}" class="photo-thumbnail-small" alt="${escapeHtml(product.name)}" style="vertical-align: middle; margin-right: 8px;">` : '';
+                `<img src="${product.imageUrl}" 
+                     class="photo-thumbnail-small" 
+                     alt="${escapeHtml(product.name)}" 
+                     style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:2px solid #e0e0e0; margin-right:8px; vertical-align:middle;"
+                     onerror="this.style.display='none'; console.error('Failed to load image for: ${escapeHtml(product.name)}');">` : '';
             
             html += `
                 <div class="multi-select-item">
@@ -2305,6 +2308,9 @@ function populateMultiSelect() {
         });
     
     container.innerHTML = html || '<small class="text-muted">No products available</small>';
+    
+    // Debug: Log how many products are shown
+    console.log(`Multi-select populated with ${cachedProducts.filter(p => p.stock > 0).length} products`);
 }
 
 
@@ -3436,7 +3442,6 @@ function showAllProducts() {
   renderProducts();
 }
 
-// Show photo products (grid view)
 function showPhotoProducts() {
   document.getElementById('btnAllView').classList.remove('active');
   document.getElementById('btnPhotoView').classList.add('active');
@@ -3446,14 +3451,22 @@ function showPhotoProducts() {
   photoGrid.style.display = 'flex';
   photoGrid.innerHTML = '';
   
-  const photoProducts = cachedProducts.filter(p => p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...');
+  // Filter photo products
+  const photoProducts = cachedProducts.filter(p => {
+    const hasImage = p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...';
+    console.log(`Product "${p.name}": imageUrl="${p.imageUrl}", showing=${hasImage}`);
+    return hasImage;
+  });
+  
+  console.log(`Found ${photoProducts.length} photo products`);
   
   if (photoProducts.length === 0) {
     photoGrid.innerHTML = `
       <div class="col-12">
         <div class="alert alert-info text-center">
-          <i class="bi bi-images"></i><br>
-          No photo products yet. Click <strong>"Product by Photo"</strong> to add one!
+          <i class="bi bi-images" style="font-size: 3rem;"></i><br>
+          <strong>No photo products yet.</strong><br>
+          Click <strong>"Product by Photo"</strong> to add one!
         </div>
       </div>
     `;
@@ -3465,22 +3478,22 @@ function showPhotoProducts() {
       `<span class="badge bg-success">Stock: ${product.stock}</span>` : 
       `<span class="badge bg-danger">Out of Stock</span>`;
     
-    const priceDisplay = product.price > 0 ? `₹${formatCurrency(product.price)}` : 'Price not set';
+    const priceDisplay = product.price > 0 ? `₹${product.price.toFixed(2)}` : 'Price not set';
     
     const card = `
       <div class="col">
         <div class="card h-100 shadow-sm">
           <img src="${product.imageUrl}" 
                class="card-img-top" 
-               alt="${product.name}" 
+               alt="${escapeHtml(product.name)}" 
                style="height:200px; object-fit:cover; cursor:pointer;" 
                onclick="viewPhotoProduct('${product.id}')"
-               onerror="this.src='https://via.placeholder.com/200?text=Image+Not+Found'">
+               onerror="this.onerror=null; this.src='https://via.placeholder.com/200?text=Image+Not+Found'; console.error('Failed to load image for card: ${escapeHtml(product.name)}');">
           <div class="card-body">
-            <h6 class="card-title">${product.name}</h6>
+            <h6 class="card-title">${escapeHtml(product.name)}</h6>
             <p class="card-text small mb-2">
-              ${product.brand ? `<strong>Brand:</strong> ${product.brand}<br>` : ''}
-              ${product.size ? `<strong>Size:</strong> ${product.size}<br>` : ''}
+              ${product.brand ? `<strong>Brand:</strong> ${escapeHtml(product.brand)}<br>` : ''}
+              ${product.size ? `<strong>Size:</strong> ${escapeHtml(product.size)}<br>` : ''}
               ${stockBadge}<br>
               <strong>Price:</strong> ${priceDisplay}
             </p>
@@ -3499,6 +3512,7 @@ function showPhotoProducts() {
     photoGrid.innerHTML += card;
   });
 }
+
 
 // View photo product enlarged
 function viewPhotoProduct(productId) {
@@ -4184,6 +4198,7 @@ function deleteSavedInvoice(index) {
 
 </body>
 </html>
+
 
 
 
