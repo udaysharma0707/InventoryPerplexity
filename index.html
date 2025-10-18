@@ -4387,7 +4387,7 @@ function shareImageToWhatsAppNumber() {
   }, 500);
 }
 
-// Send invoice image to specific WhatsApp number (OPTIMIZED FOR MOBILE)
+// Send invoice image to specific WhatsApp number (iOS + Android COMPATIBLE)
 async function sendInvoiceToWhatsApp() {
   const numberInput = document.getElementById('whatsappNumberInput');
   const phoneNumber = numberInput.value.trim();
@@ -4416,20 +4416,22 @@ async function sendInvoiceToWhatsApp() {
     numberModal.hide();
   }
   
+  // Detect iOS
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
   // Show loading
-  showLoading('Generating invoice image...');
+  showLoading('Preparing invoice for WhatsApp...');
   
   try {
     // Get invoice data
     const invoiceData = collectInvoiceData();
     
-    // Generate invoice HTML in hidden container
+    // Generate invoice HTML
     const tempContainer = document.createElement('div');
     tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;background:white;width:800px;padding:40px;';
     tempContainer.innerHTML = generateInvoiceHTMLForImage(invoiceData);
     document.body.appendChild(tempContainer);
     
-    // Wait for fonts to load
     await document.fonts.ready;
     
     // Convert to canvas
@@ -4441,75 +4443,110 @@ async function sendInvoiceToWhatsApp() {
       windowHeight: tempContainer.scrollHeight
     });
     
-    // Remove temp container
     document.body.removeChild(tempContainer);
     
     hideLoading();
     
     // Full phone number with country code
-    const fullNumber = '91' + phoneNumber; // India country code
+    const fullNumber = '91' + phoneNumber;
     
     // Convert canvas to blob
     canvas.toBlob(async (blob) => {
       const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.customerName.replace(/\s+/g, '_')}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
       
-      // ✅ MOBILE: Try WhatsApp-specific share first
-      if (isMobileDevice()) {
-        try {
-          // Method 1: Try WhatsApp Intent URL (Works on Android)
-          if (navigator.userAgent.toLowerCase().includes('android')) {
-            // Create temporary URL for the image
-            const imageUrl = canvas.toDataURL('image/png');
-            
-            // Try WhatsApp intent with image data
-            const whatsappIntentUrl = `whatsapp://send?phone=${fullNumber}&text=${encodeURIComponent('Invoice ' + invoiceData.invoiceNumber)}`;
-            
-            // First download the image
-            downloadInvoiceImage(canvas, fileName);
-            
-            // Then open WhatsApp after short delay
-            setTimeout(() => {
-              window.location.href = whatsappIntentUrl;
-            }, 500);
-            
-            alert('📸 Invoice image downloaded!\n\n📱 WhatsApp will open now. Please:\n1. Tap "Attach" (📎)\n2. Select "Gallery"\n3. Choose the downloaded invoice\n4. Tap Send');
-            return;
-          }
+      // ✅ iOS FIX: Different handling for iPhone
+      if (isIOS) {
+        // Step 1: Show the image in a new window for user to save manually
+        const imageUrl = canvas.toDataURL('image/png');
+        const newWindow = window.open('', '_blank');
+        
+        if (newWindow) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Invoice Image</title>
+              <style>
+                body { margin: 0; padding: 20px; text-align: center; background: #f0f0f0; }
+                img { max-width: 100%; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+                .instructions {
+                  background: white;
+                  padding: 20px;
+                  border-radius: 10px;
+                  margin: 20px auto;
+                  max-width: 90%;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                button {
+                  background: #25D366;
+                  color: white;
+                  border: none;
+                  padding: 15px 30px;
+                  border-radius: 25px;
+                  font-size: 16px;
+                  font-weight: bold;
+                  margin: 10px;
+                  cursor: pointer;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="instructions">
+                <h2 style="color: #25D366;">📱 Save & Share Invoice</h2>
+                <ol style="text-align: left; line-height: 1.8;">
+                  <li><strong>Tap and hold</strong> on the invoice image below</li>
+                  <li>Select <strong>"Add to Photos"</strong> or <strong>"Save Image"</strong></li>
+                  <li>Click the <strong>"Open WhatsApp"</strong> button below</li>
+                  <li>In WhatsApp, tap <strong>📎</strong> → <strong>Gallery</strong> → Select invoice → Send</li>
+                </ol>
+                <button onclick="openWhatsApp()">📱 Open WhatsApp Chat</button>
+              </div>
+              
+              <img src="${imageUrl}" alt="Invoice">
+              
+              <script>
+                function openWhatsApp() {
+                  window.location.href = 'whatsapp://send?phone=${fullNumber}&text=${encodeURIComponent('Invoice ' + invoiceData.invoiceNumber + ' - ₹' + invoiceData.total.toFixed(2))}';
+                }
+              </script>
+            </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } else {
+          // Popup blocked - fallback to download
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = imageUrl;
+          link.click();
           
-          // Method 2: Try native share with files (iOS & modern Android)
-          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            // Store the number for WhatsApp deep link
-            sessionStorage.setItem('pendingWhatsAppNumber', fullNumber);
-            
-            await navigator.share({
-              title: `Invoice ${invoiceData.invoiceNumber}`,
-              text: `Invoice for ${invoiceData.customerName} - ₹${invoiceData.total.toFixed(2)}`,
-              files: [file]
-            });
-            
-            // After user selects WhatsApp from share menu, open the specific contact
-            setTimeout(() => {
-              const savedNumber = sessionStorage.getItem('pendingWhatsAppNumber');
-              if (savedNumber) {
-                window.location.href = `whatsapp://send?phone=${savedNumber}`;
-                sessionStorage.removeItem('pendingWhatsAppNumber');
-              }
-            }, 1000);
-            
-            console.log('✅ Shared invoice image via native share');
-            return;
-          }
-          
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Mobile share failed:', err);
-          }
+          // Open WhatsApp after short delay
+          setTimeout(() => {
+            window.location.href = `whatsapp://send?phone=${fullNumber}&text=${encodeURIComponent('Invoice ' + invoiceData.invoiceNumber)}`;
+          }, 500);
         }
+        
+      } else {
+        // Android/Desktop: Standard download method
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        // Show notification
+        alert(`✅ Invoice downloaded: ${fileName}\n\n📱 WhatsApp will open now. Attach the downloaded invoice from Gallery.`);
+        
+        // Open WhatsApp
+        setTimeout(() => {
+          const message = encodeURIComponent(
+            `📄 Invoice ${invoiceData.invoiceNumber}\n` +
+            `Customer: ${invoiceData.customerName}\n` +
+            `Amount: ₹${invoiceData.total.toFixed(2)}`
+          );
+          window.location.href = `whatsapp://send?phone=${fullNumber}&text=${message}`;
+        }, 1000);
       }
-      
-      // ✅ FALLBACK: Download + Open WhatsApp
-      fallbackWhatsAppShare(fullNumber, invoiceData, canvas, fileName);
       
     }, 'image/png', 0.95);
     
@@ -4519,6 +4556,7 @@ async function sendInvoiceToWhatsApp() {
     alert('❌ Error generating invoice image. Please try again.');
   }
 }
+
 
 // Helper: Detect mobile device
 function isMobileDevice() {
@@ -4930,6 +4968,7 @@ function hideLoading() {
 
 </body>
 </html>
+
 
 
 
