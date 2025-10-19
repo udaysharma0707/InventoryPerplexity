@@ -1030,7 +1030,17 @@
   </div>
   
  <!-- REPLACE WITH THIS: -->
-<div class="sidebar-item" onclick="navigateToAllProducts()">
+
+// NEW (with safety check):
+<div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
+  <i class="bi bi-box"></i>
+  <span>All Products</span>
+</div>
+
+<div class="sidebar-item" onclick="if(typeof navigateToProductGroups === 'function') navigateToProductGroups()">
+  <i class="bi bi-collection"></i>
+  <span>Products in Group</span>
+</div>
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
@@ -2325,6 +2335,7 @@
    * CONFIG
    ***********************/
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZfR0Tw74waJrLu30TjiUGmYPCLmilh7oPd4ZqRTRl1q5DGhPna0vpqwDXdKFIs6gj/exec'; // <-- replace with your deployed URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZfR0Tw74waJrLu30TjiUGmYPCLmilh7oPd4ZqRTRl1q5DGhPna0vpqwDXdKFIs6gj/exec';
   let cachedProducts = [];
   let cachedSales = [];
 
@@ -6352,14 +6363,22 @@ function sidebarAction(action) {
 function navigateToHome() {
   currentPage = 'home';
   
-  // Hide all page views
-  document.getElementById('mainApp').style.display = 'block';
-  document.getElementById('allProductsPage').classList.remove('active');
-  document.getElementById('productGroupsPage').classList.remove('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  // Show home, hide all page views
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
   
-  // Close sidebar if open
-  closeSidebar();
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'block';
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  
+  // Close sidebar if exists
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6370,36 +6389,53 @@ function navigateToAllProducts() {
   currentPage = 'allProducts';
   
   // Show All Products page, hide others
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('allProductsPage').classList.add('active');
-  document.getElementById('productGroupsPage').classList.remove('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'none';
+  if (allProductsPage) allProductsPage.classList.add('active');
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
   
   // Render products
   renderAllProductsList();
   
   // Close sidebar
-  closeSidebar();
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 // Navigate to Product Groups page
 function navigateToProductGroups() {
   currentPage = 'productGroups';
   
   // Show Product Groups page, hide others
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('allProductsPage').classList.remove('active');
-  document.getElementById('productGroupsPage').classList.add('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'none';
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (productGroupsPage) productGroupsPage.classList.add('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
   
   // Load and render product groups
   syncProductGroups();
   
   // Close sidebar
-  closeSidebar();
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6685,6 +6721,16 @@ function filterGroupVariants() {
 
 // Sync Product Groups from server
 async function syncProductGroups() {
+  // ✅ Check if SCRIPT_URL is defined
+  if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) {
+    console.error('❌ SCRIPT_URL is not defined');
+    const groupsListEl = document.getElementById('productGroupsList');
+    const emptyStateEl = document.getElementById('groupsEmptyState');
+    if (groupsListEl) groupsListEl.innerHTML = '';
+    if (emptyStateEl) emptyStateEl.style.display = 'block';
+    return;
+  }
+  
   try {
     showLoading('Loading product groups...');
     
@@ -6704,18 +6750,23 @@ async function syncProductGroups() {
       renderProductGroupsList();
       
       // Update dashboard counter
-      updateDashboard();
+      if (typeof updateSummaryFromCache === 'function') {
+        updateSummaryFromCache();
+      }
     } else {
       console.error('Failed to load product groups:', data.error);
-      showError('Failed to load product groups');
+      // Show empty state instead of error
+      renderProductGroupsList();
     }
     
   } catch (error) {
     hideLoading();
     console.error('Error syncing product groups:', error);
-    showError('Error loading product groups');
+    // Show empty state
+    renderProductGroupsList();
   }
 }
+
 
 // Sync variants for specific group
 async function syncGroupVariants(groupId) {
@@ -7074,6 +7125,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
