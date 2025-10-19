@@ -1029,19 +1029,16 @@
     <span>Add Users</span>
   </div>
   
- <!-- REPLACE WITH THIS: -->
-
-<!-- FIND your sidebar items and make sure they look like this: -->
-
-<div class="sidebar-item" onclick="closeSidebar(); navigateToAllProducts();">
+ <div class="sidebar-item" onclick="handleSidebarClick('allProducts')">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
 
-<div class="sidebar-item" onclick="closeSidebar(); navigateToProductGroups();">
+<div class="sidebar-item" onclick="handleSidebarClick('productGroups')">
   <i class="bi bi-collection"></i>
   <span>Products in Group</span>
 </div>
+
 
   
   <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
@@ -2332,6 +2329,16 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylnIzZrmCRAH_b7FYKRjNI6JDFBi7BXX0IbEgEa7dXxlp9i3ZZSqxo89e9bk7G3H24/exec';
   let cachedProducts = [];
   let cachedSales = [];
+// Handle sidebar navigation clicks
+function handleSidebarClick(page) {
+  closeSidebar();
+  
+  if (page === 'allProducts') {
+    navigateToAllProducts();
+  } else if (page === 'productGroups') {
+    navigateToProductGroups();
+  }
+}
 
 /**
  * ==========================================
@@ -2539,6 +2546,8 @@ function goToGroupStep1() {
   document.getElementById('groupSaveBtn').style.display = 'none';
   document.getElementById('groupBackBtn').style.display = 'none';
 }
+
+    
 
 // Render variant detail forms (Step 2)
 function renderVariantDetailForms() {
@@ -7122,6 +7131,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
