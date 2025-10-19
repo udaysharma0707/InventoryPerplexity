@@ -1404,6 +1404,14 @@
         <i class="bi bi-plus-lg"></i> Add
       </button>
     </div>
+
+    
+  <!-- ✅ ADD THIS CONTAINER -->
+  <div id="allProductsList">
+    <!-- Products will be rendered here -->
+  </div>
+</div>
+
     
     <!-- Search Bar -->
     <div class="mb-3">
@@ -2329,6 +2337,17 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztoJXxCdcZgykPLYjFnmeSwSwAyU2rXlOCR3C0A0mjm-Q-v1O6KL_yl2_iWyfdvPkh/exec';
   let cachedProducts = [];
   let cachedSales = [];
+
+
+    
+// Close Sidebar
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
 // Handle sidebar navigation clicks
 function handleSidebarClick(page) {
   closeSidebar();
@@ -2339,6 +2358,7 @@ function handleSidebarClick(page) {
     navigateToProductGroups();
   }
 }
+
 
 /**
  * ==========================================
@@ -6327,14 +6347,7 @@ function toggleSidebar() {
   }
 }
 
-// Close Sidebar
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
-}
+
 
 // ✅ UPDATE: Go to Home function
 function goToHome() {
@@ -6386,31 +6399,35 @@ function navigateToHome() {
 
 // Navigate to All Products page
 function navigateToAllProducts() {
+  console.log('📦 Navigating to All Products');
+  
   currentPage = 'allProducts';
   
-  // Show All Products page, hide others
   const mainApp = document.getElementById('mainApp');
   const allProductsPage = document.getElementById('allProductsPage');
   const productGroupsPage = document.getElementById('productGroupsPage');
   const groupDetailPage = document.getElementById('groupDetailPage');
   
-  // ✅ NULL CHECKS
+  console.log('Elements found:', {
+    mainApp: !!mainApp,
+    allProductsPage: !!allProductsPage,
+    productGroupsPage: !!productGroupsPage,
+    groupDetailPage: !!groupDetailPage
+  });
+  
   if (mainApp) mainApp.style.display = 'none';
-  if (allProductsPage) allProductsPage.classList.add('active');
+  if (allProductsPage) {
+    allProductsPage.classList.add('active');
+    console.log('✅ All Products page activated');
+  }
   if (productGroupsPage) productGroupsPage.classList.remove('active');
   if (groupDetailPage) groupDetailPage.classList.remove('active');
   
-  // Render products
   renderAllProductsList();
   
-  // Close sidebar
-  if (typeof closeSidebar === 'function') {
-    closeSidebar();
-  }
-  
-  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 
 // Navigate to Product Groups page
@@ -7131,6 +7148,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
