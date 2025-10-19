@@ -2291,16 +2291,38 @@ async function syncFromGoogleSheets() {
     updateSummaryFromCache();
   }
 
-  function updateSummaryFromCache(){
-    if(!hasInitialLoaded){ document.getElementById('totalProducts').textContent='Loading...'; document.getElementById('salesToday').textContent='Loading...'; document.getElementById('lowStock').textContent='Loading...'; return; }
-    document.getElementById('totalProducts').textContent = (cachedProducts||[]).length;
-    const today = new Date().toDateString();
-    const todaySales = (cachedSales||[]).filter(s => new Date(s.date).toDateString() === today);
-    const sum = todaySales.reduce((acc,s) => acc + parseFloat(s.totalAmount||0), 0);
-    document.getElementById('salesToday').textContent = 'Ã¢â€šÂ¹' + sum.toFixed(2);
-    const low = (cachedProducts||[]).filter(p => p.stock <= p.minStock && p.stock > 0).length;
-    document.getElementById('lowStock').textContent = low;
+  function updateSummaryFromCache() {
+  // Update Total Products
+  const totalProductsEl = document.getElementById('totalProducts');
+  if (totalProductsEl) {
+    totalProductsEl.textContent = cachedProducts.length;
   }
+  
+  // Update Low Stock Items
+  const lowStockCount = cachedProducts.filter(p => p.stock <= p.minStock).length;
+  const lowStockEl = document.getElementById('lowStock');
+  if (lowStockEl) {
+    lowStockEl.textContent = lowStockCount;
+  }
+  
+  // ✅ NEW: Update Products in Group (display only for now)
+  const productsInGroupEl = document.getElementById('productsInGroup');
+  if (productsInGroupEl) {
+    productsInGroupEl.textContent = '0'; // Placeholder - implement later
+  }
+  
+  // ✅ NEW: Update Inventory Summary (display only for now)
+  const quantityInHandEl = document.getElementById('quantityInHand');
+  if (quantityInHandEl) {
+    quantityInHandEl.textContent = '0'; // Placeholder - implement later
+  }
+  
+  const quantityToBeReceivedEl = document.getElementById('quantityToBeReceived');
+  if (quantityToBeReceivedEl) {
+    quantityToBeReceivedEl.textContent = '0'; // Placeholder - implement later
+  }
+}
+
 
   /***********************
    * Utility: build product selects including custom in-sale items
@@ -5344,6 +5366,7 @@ function sidebarAction(action) {
 
 </body>
 </html>
+
 
 
 
