@@ -6714,13 +6714,7 @@ function filterGroupVariants() {
 
 // Sync Product Groups from server
 async function syncProductGroups() {
-  // Check if SCRIPT_URL is defined
-  if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) {
-    console.error('❌ SCRIPT_URL is not defined');
-    cachedProductGroups = []; // Empty array
-    renderProductGroupsList(); // Show empty state
-    return;
-  }
+  console.log('🔄 Syncing product groups...');
   
   try {
     const params = new URLSearchParams({
@@ -6729,11 +6723,16 @@ async function syncProductGroups() {
       hash: localStorage.getItem('userHash') || ''
     });
     
+    console.log('📤 Fetching:', `${SCRIPT_URL}?${params.toString()}`);
+    
     const response = await fetch(`${SCRIPT_URL}?${params.toString()}`);
     const data = await response.json();
     
+    console.log('📥 Response:', data);
+    
     if (data.ok && data.groups) {
       cachedProductGroups = data.groups;
+      console.log('✅ Loaded', data.groups.length, 'groups');
       renderProductGroupsList();
       
       // Update dashboard counter
@@ -6741,18 +6740,18 @@ async function syncProductGroups() {
         updateSummaryFromCache();
       }
     } else {
-      // ✅ Handle error gracefully
-      console.warn('Product groups not available:', data.error);
-      cachedProductGroups = []; // Empty array
-      renderProductGroupsList(); // Show empty state
+      console.warn('⚠️ No groups or error:', data);
+      cachedProductGroups = [];
+      renderProductGroupsList();
     }
     
   } catch (error) {
-    console.error('Error syncing product groups:', error);
-    cachedProductGroups = []; // Empty array
-    renderProductGroupsList(); // Show empty state
+    console.error('❌ Error syncing product groups:', error);
+    cachedProductGroups = [];
+    renderProductGroupsList();
   }
 }
+
 
 
 
@@ -7125,6 +7124,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
