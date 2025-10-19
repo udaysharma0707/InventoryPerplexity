@@ -6721,19 +6721,15 @@ function filterGroupVariants() {
 
 // Sync Product Groups from server
 async function syncProductGroups() {
-  // ✅ Check if SCRIPT_URL is defined
+  // Check if SCRIPT_URL is defined
   if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) {
     console.error('❌ SCRIPT_URL is not defined');
-    const groupsListEl = document.getElementById('productGroupsList');
-    const emptyStateEl = document.getElementById('groupsEmptyState');
-    if (groupsListEl) groupsListEl.innerHTML = '';
-    if (emptyStateEl) emptyStateEl.style.display = 'block';
+    cachedProductGroups = []; // Empty array
+    renderProductGroupsList(); // Show empty state
     return;
   }
   
   try {
-    showLoading('Loading product groups...');
-    
     const params = new URLSearchParams({
       action: 'getProductGroups',
       email: localStorage.getItem('userEmail') || '',
@@ -6742,8 +6738,6 @@ async function syncProductGroups() {
     
     const response = await fetch(`${SCRIPT_URL}?${params.toString()}`);
     const data = await response.json();
-    
-    hideLoading();
     
     if (data.ok && data.groups) {
       cachedProductGroups = data.groups;
@@ -6754,18 +6748,19 @@ async function syncProductGroups() {
         updateSummaryFromCache();
       }
     } else {
-      console.error('Failed to load product groups:', data.error);
-      // Show empty state instead of error
-      renderProductGroupsList();
+      // ✅ Handle error gracefully
+      console.warn('Product groups not available:', data.error);
+      cachedProductGroups = []; // Empty array
+      renderProductGroupsList(); // Show empty state
     }
     
   } catch (error) {
-    hideLoading();
     console.error('Error syncing product groups:', error);
-    // Show empty state
-    renderProductGroupsList();
+    cachedProductGroups = []; // Empty array
+    renderProductGroupsList(); // Show empty state
   }
 }
+
 
 
 // Sync variants for specific group
@@ -6820,12 +6815,24 @@ async function syncAllVariants() {
       if (counter) {
         counter.textContent = totalVariants;
       }
+    } else {
+      // ✅ Set to 0 if not available
+      const counter = document.getElementById('productsInGroup');
+      if (counter) {
+        counter.textContent = '0';
+      }
     }
     
   } catch (error) {
     console.error('Error syncing all variants:', error);
+    // ✅ Set to 0 on error
+    const counter = document.getElementById('productsInGroup');
+    if (counter) {
+      counter.textContent = '0';
+    }
   }
 }
+
 /**
  * ==========================================
  * DELETE CONFIRMATION FUNCTIONS
@@ -7125,6 +7132,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
