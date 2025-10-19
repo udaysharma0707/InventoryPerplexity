@@ -4387,20 +4387,20 @@ function shareImageToWhatsAppNumber() {
   }, 500);
 }
 
-// Send invoice image to specific WhatsApp number (iOS + Android COMPATIBLE)
+// Send invoice image to specific WhatsApp number (FINAL FIX - NO STRING ESCAPING ISSUES)
 async function sendInvoiceToWhatsApp() {
   const numberInput = document.getElementById('whatsappNumberInput');
   const phoneNumber = numberInput.value.trim();
   
   // Validation
   if (!phoneNumber) {
-    alert('âŒ Please enter WhatsApp number');
+    alert('❌ Please enter WhatsApp number');
     numberInput.focus();
     return;
   }
   
   if (!/^[0-9]{10}$/.test(phoneNumber)) {
-    alert('âŒ Please enter a valid 10-digit mobile number');
+    alert('❌ Please enter a valid 10-digit mobile number');
     numberInput.focus();
     return;
   }
@@ -4420,7 +4420,7 @@ async function sendInvoiceToWhatsApp() {
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   
   // Show loading
-  showLoading('Preparing invoice...');
+  showLoading('Preparing invoice for WhatsApp...');
   
   try {
     // Get invoice data
@@ -4452,65 +4452,102 @@ async function sendInvoiceToWhatsApp() {
     
     // Convert canvas to blob
     canvas.toBlob(async (blob) => {
-      const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.customerName.replace(/\s+/g, '_')}.png`;
+      const fileName = 'Invoice_' + invoiceData.invoiceNumber + '_' + invoiceData.customerName.replace(/\s+/g, '_') + '.png';
       
-      // âœ… STEP 1: Download/Save image
+      // iOS FIX: Different handling for iPhone
       if (isIOS) {
-        // iOS: Open image in new tab
-        const url = URL.createObjectURL(blob);
-        const imageWindow = window.open();
-        imageWindow.document.write(`<img src="${url}" style="max-width:100%;">`);
+        // Step 1: Show the image in a new window for user to save manually
+        const imageUrl = canvas.toDataURL('image/png');
+        const newWindow = window.open('', '_blank');
         
-        setTimeout(() => {
-          alert('ðŸ“¸ Tap and hold the image, then select "Add to Photos".\n\n After saving, tap "Done" to return here.');
-          URL.revokeObjectURL(url);
-        }, 1000);
+        if (newWindow) {
+          // ✅ FINAL FIX: Build HTML using DOM methods (no string escaping needed!)
+          const doc = newWindow.document;
+          doc.open();
+          doc.write('<!DOCTYPE html><html><head>');
+          doc.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
+          doc.write('<title>Invoice Image</title>');
+          
+          // Add styles
+          const style = doc.createElement('style');
+          style.textContent = 
+            'body { margin: 0; padding: 20px; text-align: center; background: #f0f0f0; font-family: Arial, sans-serif; }' +
+            'img { max-width: 100%; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-top: 20px; }' +
+            '.instructions { background: white; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 90%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }' +
+            'button { background: #25D366; color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; margin: 10px; cursor: pointer; }' +
+            'ol { text-align: left; line-height: 1.8; }';
+          doc.head.appendChild(style);
+          doc.write('</head><body>');
+          
+          // Add instructions
+          doc.write('<div class="instructions">');
+          doc.write('<h2 style="color: #25D366;">📱 Save & Share Invoice</h2>');
+          doc.write('<ol>');
+          doc.write('<li><strong>Tap and hold</strong> on the invoice image below</li>');
+          doc.write('<li>Select <strong>"Add to Photos"</strong> or <strong>"Save Image"</strong></li>');
+          doc.write('<li>Click the <strong>"Open WhatsApp"</strong> button below</li>');
+          doc.write('<li>In WhatsApp, tap <strong>📎</strong> → <strong>Gallery</strong> → Select invoice → Send</li>');
+          doc.write('</ol>');
+          doc.write('<button id="waBtn">📱 Open WhatsApp Chat</button>');
+          doc.write('</div>');
+          
+          // Add image
+          doc.write('<img src="' + imageUrl + '" alt="Invoice">');
+          
+          doc.write('</body></html>');
+          doc.close();
+          
+          // Add WhatsApp button click handler
+          const waBtn = doc.getElementById('waBtn');
+          if (waBtn) {
+            waBtn.onclick = function() {
+              const waUrl = 'whatsapp://send?phone=' + fullNumber + '&text=' + 
+                encodeURIComponent('Invoice ' + invoiceData.invoiceNumber + ' - ₹' + invoiceData.total.toFixed(2));
+              newWindow.location.href = waUrl;
+            };
+          }
+          
+        } else {
+          // Popup blocked - fallback to download
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = imageUrl;
+          link.click();
+          
+          // Open WhatsApp after short delay
+          setTimeout(function() {
+            window.location.href = 'whatsapp://send?phone=' + fullNumber + '&text=' + 
+              encodeURIComponent('Invoice ' + invoiceData.invoiceNumber);
+          }, 500);
+        }
         
       } else {
-        // Android/Desktop: Standard download
+        // Android/Desktop: Standard download method
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/png');
         link.click();
         
-        showDownloadNotification(fileName);
+        // Show notification
+        alert('✅ Invoice downloaded: ' + fileName + '\n\n📱 WhatsApp will open now. Attach the downloaded invoice from Gallery.');
+        
+        // Open WhatsApp
+        setTimeout(function() {
+          const message = encodeURIComponent(
+            '📄 Invoice ' + invoiceData.invoiceNumber + '\n' +
+            'Customer: ' + invoiceData.customerName + '\n' +
+            'Amount: ₹' + invoiceData.total.toFixed(2)
+          );
+          window.location.href = 'whatsapp://send?phone=' + fullNumber + '&text=' + message;
+        }, 1000);
       }
-      
-      // âœ… STEP 2: Open WhatsApp after delay
-      setTimeout(() => {
-        const message = encodeURIComponent(
-          `ðŸ“„ Invoice ${invoiceData.invoiceNumber}\n` +
-          `Customer: ${invoiceData.customerName}\n` +
-          `Amount: â‚¹${invoiceData.total.toFixed(2)}`
-        );
-        
-        const whatsappUrl = `whatsapp://send?phone=${fullNumber}&text=${message}`;
-        
-        if (isIOS) {
-          // âœ… iOS FIX: Use window.open() instead of location.href
-          const wa = window.open(whatsappUrl, '_self');
-          if (!wa) {
-            // If blocked, try alternative
-            window.location.href = whatsappUrl;
-          }
-        } else {
-          // Android: location.href works fine
-          window.location.href = whatsappUrl;
-        }
-        
-        // Show instructions
-        setTimeout(() => {
-          showWhatsAppInstructions(invoiceData);
-        }, isIOS ? 500 : 1500);
-        
-      }, isIOS ? 3000 : 1000); // iOS needs more time to save image
       
     }, 'image/png', 0.95);
     
   } catch (error) {
     hideLoading();
     console.error('Error generating invoice image:', error);
-    alert('âŒ Error generating invoice image. Please try again.');
+    alert('❌ Error generating invoice image. Please try again.');
   }
 }
 
@@ -4925,6 +4962,7 @@ function hideLoading() {
 
 </body>
 </html>
+
 
 
 
