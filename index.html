@@ -566,6 +566,148 @@
   }
 }
 
+/* ==========================================
+   SIDEBAR MENU (Zoho-style)
+   ========================================== */
+
+/* Sidebar Container */
+.sidebar-menu {
+  position: fixed;
+  left: -280px;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+}
+
+.sidebar-menu.open {
+  left: 0;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  padding: 25px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  color: white;
+}
+
+.sidebar-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Menu Section Title */
+.sidebar-section-title {
+  padding: 15px 20px 8px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Menu Items */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar-item i {
+  font-size: 18px;
+  margin-right: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-item span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sidebar-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebar-item.disabled:hover {
+  background: transparent;
+}
+
+/* Hamburger Menu Button */
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1002;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+  display: block;
+  opacity: 1;
+}
+
+/* Scrollbar for sidebar */
+.sidebar-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
 
 
 
@@ -579,6 +721,147 @@
   </style>
 </head>
 <body>
+
+  <!-- ==========================================
+     SIDEBAR MENU (Zoho-style)
+     ========================================== -->
+
+<!-- Hamburger Menu Button -->
+<button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">
+  <i class="bi bi-list"></i>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar Menu -->
+<nav class="sidebar-menu" id="sidebarMenu">
+  
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <i class="bi bi-boxes" style="font-size: 32px;"></i>
+    <h4>Menu</h4>
+  </div>
+  
+  <!-- Home -->
+  <div class="sidebar-item" onclick="goToHome()">
+    <i class="bi bi-house-door"></i>
+    <span>Home</span>
+  </div>
+  
+  <!-- GENERAL Section -->
+  <div class="sidebar-section-title">GENERAL</div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('addUsers')">
+    <i class="bi bi-person-plus"></i>
+    <span>Add Users</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('item')">
+    <i class="bi bi-box"></i>
+    <span>Item</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('itemGroups')">
+    <i class="bi bi-collection"></i>
+    <span>Item Groups</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
+    <i class="bi bi-sliders"></i>
+    <span>Inventory Adjustments</span>
+  </div>
+  
+  <!-- SALES Section -->
+  <div class="sidebar-section-title">SALES</div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('customer')">
+    <i class="bi bi-person"></i>
+    <span>Customer</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('invoices')">
+    <i class="bi bi-receipt"></i>
+    <span>Invoices</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('salesReceipts')">
+    <i class="bi bi-cash-stack"></i>
+    <span>Sales Receipts</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('salesOrder')">
+    <i class="bi bi-cart-check"></i>
+    <span>Sales Order</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('packages')">
+    <i class="bi bi-box-seam"></i>
+    <span>Packages</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('shipment')">
+    <i class="bi bi-truck"></i>
+    <span>Shipment</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('customerPayment')">
+    <i class="bi bi-credit-card"></i>
+    <span>Customer Payment</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('creditNotes')">
+    <i class="bi bi-file-text"></i>
+    <span>Credit Notes</span>
+  </div>
+  
+  <!-- PURCHASES Section -->
+  <div class="sidebar-section-title">PURCHASES</div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('vendor')">
+    <i class="bi bi-building"></i>
+    <span>Vendor</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('expenses')">
+    <i class="bi bi-cash-coin"></i>
+    <span>Expenses</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('bills')">
+    <i class="bi bi-file-earmark-text"></i>
+    <span>Bills</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('purchaseOrders')">
+    <i class="bi bi-bag-check"></i>
+    <span>Purchase Orders</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('purchaseReceives')">
+    <i class="bi bi-inbox"></i>
+    <span>Purchase Receives</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('vendorPayment')">
+    <i class="bi bi-wallet2"></i>
+    <span>Vendor Payment</span>
+  </div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('vendorCredits')">
+    <i class="bi bi-arrow-left-circle"></i>
+    <span>Vendor Credits</span>
+  </div>
+  
+  <!-- Settings -->
+  <div class="sidebar-section-title">SYSTEM</div>
+  
+  <div class="sidebar-item disabled" onclick="sidebarAction('settings')">
+    <i class="bi bi-gear"></i>
+    <span>Settings</span>
+  </div>
+  
+</nav>
 
 
 
@@ -713,12 +996,65 @@
 </div>
 
 
-    <!-- Summary -->
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-box-seam text-primary" style="font-size:2rem"></i><h3 id="totalProducts" class="mt-2">0</h3><p class="text-muted mb-0">Total Products</p></div></div></div>
-      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">â‚¹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
-      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem"></i><h3 id="lowStock" class="mt-2">0</h3><p class="text-muted mb-0">Low Stock Items</p></div></div></div>
+   <!-- Dashboard Cards - Updated Structure -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+  
+  <!-- 1. Total Products -->
+  <div class="col">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body text-center">
+        <i class="bi bi-box" style="font-size: 3rem; color: #0d6efd;"></i>
+        <h2 class="mt-3 mb-0" id="totalProducts">0</h2>
+        <p class="text-muted mb-0">Total Products</p>
+      </div>
     </div>
+  </div>
+  
+  <!-- 2. Products in Group (New - Display Only) -->
+  <div class="col">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body text-center">
+        <i class="bi bi-collection" style="font-size: 3rem; color: #6f42c1;"></i>
+        <h2 class="mt-3 mb-0" id="productsInGroup">0</h2>
+        <p class="text-muted mb-0">Products in Group</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 3. Low Stock Items -->
+  <div class="col">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body text-center">
+        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #dc3545;"></i>
+        <h2 class="mt-3 mb-0" id="lowStock">0</h2>
+        <p class="text-muted mb-0">Low Stock Items</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 4. Inventory Summary (New - Display Only) -->
+  <div class="col">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <i class="bi bi-layers" style="font-size: 2.5rem; color: #20c997;"></i>
+          <h6 class="mt-2 mb-0">Inventory Summary</h6>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted small">Quantity in Hand</span>
+          <span class="fw-bold" id="quantityInHand">0</span>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Quantity to be Received</span>
+          <span class="fw-bold" id="quantityToBeReceived">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
 
     <!-- Search -->
     <div class="row mb-3">
@@ -5064,6 +5400,52 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+/**
+ * ==========================================
+ * SIDEBAR MENU FUNCTIONALITY
+ * ==========================================
+ */
+
+// Toggle Sidebar
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  if (sidebar.classList.contains('open')) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+  }
+}
+
+// Close Sidebar
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+// Go to Home (reloads main page)
+function goToHome() {
+  closeSidebar();
+  // Scroll to top of page
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Show all products view if in photos view
+  if (document.getElementById('btnPhotoView').classList.contains('active')) {
+    showAllProducts();
+  }
+}
+
+// Sidebar Action (placeholder)
+function sidebarAction(action) {
+  console.log('Sidebar action:', action);
+  alert('⏳ "' + action.replace(/([A-Z])/g, ' $1').trim() + '" feature coming soon!\n\nThis will be implemented in the next phase.');
+  closeSidebar();
+}
 
 
 
@@ -5339,6 +5721,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
 
 
 
