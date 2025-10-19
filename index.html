@@ -9,9 +9,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
-  <!-- ✅ html2canvas for image generation -->
+  <!-- âœ… html2canvas for image generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- âœ… ADD THIS LINE -->
+  <!-- Ã¢Å“â€¦ ADD THIS LINE -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
@@ -41,7 +41,7 @@
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
 
-/* Ã¢Å“â€¦ NEW: Additional mobile fixes for Record Sale modal */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Additional mobile fixes for Record Sale modal */
 @media (max-width: 768px) {
     /* Specific fixes for salesModal only */
     #salesModal .modal-dialog {
@@ -287,7 +287,7 @@
 
 
     
-/* Ã¢Å“â€¦ NEW: Mobile Recent Sales Table Optimization */
+/* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Mobile Recent Sales Table Optimization */
 @media (max-width: 768px) {
     .table-responsive {
         font-size: 0.75rem;
@@ -402,466 +402,10 @@
     width: 100%;
 }
 
-/* ==========================================
-   QUICK CREATE PLUS ICON 
-   ========================================== */
-
-/* Floating Plus Button */
-.quick-create-btn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  border: none;
-  color: white;
-  font-size: 28px;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-  z-index: 1000;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quick-create-btn:hover {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
-}
-
-.quick-create-btn.active {
-  transform: rotate(45deg);
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-/* Dropdown Menu */
-.quick-create-menu {
-  position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 320px;
-  max-height: 600px;
-  overflow-y: auto;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  z-index: 999;
-  display: none;
-  animation: slideUp 0.3s ease-out;
-}
-
-.quick-create-menu.show {
-  display: block;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Menu Header */
-.quick-create-header {
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
-
-/* Menu Sections */
-.quick-create-section {
-  padding: 15px 20px 10px 20px;
-}
-
-.quick-create-section-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  letter-spacing: 0.5px;
-}
-
-/* Menu Items */
-.quick-create-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 15px;
-  margin-bottom: 5px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #333;
-  text-decoration: none;
-}
-
-.quick-create-item:hover {
-  background: #f5f5f5;
-  transform: translateX(5px);
-}
-
-.quick-create-item i {
-  font-size: 18px;
-  margin-right: 12px;
-  width: 20px;
-  text-align: center;
-  color: #667eea;
-}
-
-.quick-create-item span {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Disabled items (for later implementation) */
-.quick-create-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quick-create-item.disabled:hover {
-  background: transparent;
-  transform: none;
-}
-
-/* Scrollbar styling */
-.quick-create-menu::-webkit-scrollbar {
-  width: 6px;
-}
-
-.quick-create-menu::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.quick-create-menu::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.quick-create-menu::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .quick-create-menu {
-    right: 15px;
-    width: calc(100vw - 30px);
-    max-width: 320px;
-  }
-  
-  .quick-create-btn {
-    right: 15px;
-    bottom: 20px;
-  }
-}
-
-/* ==========================================
-   SIDEBAR MENU (Zoho-style)
-   ========================================== */
-
-/* Sidebar Container */
-.sidebar-menu {
-  position: fixed;
-  left: -280px;
-  top: 0;
-  width: 280px;
-  height: 100vh;
-  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  transition: left 0.3s ease;
-  overflow-y: auto;
-}
-
-.sidebar-menu.open {
-  left: 0;
-}
-
-/* Sidebar Header */
-.sidebar-header {
-  padding: 25px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-  color: white;
-}
-
-.sidebar-header h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* Menu Section Title */
-.sidebar-section-title {
-  padding: 15px 20px 8px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Menu Items */
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.sidebar-item i {
-  font-size: 18px;
-  margin-right: 15px;
-  width: 20px;
-  text-align: center;
-}
-
-.sidebar-item span {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.sidebar-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sidebar-item.disabled:hover {
-  background: transparent;
-}
-
-/* Hamburger Menu Button */
-.sidebar-toggle-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  z-index: 1002;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-}
-
-.sidebar-toggle-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-/* Overlay */
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.sidebar-overlay.show {
-  display: block;
-  opacity: 1;
-}
-
-/* Scrollbar for sidebar */
-.sidebar-menu::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar-menu::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-
-
-
-
-
-
-
-    
 
   </style>
 </head>
 <body>
-
-  <!-- ==========================================
-     SIDEBAR MENU (Zoho-style)
-     ========================================== -->
-
-<!-- Hamburger Menu Button -->
-<button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">
-  <i class="bi bi-list"></i>
-</button>
-
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<!-- Sidebar Menu -->
-<nav class="sidebar-menu" id="sidebarMenu">
-  
-  <!-- Sidebar Header -->
-  <div class="sidebar-header">
-    <i class="bi bi-boxes" style="font-size: 32px;"></i>
-    <h4>Menu</h4>
-  </div>
-  
-  <!-- Home -->
-  <div class="sidebar-item" onclick="goToHome()">
-    <i class="bi bi-house-door"></i>
-    <span>Home</span>
-  </div>
-  
-  <!-- GENERAL Section -->
-  <div class="sidebar-section-title">GENERAL</div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('addUsers')">
-    <i class="bi bi-person-plus"></i>
-    <span>Add Users</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('item')">
-    <i class="bi bi-box"></i>
-    <span>Item</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('itemGroups')">
-    <i class="bi bi-collection"></i>
-    <span>Item Groups</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
-    <i class="bi bi-sliders"></i>
-    <span>Inventory Adjustments</span>
-  </div>
-  
-  <!-- SALES Section -->
-  <div class="sidebar-section-title">SALES</div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('customer')">
-    <i class="bi bi-person"></i>
-    <span>Customer</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('invoices')">
-    <i class="bi bi-receipt"></i>
-    <span>Invoices</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('salesReceipts')">
-    <i class="bi bi-cash-stack"></i>
-    <span>Sales Receipts</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('salesOrder')">
-    <i class="bi bi-cart-check"></i>
-    <span>Sales Order</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('packages')">
-    <i class="bi bi-box-seam"></i>
-    <span>Packages</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('shipment')">
-    <i class="bi bi-truck"></i>
-    <span>Shipment</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('customerPayment')">
-    <i class="bi bi-credit-card"></i>
-    <span>Customer Payment</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('creditNotes')">
-    <i class="bi bi-file-text"></i>
-    <span>Credit Notes</span>
-  </div>
-  
-  <!-- PURCHASES Section -->
-  <div class="sidebar-section-title">PURCHASES</div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('vendor')">
-    <i class="bi bi-building"></i>
-    <span>Vendor</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('expenses')">
-    <i class="bi bi-cash-coin"></i>
-    <span>Expenses</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('bills')">
-    <i class="bi bi-file-earmark-text"></i>
-    <span>Bills</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('purchaseOrders')">
-    <i class="bi bi-bag-check"></i>
-    <span>Purchase Orders</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('purchaseReceives')">
-    <i class="bi bi-inbox"></i>
-    <span>Purchase Receives</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('vendorPayment')">
-    <i class="bi bi-wallet2"></i>
-    <span>Vendor Payment</span>
-  </div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('vendorCredits')">
-    <i class="bi bi-arrow-left-circle"></i>
-    <span>Vendor Credits</span>
-  </div>
-  
-  <!-- Settings -->
-  <div class="sidebar-section-title">SYSTEM</div>
-  
-  <div class="sidebar-item disabled" onclick="sidebarAction('settings')">
-    <i class="bi bi-gear"></i>
-    <span>Settings</span>
-  </div>
-  
-</nav>
 
 
 
@@ -875,7 +419,7 @@
         <h2 class="mb-3">Tile & Sanitaryware Inventory</h2>
         <p class="text-muted mb-4">Sign in to access inventory</p>
         
-        <!-- âœ… NEW: Email + Password Form -->
+        <!-- Ã¢Å“â€¦ NEW: Email + Password Form -->
         <form id="emailAuthForm" onsubmit="handleEmailPasswordAuth(event)">
           <div class="mb-3">
             <input 
@@ -889,7 +433,7 @@
             >
           </div>
           
-          <!-- âœ… NEW: Password Input with Toggle -->
+          <!-- Ã¢Å“â€¦ NEW: Password Input with Toggle -->
           <div class="mb-3 position-relative">
             <input 
               type="password" 
@@ -947,7 +491,7 @@
   <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
   <span id="userName" class="me-3">User</span>
 
-  <!-- âœ… NEW: Background sync indicator -->
+  <!-- Ã¢Å“â€¦ NEW: Background sync indicator -->
   <div id="backgroundSyncStatus">
     <i class="bi bi-cloud-upload-fill"></i>
     <span>Syncing</span>
@@ -955,7 +499,7 @@
 
 
           
-  <!-- âœ… NEW: Change Password Button -->
+  <!-- Ã¢Å“â€¦ NEW: Change Password Button -->
   <button class="btn btn-outline-light btn-sm me-2" onclick="openChangePasswordModal()">
     <i class="bi bi-key me-1"></i>Change Password
   </button>
@@ -967,7 +511,7 @@
 
 
 
-        <!-- Ã¢Å“â€¦ NEW: View Invoices Button -->
+        <!-- ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: View Invoices Button -->
       <button class="btn btn-success btn-sm" onclick="viewSavedInvoices()">
         <i class="bi bi-receipt-cutoff"></i> View Invoices
       </button>
@@ -985,7 +529,7 @@
     <i class="bi bi-plus-circle"></i> Add Product
   </button>
   
-  <!-- ✅ NEW: Photo Product Button -->
+  <!-- âœ… NEW: Photo Product Button -->
   <button class="btn btn-primary me-2" onclick="openPhotoProductModal()">
     <i class="bi bi-camera"></i> Product by Photo
   </button>
@@ -996,74 +540,21 @@
 </div>
 
 
-   <!-- Dashboard Cards - Updated Structure -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
-  
-  <!-- 1. Total Products -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-box" style="font-size: 3rem; color: #0d6efd;"></i>
-        <h2 class="mt-3 mb-0" id="totalProducts">0</h2>
-        <p class="text-muted mb-0">Total Products</p>
-      </div>
+    <!-- Summary -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-box-seam text-primary" style="font-size:2rem"></i><h3 id="totalProducts" class="mt-2">0</h3><p class="text-muted mb-0">Total Products</p></div></div></div>
+      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-currency-rupee text-success" style="font-size:2rem"></i><h3 id="salesToday" class="mt-2">Ã¢â€šÂ¹0</h3><p class="text-muted mb-0">Sales Today</p></div></div></div>
+      <div class="col-md-4 mb-3"><div class="card text-center shadow-sm"><div class="card-body"><i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem"></i><h3 id="lowStock" class="mt-2">0</h3><p class="text-muted mb-0">Low Stock Items</p></div></div></div>
     </div>
-  </div>
-  
-  <!-- 2. Products in Group (New - Display Only) -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-collection" style="font-size: 3rem; color: #6f42c1;"></i>
-        <h2 class="mt-3 mb-0" id="productsInGroup">0</h2>
-        <p class="text-muted mb-0">Products in Group</p>
-      </div>
-    </div>
-  </div>
-  
-  <!-- 3. Low Stock Items -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #dc3545;"></i>
-        <h2 class="mt-3 mb-0" id="lowStock">0</h2>
-        <p class="text-muted mb-0">Low Stock Items</p>
-      </div>
-    </div>
-  </div>
-  
-  <!-- 4. Inventory Summary (New - Display Only) -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body">
-        <div class="text-center mb-3">
-          <i class="bi bi-layers" style="font-size: 2.5rem; color: #20c997;"></i>
-          <h6 class="mt-2 mb-0">Inventory Summary</h6>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="text-muted small">Quantity in Hand</span>
-          <span class="fw-bold" id="quantityInHand">0</span>
-        </div>
-        <hr class="my-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted small">Quantity to be Received</span>
-          <span class="fw-bold" id="quantityToBeReceived">0</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-</div>
-
 
     <!-- Search -->
     <div class="row mb-3">
       <div class="col-md-6 mx-auto">
         <!-- Search bar with view toggle -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <input type="text" id="productSearch" class="form-control" placeholder="🔎 Search products..." onkeyup="searchProducts()">
+  <input type="text" id="productSearch" class="form-control" placeholder="ðŸ”Ž Search products..." onkeyup="searchProducts()">
   
-  <!-- ✅ NEW: View Mode Toggle -->
+  <!-- âœ… NEW: View Mode Toggle -->
   <div class="btn-group ms-3" role="group">
     <button type="button" class="btn btn-outline-secondary btn-sm active" id="btnAllView" onclick="showAllProducts()">
       <i class="bi bi-list"></i> All
@@ -1074,7 +565,7 @@
   </div>
 </div>
 
-<!-- ✅ NEW: Photo Product Grid (Hidden by default) -->
+<!-- âœ… NEW: Photo Product Grid (Hidden by default) -->
 <div id="photoProductGrid" style="display:none;" class="row row-cols-1 row-cols-md-3 g-4 mb-4">
   <!-- Photo product cards will be dynamically inserted here -->
 </div>
@@ -1225,8 +716,8 @@
                   <tr>
                     <th style="width: 40%">Item Details</th>
                     <th style="width: 12%" class="text-center">Quantity</th>
-                    <th style="width: 15%" class="text-end">Rate (â‚¹)</th>
-                    <th style="width: 18%" class="text-end">Amount (â‚¹)</th>
+                    <th style="width: 15%" class="text-end">Rate (Ã¢â€šÂ¹)</th>
+                    <th style="width: 18%" class="text-end">Amount (Ã¢â€šÂ¹)</th>
                     <th style="width: 5%"></th>
                   </tr>
                 </thead>
@@ -1247,7 +738,7 @@
               <table class="table table-sm">
                 <tr>
                   <td class="text-end"><strong>Sub Total:</strong></td>
-                  <td class="text-end" style="width: 150px" id="invoiceSubtotal">â‚¹0.00</td>
+                  <td class="text-end" style="width: 150px" id="invoiceSubtotal">Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -1258,11 +749,11 @@
                     <select class="form-select form-select-sm d-inline-block" 
                             style="width: 60px" id="invoiceDiscountType" 
                             onchange="calculateInvoiceTotal()">
-                      <option value="amount">â‚¹</option>
+                      <option value="amount">Ã¢â€šÂ¹</option>
                       <option value="percent">%</option>
                     </select>
                   </td>
-                  <td class="text-end text-danger" id="invoiceDiscountAmount">-â‚¹0.00</td>
+                  <td class="text-end text-danger" id="invoiceDiscountAmount">-Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -1277,11 +768,11 @@
                       <option value="28">28%</option>
                     </select>
                   </td>
-                  <td class="text-end" id="invoiceTaxAmount">â‚¹0.00</td>
+                  <td class="text-end" id="invoiceTaxAmount">Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr class="table-success fw-bold">
-                  <td class="text-end"><h5 class="mb-0">Total (â‚¹):</h5></td>
-                  <td class="text-end"><h5 class="mb-0" id="invoiceGrandTotal">â‚¹0.00</h5></td>
+                  <td class="text-end"><h5 class="mb-0">Total (Ã¢â€šÂ¹):</h5></td>
+                  <td class="text-end"><h5 class="mb-0" id="invoiceGrandTotal">Ã¢â€šÂ¹0.00</h5></td>
                 </tr>
               </table>
             </div>
@@ -1318,7 +809,7 @@
     <i class="bi bi-eye"></i> Preview
   </button>
   
-  <!-- ✅ FIXED: Share Invoice Dropdown with proper attributes -->
+  <!-- âœ… FIXED: Share Invoice Dropdown with proper attributes -->
   <div class="btn-group" role="group">
     <button type="button" class="btn btn-primary dropdown-toggle" 
             data-bs-toggle="dropdown" 
@@ -1338,7 +829,7 @@
       </li>
       <li><hr class="dropdown-divider"></li>
 
- <!-- ✅ NEW: Share image on specific WhatsApp number -->
+ <!-- âœ… NEW: Share image on specific WhatsApp number -->
   <li>
     <a class="dropdown-item" href="javascript:void(0);" onclick="shareImageToWhatsAppNumber()">
       <i class="bi bi-whatsapp text-success"></i> Share Image on WhatsApp
@@ -1437,7 +928,7 @@
 
     <div class="modal-body">
 
-      <!-- Ã¢Å“â€¦ NEW: Multi-Select Product Picker -->
+      <!-- ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Multi-Select Product Picker -->
   <div class="mb-3">
     <label class="form-label fw-bold">
       <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Add Products (Multi-Select)
@@ -1449,7 +940,7 @@
       </button>
       <div class="multi-select-options" id="multiSelectOptions">
         <input type="text" class="form-control form-control-sm mb-2" 
-               placeholder="Ã°Å¸â€Â Search products..." 
+               placeholder="ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Search products..." 
                id="multiSelectSearch" 
                oninput="filterMultiSelectOptions()">
         <div class="multi-select-list" id="multiSelectList">
@@ -1463,7 +954,7 @@
 
 
       
-      <!-- Ã¢Å“â€¦ NEW: Buttons at TOP -->
+      <!-- ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Buttons at TOP -->
   <div class="mb-3 text-end">
     <button class="btn btn-outline-primary btn-sm me-2" onclick="addMoreRows()">
       <i class="bi bi-plus-circle"></i> Add More Rows
@@ -1487,8 +978,8 @@
         </div>
         <div class="text-end" style="min-width:320px;">
           <table class="table table-borderless mb-0">
-            <tr><td class="text-end small-muted"><strong>Subtotal:</strong></td><td id="subtotal" class="text-end">â‚¹0.00</td></tr>
-            <tr style="font-size:1.25rem;color:#28a745"><td class="text-end"><strong>GRAND TOTAL:</strong></td><td id="grandTotal" class="text-end">â‚¹0.00</td></tr>
+            <tr><td class="text-end small-muted"><strong>Subtotal:</strong></td><td id="subtotal" class="text-end">Ã¢â€šÂ¹0.00</td></tr>
+            <tr style="font-size:1.25rem;color:#28a745"><td class="text-end"><strong>GRAND TOTAL:</strong></td><td id="grandTotal" class="text-end">Ã¢â€šÂ¹0.00</td></tr>
           </table>
         </div>
       </div>
@@ -1519,7 +1010,7 @@
          <div class="col-md-6 mb-3"><label class="form-label">Quantity (for this sale) *</label><input id="customQty" type="number" class="form-control" min="1" value="1"/></div>
 
 
-        <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">â‚¹0.00</div></div>
+        <div class="mb-3"><label class="form-label">Total</label><div id="customTotal" class="fw-bold">Ã¢â€šÂ¹0.00</div></div>
       </form>
     </div>
 
@@ -1607,7 +1098,7 @@
               <table class="table table-sm">
                 <tr>
                   <td class="text-end"><strong>Sub Total:</strong></td>
-                  <td class="text-end" id="invoiceSubtotal">â‚¹0.00</td>
+                  <td class="text-end" id="invoiceSubtotal">Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -1618,11 +1109,11 @@
                     <select class="form-select form-select-sm d-inline-block" 
                             style="width: 60px" id="invoiceDiscountType" 
                             onchange="calculateInvoiceTotal()">
-                      <option value="amount">â‚¹</option>
+                      <option value="amount">Ã¢â€šÂ¹</option>
                       <option value="percent">%</option>
                     </select>
                   </td>
-                  <td class="text-end text-danger" id="invoiceDiscountAmount">-â‚¹0.00</td>
+                  <td class="text-end text-danger" id="invoiceDiscountAmount">-Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr>
                   <td class="text-end">
@@ -1637,11 +1128,11 @@
                       <option value="28">GST 28%</option>
                     </select>
                   </td>
-                  <td class="text-end" id="invoiceTaxAmount">â‚¹0.00</td>
+                  <td class="text-end" id="invoiceTaxAmount">Ã¢â€šÂ¹0.00</td>
                 </tr>
                 <tr class="table-success">
-                  <td class="text-end"><h5>Total (â‚¹):</h5></td>
-                  <td class="text-end"><h5 id="invoiceGrandTotal">â‚¹0.00</h5></td>
+                  <td class="text-end"><h5>Total (Ã¢â€šÂ¹):</h5></td>
+                  <td class="text-end"><h5 id="invoiceGrandTotal">Ã¢â€šÂ¹0.00</h5></td>
                 </tr>
               </table>
             </div>
@@ -1675,7 +1166,7 @@
     <i class="bi bi-eye"></i> Preview
   </button>
   
-  <!-- ✅ NEW: Share Invoice Dropdown -->
+  <!-- âœ… NEW: Share Invoice Dropdown -->
   <div class="btn-group">
     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
       <i class="bi bi-share"></i> Share Invoice
@@ -1735,19 +1226,19 @@
 
 
 
-    <!-- ✅ NEW: Photo Product Modal -->
+    <!-- âœ… NEW: Photo Product Modal -->
 <div class="modal fade" id="photoProductModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">📷 Add Product by Photo</h5>
+        <h5 class="modal-title">ðŸ“· Add Product by Photo</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         
         <!-- Photo Upload Area -->
         <div class="upload-area" id="photoUploadArea" onclick="document.getElementById('photoFileInput').click()">
-          <div class="upload-icon">📷</div>
+          <div class="upload-icon">ðŸ“·</div>
           <div class="upload-text">Click to take photo or select from gallery</div>
         </div>
         
@@ -1790,7 +1281,7 @@
             <input type="number" id="photoProductStock" class="form-control" min="0" placeholder="0">
           </div>
           <div class="col-6 mb-3">
-            <label class="form-label">Unit Price (₹)</label>
+            <label class="form-label">Unit Price (â‚¹)</label>
             <input type="number" id="photoProductPrice" class="form-control" min="0" step="0.01" placeholder="0.00">
           </div>
         </div>
@@ -1810,7 +1301,7 @@
   </div>
 </div>
 
-<!-- ✅ NEW: View Photo Modal (Enlarged View) -->
+<!-- âœ… NEW: View Photo Modal (Enlarged View) -->
 <div class="modal fade" id="viewPhotoModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -1854,7 +1345,7 @@ let backgroundSyncActive = false;
 
 let currentUser = null;
 let userEmail = null;
-let userHash = null; // âœ… NEW: Store encrypted hash
+let userHash = null; // Ã¢Å“â€¦ NEW: Store encrypted hash
 
 // Simple hash function (matches backend)
 function simpleHash(text) {
@@ -1884,24 +1375,24 @@ function togglePasswordVisibility() {
 
 // Check authentication on page load
 window.addEventListener('load', async function() {
-  console.log('ðŸš€ Page loaded, checking authentication...');
+  console.log('Ã°Å¸Å¡â‚¬ Page loaded, checking authentication...');
   
   // Check localStorage for saved credentials
   const savedEmail = localStorage.getItem('userEmail');
   const savedHash = localStorage.getItem('userHash');
   const savedUser = localStorage.getItem('currentUser');
   
-  console.log('ðŸ“¦ Checking localStorage:', {
+  console.log('Ã°Å¸â€œÂ¦ Checking localStorage:', {
     hasEmail: !!savedEmail,
     hasHash: !!savedHash,
     hasUser: !!savedUser
   });
   
   if (savedEmail && savedHash) {
-    console.log('âœ… Found saved credentials, auto-logging in...');
+    console.log('Ã¢Å“â€¦ Found saved credentials, auto-logging in...');
     
     try {
-      // âœ… SET VARIABLES FIRST
+      // Ã¢Å“â€¦ SET VARIABLES FIRST
       userEmail = savedEmail;
       userHash = savedHash;
       
@@ -1915,24 +1406,24 @@ window.addEventListener('load', async function() {
         };
       }
       
-      console.log('âœ… Session restored:', { userEmail, hasHash: !!userHash });
+      console.log('Ã¢Å“â€¦ Session restored:', { userEmail, hasHash: !!userHash });
       
-      // âœ… Show app IMMEDIATELY
+      // Ã¢Å“â€¦ Show app IMMEDIATELY
       showApp();
       updateUserUI();
       
-      // âœ… Wait before syncing
+      // Ã¢Å“â€¦ Wait before syncing
       setTimeout(async () => {
-        console.log('ðŸ”„ Starting data sync...');
+        console.log('Ã°Å¸â€â€ž Starting data sync...');
         await syncFromGoogleSheets();
       }, 500);
       
     } catch (error) {
-      console.error('âŒ Error restoring session:', error);
+      console.error('Ã¢ÂÅ’ Error restoring session:', error);
       showAuthScreen();
     }
   } else {
-    console.log('ðŸ‘¤ No saved credentials, showing login screen...');
+    console.log('Ã°Å¸â€˜Â¤ No saved credentials, showing login screen...');
     showAuthScreen();
   }
 });
@@ -1953,7 +1444,7 @@ async function handleEmailPasswordAuth(event) {
     return;
   }
   
-  console.log('ðŸ” Authenticating:', email);
+  console.log('Ã°Å¸â€Â Authenticating:', email);
   
   // Show loading state
   const originalText = loginButton.innerHTML;
@@ -1961,7 +1452,7 @@ async function handleEmailPasswordAuth(event) {
   loginButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
   
   try {
-    // âœ… Send email + password to backend
+    // Ã¢Å“â€¦ Send email + password to backend
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=authenticate&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
       method: 'POST'
     });
@@ -1969,18 +1460,18 @@ async function handleEmailPasswordAuth(event) {
     const data = await response.json();
     
     if (data.ok && data.user && data.hash) {
-      // âœ… SUCCESS - Save email + hash
+      // Ã¢Å“â€¦ SUCCESS - Save email + hash
       userEmail = email;
       userHash = data.hash;
       currentUser = data.user;
       
-      // âœ… Save to localStorage for permanent login
+      // Ã¢Å“â€¦ Save to localStorage for permanent login
       localStorage.setItem('userEmail', email);
       localStorage.setItem('userHash', data.hash);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
       
-      console.log('âœ… Authentication successful');
-      console.log('âœ… Hash saved to localStorage');
+      console.log('Ã¢Å“â€¦ Authentication successful');
+      console.log('Ã¢Å“â€¦ Hash saved to localStorage');
       
       // Clear password field
       passwordInput.value = '';
@@ -1994,8 +1485,8 @@ async function handleEmailPasswordAuth(event) {
       }, 300);
       
     } else {
-      // âŒ FAILED
-      console.error('âŒ Authentication failed:', data);
+      // Ã¢ÂÅ’ FAILED
+      console.error('Ã¢ÂÅ’ Authentication failed:', data);
       alert(data.message || 'Invalid email or password');
       loginButton.disabled = false;
       loginButton.innerHTML = originalText;
@@ -2004,7 +1495,7 @@ async function handleEmailPasswordAuth(event) {
     }
     
   } catch (error) {
-    console.error('âŒ Authentication error:', error);
+    console.error('Ã¢ÂÅ’ Authentication error:', error);
     alert('Failed to authenticate. Please check your internet connection and try again.');
     loginButton.disabled = false;
     loginButton.innerHTML = originalText;
@@ -2013,7 +1504,7 @@ async function handleEmailPasswordAuth(event) {
 
 // Clear authentication
 function clearAuth() {
-  console.log('ðŸ—‘ï¸ Clearing authentication...');
+  console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Clearing authentication...');
   userEmail = null;
   userHash = null;
   currentUser = null;
@@ -2024,7 +1515,7 @@ function clearAuth() {
 
 // Show authentication screen
 function showAuthScreen() {
-  console.log('ðŸ“± Showing auth screen');
+  console.log('Ã°Å¸â€œÂ± Showing auth screen');
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('appContent').style.display = 'none';
   
@@ -2038,7 +1529,7 @@ function showAuthScreen() {
 
 // Show app
 function showApp() {
-  console.log('ðŸ“± Showing app');
+  console.log('Ã°Å¸â€œÂ± Showing app');
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
 }
@@ -2050,28 +1541,28 @@ function updateUserUI() {
     
     if (userNameEl) {
       userNameEl.textContent = currentUser.name || currentUser.email;
-      console.log('ðŸ‘¤ Updated username:', currentUser.email);
+      console.log('Ã°Å¸â€˜Â¤ Updated username:', currentUser.email);
     }
   }
 }
 
 // Show auth error
 function showAuthError(message) {
-  console.warn('ðŸš¨ Auth error:', message);
+  console.warn('Ã°Å¸Å¡Â¨ Auth error:', message);
   
   if (message && (message.includes('unauthorized') || message.includes('not authorized') || message.includes('expired'))) {
     clearAuth();
-    alert('ðŸ”’ ' + message);
+    alert('Ã°Å¸â€â€™ ' + message);
     showAuthScreen();
   } else {
-    console.log('âš ï¸ Non-critical error, keeping credentials');
+    console.log('Ã¢Å¡ Ã¯Â¸Â Non-critical error, keeping credentials');
   }
 }
 
 // Sign out
 function signOut() {
   if (confirm('Are you sure you want to sign out?')) {
-    console.log('ðŸ‘‹ Signing out...');
+    console.log('Ã°Å¸â€˜â€¹ Signing out...');
     clearAuth();
     showAuthScreen();
     setTimeout(() => location.reload(), 300);
@@ -2086,7 +1577,7 @@ let changePasswordModalInstance = null;
 
 // Open change password modal
 function openChangePasswordModal() {
-  console.log('ðŸ”‘ Opening change password modal');
+  console.log('Ã°Å¸â€â€˜ Opening change password modal');
   
   // Reset form
   document.getElementById('verifyPasswordStep').style.display = 'block';
@@ -2113,7 +1604,7 @@ async function verifyCurrentPassword() {
     return;
   }
   
-  console.log('ðŸ” Verifying current password...');
+  console.log('Ã°Å¸â€Â Verifying current password...');
   
   try {
     // Verify by attempting authentication
@@ -2124,20 +1615,20 @@ async function verifyCurrentPassword() {
     const data = await response.json();
     
     if (data.ok) {
-      // âœ… Password correct - show step 2
-      console.log('âœ… Current password verified');
+      // Ã¢Å“â€¦ Password correct - show step 2
+      console.log('Ã¢Å“â€¦ Current password verified');
       document.getElementById('verifyPasswordStep').style.display = 'none';
       document.getElementById('newPasswordStep').style.display = 'block';
       document.getElementById('newPasswordInput').focus();
     } else {
-      // âŒ Wrong password
+      // Ã¢ÂÅ’ Wrong password
       alert('Current password is incorrect');
       currentPasswordInput.value = '';
       currentPasswordInput.focus();
     }
     
   } catch (error) {
-    console.error('âŒ Error verifying password:', error);
+    console.error('Ã¢ÂÅ’ Error verifying password:', error);
     alert('Failed to verify password. Please try again.');
   }
 }
@@ -2178,7 +1669,7 @@ async function submitNewPassword() {
     return;
   }
   
-  console.log('ðŸ”„ Changing password...');
+  console.log('Ã°Å¸â€â€ž Changing password...');
   
   try {
     // Send change password request
@@ -2189,26 +1680,26 @@ async function submitNewPassword() {
     const data = await response.json();
     
     if (data.ok && data.hash) {
-      // âœ… SUCCESS - Update hash in localStorage
+      // Ã¢Å“â€¦ SUCCESS - Update hash in localStorage
       userHash = data.hash;
       localStorage.setItem('userHash', data.hash);
       
-      console.log('âœ… Password changed successfully');
-      console.log('âœ… New hash saved');
+      console.log('Ã¢Å“â€¦ Password changed successfully');
+      console.log('Ã¢Å“â€¦ New hash saved');
       
       // Close modal
       changePasswordModalInstance.hide();
       
       // Show success message
-      alert('âœ… Password changed successfully!');
+      alert('Ã¢Å“â€¦ Password changed successfully!');
       
     } else {
-      // âŒ FAILED
+      // Ã¢ÂÅ’ FAILED
       alert(data.message || 'Failed to change password');
     }
     
   } catch (error) {
-    console.error('âŒ Error changing password:', error);
+    console.error('Ã¢ÂÅ’ Error changing password:', error);
     alert('Failed to change password. Please try again.');
   }
 }
@@ -2222,7 +1713,7 @@ try {
     const stored = localStorage.getItem('deletedSaleIds');
     if (stored) {
         deletedSaleIds = JSON.parse(stored);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Loaded', deletedSaleIds.length, 'deleted sale IDs from localStorage');
+        console.log('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â Loaded', deletedSaleIds.length, 'deleted sale IDs from localStorage');
     }
 } catch (e) {
     console.warn('Could not load deletedSaleIds from localStorage', e);
@@ -2256,7 +1747,7 @@ try {
       catch(e) { return { ok: res.ok, json: null, text: txt }; }
     });
   }
-  function formatCurrency(n){ return 'â‚¹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function formatCurrency(n){ return 'Ã¢â€šÂ¹' + Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function generateId(){ return 'TMP_' + Date.now().toString(36) + Math.random().toString(36).substr(2); }
   function escapeHtml(s){ if (s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -2266,15 +1757,15 @@ try {
  */
 async function syncFromGoogleSheets() {
   if (!userEmail || !userHash) {
-    console.warn('âš ï¸ No credentials, checking localStorage...');
+    console.warn('Ã¢Å¡ Ã¯Â¸Â No credentials, checking localStorage...');
     const savedEmail = localStorage.getItem('userEmail');
     const savedHash = localStorage.getItem('userHash');
     if (savedEmail && savedHash) {
       userEmail = savedEmail;
       userHash = savedHash;
-      console.log('âœ… Restored credentials from localStorage');
+      console.log('Ã¢Å“â€¦ Restored credentials from localStorage');
     } else {
-      console.log('ðŸ‘¤ No credentials found');
+      console.log('Ã°Å¸â€˜Â¤ No credentials found');
       showAuthScreen();
       return;
     }
@@ -2283,7 +1774,7 @@ async function syncFromGoogleSheets() {
   showSyncIndicator('Refreshing...');
   
   try {
-    // âœ… Send email + hash for authentication
+    // Ã¢Å“â€¦ Send email + hash for authentication
     const url = `${GOOGLE_SCRIPT_URL}?action=getAll&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
 
     const res = await fetch(url);
@@ -2296,8 +1787,8 @@ async function syncFromGoogleSheets() {
     
     // Check for unauthorized response
     if (!data.success && data.error === 'unauthorized') {
-      // âœ… ONLY clear auth on real unauthorized error
-      console.error('âŒ Email not authorized');
+      // Ã¢Å“â€¦ ONLY clear auth on real unauthorized error
+      console.error('Ã¢ÂÅ’ Email not authorized');
       clearAuth();
       alert('Access denied. Your email is not authorized. Please contact administrator.');
       showAuthScreen();
@@ -2315,7 +1806,7 @@ async function syncFromGoogleSheets() {
       
       // Filter out manually deleted sales
       cachedSales = allSales.filter(sale => !deletedSaleIds.includes(sale.id));
-      console.log(`ðŸ“Š Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
+      console.log(`Ã°Å¸â€œÅ  Loaded ${allSales.length} sales from server, showing ${cachedSales.length} (${allSales.length - cachedSales.length} deleted)`);
       
       // Sort sales by date (newest first)
       sortSalesByDateDescending();
@@ -2337,8 +1828,8 @@ async function syncFromGoogleSheets() {
     }
     
   } catch (err) {
-    console.error('âš ï¸ Sync error (non-critical):', err);
-    // âœ… Don't show alert or clear auth on network errors
+    console.error('Ã¢Å¡ Ã¯Â¸Â Sync error (non-critical):', err);
+    // Ã¢Å“â€¦ Don't show alert or clear auth on network errors
     hideSyncIndicator();
   }
 }
@@ -2377,17 +1868,17 @@ async function syncFromGoogleSheets() {
   function renderProducts(){
     const tbody = document.getElementById('productsTableBody');
     if(!hasInitialLoaded){
-      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div></td></tr>`;
     } else if(!cachedProducts || cachedProducts.length===0){
       tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No products yet</td></tr>`;
     } else {
       let html = '';
       cachedProducts.forEach(p => {
         const iconColor = categoryIconColor(p.category);
-        const priceText = (p.price!==undefined && p.price!==null) ? `â‚¹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
+        const priceText = (p.price!==undefined && p.price!==null) ? `Ã¢â€šÂ¹${parseFloat(p.price).toFixed(2)}/${p.unitType}` : '-';
         html += `<tr>
           <td><i class="bi bi-file-earmark-fill" style="color:${iconColor}"></i></td>   
-<!-- ✅ Photo Thumbnail Column -->
+<!-- âœ… Photo Thumbnail Column -->
   <td style="text-align: center;">
     ${p.imageUrl && p.imageUrl !== '' && p.imageUrl !== 'uploading...' ? 
       `<img src="${p.imageUrl}" 
@@ -2415,7 +1906,7 @@ async function syncFromGoogleSheets() {
     }
     // mobile list
     const container = document.getElementById('mobileProductsList');
-    if(!hasInitialLoaded){ container.innerHTML=`<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</div></div>`; }
+    if(!hasInitialLoaded){ container.innerHTML=`<div class="mobile-item text-center"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading inventoryÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div></div>`; }
     else if(!cachedProducts || cachedProducts.length===0){ container.innerHTML=`<div class="mobile-item text-center text-muted">No products yet</div>`; }
     else {
       let html = '';
@@ -2426,8 +1917,8 @@ async function syncFromGoogleSheets() {
             <div style="width:36px;text-align:center;"><i class="bi bi-file-earmark-fill" style="font-size:1.25rem;color:${iconColor}"></i></div>
             <div>
               <div style="font-weight:600">${escapeHtml(p.name)}</div>
-              <div class="small-muted">${escapeHtml(p.category||'')} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${escapeHtml(p.brand||'')}</div>
-              <div class="small-muted"><strong>${escapeHtml(p.size||'')}</strong> ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ â‚¹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
+              <div class="small-muted">${escapeHtml(p.category||'')} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ ${escapeHtml(p.brand||'')}</div>
+              <div class="small-muted"><strong>${escapeHtml(p.size||'')}</strong> ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Ã¢â€šÂ¹${parseFloat(p.price||0).toFixed(2)}/${p.unitType}</div>
             </div>
           </div>
           <div style="text-align:right;">
@@ -2448,7 +1939,7 @@ async function syncFromGoogleSheets() {
   function renderSales(){
     const tbody = document.getElementById('salesList');
     
-    if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading salesÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦</div></td></tr>`; return; }
+    if(!hasInitialLoaded){ tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4"><div class="spinner-border"></div><div class="mt-2 text-muted">Loading salesÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div></td></tr>`; return; }
     
     if(!cachedSales || cachedSales.length===0){ tbody.innerHTML=`<tr><td colspan="5" class="text-center text-muted py-4">No sales recorded yet</td></tr>`; return; }
     
@@ -2458,7 +1949,7 @@ async function syncFromGoogleSheets() {
     recent.forEach(sale => {
       const d = new Date(sale.date||'');
       const formatted = d && !isNaN(d) ? (d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) : sale.date;
-      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">â‚¹${parseFloat(sale.totalAmount||0).toFixed(2)}</td></tr>`;
+      html += `<tr><td>${formatted}</td><td>${escapeHtml(sale.productName)}</td><td>${sale.quantity}</td><td>${escapeHtml(sale.unitType)}</td><td class="text-success fw-bold">Ã¢â€šÂ¹${parseFloat(sale.totalAmount||0).toFixed(2)}</td></tr>`;
     });
     tbody.innerHTML = html;
     updateSummaryFromCache();
@@ -2470,7 +1961,7 @@ async function syncFromGoogleSheets() {
     const today = new Date().toDateString();
     const todaySales = (cachedSales||[]).filter(s => new Date(s.date).toDateString() === today);
     const sum = todaySales.reduce((acc,s) => acc + parseFloat(s.totalAmount||0), 0);
-    document.getElementById('salesToday').textContent = 'â‚¹' + sum.toFixed(2);
+    document.getElementById('salesToday').textContent = 'Ã¢â€šÂ¹' + sum.toFixed(2);
     const low = (cachedProducts||[]).filter(p => p.stock <= p.minStock && p.stock > 0).length;
     document.getElementById('lowStock').textContent = low;
   }
@@ -2523,7 +2014,7 @@ async function saveProductToSheet(product, isEdit=false) {
   }
   
   try {
-    // âœ… Send hash for authentication
+    // Ã¢Å“â€¦ Send hash for authentication
     const url = `${GOOGLE_SCRIPT_URL}?action=${isEdit ? 'updateProduct' : 'addProduct'}&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
 
     const res = await fetch(url, {
@@ -2557,7 +2048,7 @@ async function saveSaleToSheet(item) {
   }
   
   try {
-    // âœ… Send hash for authentication
+    // Ã¢Å“â€¦ Send hash for authentication
     const url = `${GOOGLE_SCRIPT_URL}?action=addSale&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
 
     const res = await fetch(url, {
@@ -2644,12 +2135,12 @@ function updateSyncIndicator(active) {
 // ==========================================
 async function processBackgroundSaveQueue() {
   if (isProcessingQueue) {
-    console.log('â³ Queue processor already running');
+    console.log('Ã¢ÂÂ³ Queue processor already running');
     return;
   }
   
   if (backgroundSaveQueue.length === 0) {
-    console.log('âœ… Queue empty, processor stopping');
+    console.log('Ã¢Å“â€¦ Queue empty, processor stopping');
     backgroundSyncActive = false;
     updateSyncIndicator(false);
     return;
@@ -2659,12 +2150,12 @@ async function processBackgroundSaveQueue() {
   backgroundSyncActive = true;
   updateSyncIndicator(true);
   
-  console.log(`ðŸ”„ Processing ${backgroundSaveQueue.length} items in background queue...`);
+  console.log(`Ã°Å¸â€â€ž Processing ${backgroundSaveQueue.length} items in background queue...`);
   
   while (backgroundSaveQueue.length > 0) {
     const item = backgroundSaveQueue[0]; // Peek at first item
     
-    console.log(`ðŸ“¤ Background saving: "${item.productName}" (${backgroundSaveQueue.length} remaining)`);
+    console.log(`Ã°Å¸â€œÂ¤ Background saving: "${item.productName}" (${backgroundSaveQueue.length} remaining)`);
     
     // Try to save with retry logic
     let saved = false;
@@ -2673,19 +2164,19 @@ async function processBackgroundSaveQueue() {
         const response = await saveSaleToSheet(item);
         
         if (response && response.success) {
-          console.log(`âœ… Background saved: "${item.productName}"`);
+          console.log(`Ã¢Å“â€¦ Background saved: "${item.productName}"`);
           saved = true;
           break;
         }
         
         // If not last attempt, wait before retry
         if (attempt < 3) {
-          console.log(`âš ï¸ Retry ${attempt}/3 for "${item.productName}" in ${attempt}s...`);
+          console.log(`Ã¢Å¡ Ã¯Â¸Â Retry ${attempt}/3 for "${item.productName}" in ${attempt}s...`);
           await delay(1000 * attempt); // 1s, 2s backoff
         }
         
       } catch (error) {
-        console.error(`âŒ Attempt ${attempt}/3 failed for "${item.productName}":`, error);
+        console.error(`Ã¢ÂÅ’ Attempt ${attempt}/3 failed for "${item.productName}":`, error);
         
         if (attempt < 3) {
           await delay(1000 * attempt);
@@ -2698,7 +2189,7 @@ async function processBackgroundSaveQueue() {
       backgroundSaveQueue.shift();
     } else {
       // Failed after 3 retries - log error and remove
-      console.error(`âŒ PERMANENT FAILURE: Could not save "${item.productName}" after 3 attempts`);
+      console.error(`Ã¢ÂÅ’ PERMANENT FAILURE: Could not save "${item.productName}" after 3 attempts`);
       console.error('Failed item data:', item);
       
       // Remove from queue to prevent infinite loop
@@ -2713,13 +2204,13 @@ async function processBackgroundSaveQueue() {
           error: 'Max retries exceeded'
         });
         localStorage.setItem('failedSales', JSON.stringify(failedItems));
-        console.log('ðŸ’¾ Failed item saved to localStorage for recovery');
+        console.log('Ã°Å¸â€™Â¾ Failed item saved to localStorage for recovery');
       } catch (e) {
         console.error('Could not save to localStorage:', e);
       }
     }
     
-    // âœ… CRITICAL: Delay between items to prevent throttling
+    // Ã¢Å“â€¦ CRITICAL: Delay between items to prevent throttling
     if (backgroundSaveQueue.length > 0) {
       await delay(500); // 500ms delay between saves
     }
@@ -2729,11 +2220,11 @@ async function processBackgroundSaveQueue() {
   backgroundSyncActive = false;
   updateSyncIndicator(false);
   
-  console.log('âœ… Background queue processing complete!');
+  console.log('Ã¢Å“â€¦ Background queue processing complete!');
   
   // Optional: Silent background sync after all saves complete
   setTimeout(() => {
-    console.log('ðŸ”„ Starting background sync from Google Sheets...');
+    console.log('Ã°Å¸â€â€ž Starting background sync from Google Sheets...');
     syncFromGoogleSheets();
   }, 2000);
 }
@@ -2763,7 +2254,7 @@ async function deleteProductFromSheet(id) {
   }
   
   try {
-    // âœ… Send hash for authentication
+    // Ã¢Å“â€¦ Send hash for authentication
     const url = `${GOOGLE_SCRIPT_URL}?action=deleteProduct&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}`;
 
     const res = await fetch(url, {
@@ -2795,7 +2286,7 @@ async function deleteProductFromSheet(id) {
   function showAddProduct(){ editingProductId=null; document.getElementById('modalTitle').textContent='Add New Product'; document.getElementById('productForm').reset(); document.getElementById('productId').value=''; new bootstrap.Modal(document.getElementById('productModal')).show(); }
   function editProduct(id){
     const p = (cachedProducts||[]).find(x=>x.id===id);
-    if(!p){ alert('Ã¢ÂÅ’ Product not found'); return; }
+    if(!p){ alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Product not found'); return; }
     editingProductId = id;
     document.getElementById('modalTitle').textContent='Edit Product';
     document.getElementById('productId').value = p.id;
@@ -2810,7 +2301,7 @@ async function deleteProductFromSheet(id) {
     document.getElementById('stock').value = p.stock;
     document.getElementById('minStock').value = p.minStock;
 
-  // ✅ CRITICAL: Preserve imageUrl when editing
+  // âœ… CRITICAL: Preserve imageUrl when editing
   // Store it in a hidden field or variable
   window.editingProductImageUrl = p.imageUrl || '';
     
@@ -2846,7 +2337,7 @@ async function deleteProductFromSheet(id) {
     price: price,
     stock: stock,
     minStock: minStock,
-    imageUrl: window.editingProductImageUrl || ''  // ✅ PRESERVE IMAGE URL
+    imageUrl: window.editingProductImageUrl || ''  // âœ… PRESERVE IMAGE URL
   };
   
   const idx = cachedProducts.findIndex(p => p.id === product.id);
@@ -2926,11 +2417,11 @@ async function deleteProductFromSheet(id) {
    ***********************/
   function openSalesModal(){
   initSalesGrid();
-  populateMultiSelect(); // Ã¢Å“â€¦ NEW: Populate multi-select
+  populateMultiSelect(); // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Populate multi-select
   new bootstrap.Modal(document.getElementById('salesModal')).show();
 }
 
-// ✅ CORRECTED: Multi-Select Functions with Photo Support
+// âœ… CORRECTED: Multi-Select Functions with Photo Support
 function populateMultiSelect() {
     const container = document.getElementById('multiSelectList');
     if (!container) return;
@@ -3086,7 +2577,7 @@ document.addEventListener('click', function(e) {
 
       <td><input type="text" class="form-control unit-input readonly-input" id="unit-${index}" readonly /></td>
       <td><input type="number" class="form-control price-input readonly-input" id="price-${index}" readonly /></td>
-      <td><div id="total-${index}" class="fw-bold">â‚¹0.00</div></td>
+      <td><div id="total-${index}" class="fw-bold">Ã¢â€šÂ¹0.00</div></td>
       <td><button class="btn btn-sm btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x"></i></button></td>
     `;
     tbody.appendChild(tr);
@@ -3103,7 +2594,7 @@ document.addEventListener('click', function(e) {
   const tr = btn.closest('tr')
   if(!tr) return
   
-  // Ã¢Å“â€¦ FIX: Don't actually delete the row - just clear/reset it
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIX: Don't actually delete the row - just clear/reset it
   const select = tr.querySelector('.product-select')
   const sizeEl = tr.querySelector('.size-input')
   const qtyEl = tr.querySelector('.qty-input')
@@ -3131,7 +2622,7 @@ document.addEventListener('click', function(e) {
   }
   if(totalEl) totalEl.textContent = formatCurrency(0)
   
-  // Ã¢Å“â€¦ CRITICAL: Get row index and re-attach event listener
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: Get row index and re-attach event listener
   const rowIndex = Array.from(tr.parentNode.children).indexOf(tr) + 1;
   
   if(select) {
@@ -3173,7 +2664,7 @@ function sortSalesByDateDescending() {
         const dateB = new Date(b.date);
         return dateB - dateA; // Newest first
     });
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Sales sorted: newest first');
+    console.log('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ Sales sorted: newest first');
 }
 
   /***********************
@@ -3226,7 +2717,7 @@ function sortSalesByDateDescending() {
     const qty = Number(qtyEl.value || 0);
     const max = Number(qtyEl.max || Infinity);
     if(qty > max){
-      alert(`Ã¢ÂÅ’ Quantity exceeds available stock (${max}). Adjusting to max.`);
+      alert(`ÃƒÂ¢Ã‚ÂÃ…â€™ Quantity exceeds available stock (${max}). Adjusting to max.`);
       qtyEl.value = max;
     }
     updateRowTotal(rowIndex);
@@ -3266,7 +2757,7 @@ function sortSalesByDateDescending() {
    ***********************/
 function openCustomProductPopup() {
   document.getElementById('customProductForm').reset();
-  document.getElementById('customTotal').textContent = 'â‚¹0.00';
+  document.getElementById('customTotal').textContent = 'Ã¢â€šÂ¹0.00';
   new bootstrap.Modal(document.getElementById('customProductModal'), {backdrop: 'static'}).show();
   setTimeout(() => document.getElementById('customName').focus(), 200);
 }
@@ -3287,17 +2778,17 @@ function validateCustomProduct() {
   const price = Number(document.getElementById('customPrice').value || 0);
   
   if (!name || name.length < 2) {
-    alert('Ã¢ÂÅ’ Product name required (min 2 chars)');
+    alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Product name required (min 2 chars)');
     return false;
   }
   
   if (!qty || qty < 1) {
-    alert('Ã¢ÂÅ’ Quantity must be at least 1');
+    alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Quantity must be at least 1');
     return false;
   }
   
   if (!price || price <= 0) {
-    alert('Ã¢ÂÅ’ Unit price must be greater than 0');
+    alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Unit price must be greater than 0');
     return false;
   }
   
@@ -3346,7 +2837,7 @@ function addCustomProductToGrid() {
   if (modal) modal.hide();
   
   // Show success
-  alert(`Ã¢Å“â€¦ Custom product "${name}" added to sale!`);
+  alert(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Custom product "${name}" added to sale!`);
 }
 
 
@@ -3372,14 +2863,14 @@ function populateRowWithCustom(rowIndex, cp){
     document.getElementById(`unit-${rowIndex}`).value = cp.unitType;
     document.getElementById(`price-${rowIndex}`).value = cp.price;
     
-    // Ã¢Å“â€¦ FIX: Make quantity editable for custom products
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIX: Make quantity editable for custom products
     const qtyEl = document.getElementById(`qty-${rowIndex}`);
-    qtyEl.disabled = false;  // Ã¢Å“â€¦ Keep enabled
-    qtyEl.readOnly = false;  // Ã¢Å“â€¦ Not read-only
+    qtyEl.disabled = false;  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Keep enabled
+    qtyEl.readOnly = false;  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Not read-only
     qtyEl.value = cp.quantity;
     qtyEl.max = cp.quantity; // Can increase up to this amount
     
-    // Ã¢Å“â€¦ NEW: Add event listener to update total when quantity changes
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Add event listener to update total when quantity changes
     qtyEl.addEventListener('input', function() {
         const newQty = parseFloat(this.value) || 0;
         const price = parseFloat(document.getElementById(`price-${rowIndex}`).value) || 0;
@@ -3409,7 +2900,7 @@ function populateRowWithCustom(rowIndex, cp){
    ***********************/
  /**
  * ==========================================
- * âœ… FIXED: Sequential sale saving with delay
+ * Ã¢Å“â€¦ FIXED: Sequential sale saving with delay
  * ==========================================
  */
 
@@ -3469,20 +2960,20 @@ async function completeSale() {
   
   // Validation
   if (saleItems.length === 0) {
-    alert('âš ï¸ No products selected. Please add at least one product to complete the sale.');
+    alert('Ã¢Å¡ Ã¯Â¸Â No products selected. Please add at least one product to complete the sale.');
     return;
   }
   
   const totalAmount = saleItems.reduce((sum, item) => sum + item.totalAmount, 0);
   
-  if (!confirm(`ðŸ“¦ Complete sale with ${saleItems.length} item(s)?\n\nTotal: ${formatCurrency(totalAmount)}`)) {
+  if (!confirm(`Ã°Å¸â€œÂ¦ Complete sale with ${saleItems.length} item(s)?\n\nTotal: ${formatCurrency(totalAmount)}`)) {
     return;
   }
   
-  console.log(`âœ… Sale confirmed: ${saleItems.length} items, total ${formatCurrency(totalAmount)}`);
+  console.log(`Ã¢Å“â€¦ Sale confirmed: ${saleItems.length} items, total ${formatCurrency(totalAmount)}`);
   
   // ==========================================
-  // âœ… STEP 1: INSTANT UI UPDATES (< 100ms)
+  // Ã¢Å“â€¦ STEP 1: INSTANT UI UPDATES (< 100ms)
   // ==========================================
   
   // Add to local cache immediately
@@ -3524,12 +3015,12 @@ async function completeSale() {
   customProductsInSale = [];
   
   // Show success toast notification
-  showSuccessToast(`âœ… Sale completed! ${saleItems.length} item(s) recorded.`);
+  showSuccessToast(`Ã¢Å“â€¦ Sale completed! ${saleItems.length} item(s) recorded.`);
   
-  console.log(`âœ… UI updated instantly - ${saleItems.length} items displayed`);
+  console.log(`Ã¢Å“â€¦ UI updated instantly - ${saleItems.length} items displayed`);
   
   // ==========================================
-  // ðŸ”„ STEP 2: BACKGROUND SAVE TO GOOGLE SHEETS
+  // Ã°Å¸â€â€ž STEP 2: BACKGROUND SAVE TO GOOGLE SHEETS
   // ==========================================
   
   // Add items to background save queue
@@ -3537,7 +3028,7 @@ async function completeSale() {
     backgroundSaveQueue.push(item);
   });
   
-  console.log(`ðŸ”„ Added ${saleItems.length} items to background save queue (queue size: ${backgroundSaveQueue.length})`);
+  console.log(`Ã°Å¸â€â€ž Added ${saleItems.length} items to background save queue (queue size: ${backgroundSaveQueue.length})`);
   
   // Start background processor (if not already running)
   if (!isProcessingQueue) {
@@ -3545,7 +3036,7 @@ async function completeSale() {
       processBackgroundSaveQueue();
     }, 100); // Small delay to let UI settle
   } else {
-    console.log('â³ Background processor already running, items will be processed in sequence');
+    console.log('Ã¢ÂÂ³ Background processor already running, items will be processed in sequence');
   }
 }
 
@@ -3607,10 +3098,10 @@ function showSuccessToast(message) {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `inventory-backup-${new Date().toISOString().split('T')[0]}.json`; a.click();
-    alert('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Backup downloaded');
+    alert('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Backup downloaded');
   }
   function importData(){ document.getElementById('fileInput').click(); }
-  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Data restored (local)'); }catch(err){ alert('Ã¢ÂÅ’ Invalid file'); } }; reader.readAsText(file); }
+  function handleFileImport(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(evt){ try{ const data = JSON.parse(evt.target.result); if(data.products) cachedProducts = data.products; if(data.sales) cachedSales = data.sales; hasInitialLoaded=true; renderProducts(); renderSales(); alert('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Data restored (local)'); }catch(err){ alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Invalid file'); } }; reader.readAsText(file); }
 
       function searchProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -3669,7 +3160,7 @@ function displayProducts(products) {
                 <td>${escapeHtml(product.brand) || '-'}</td>
                 <td><strong>${escapeHtml(product.size) || 'N/A'}</strong></td>
                 <td><span class="badge ${stockBadgeClass}">${stockClass} (${product.stock})</span></td>
-                <td>â‚¹${product.price.toFixed(2)}/${product.unitType}</td>
+                <td>Ã¢â€šÂ¹${product.price.toFixed(2)}/${product.unitType}</td>
                 <td>
                     <button class="btn btn-sm btn-primary btn-action-sm me-1" onclick="editProduct('${product.id}')">
                         <i class="bi bi-pencil"></i> Edit
@@ -3704,7 +3195,7 @@ function displayProducts(products) {
                     <div>
                         <div style="font-weight:600">${escapeHtml(p.name)}</div>
                         <div class="small-muted">${escapeHtml(p.category)} ${escapeHtml(p.brand)}</div>
-                        <div class="small-muted"><strong>${escapeHtml(p.size)}</strong> â‚¹${parseFloat(p.price || 0).toFixed(2)}/${p.unitType}</div>
+                        <div class="small-muted"><strong>${escapeHtml(p.size)}</strong> Ã¢â€šÂ¹${parseFloat(p.price || 0).toFixed(2)}/${p.unitType}</div>
                     </div>
                 </div>
                 <div style="text-align:right">
@@ -3770,7 +3261,7 @@ function updateClearSalesCount() {
     if (!fromDate || !toDate) return;
     
     if (fromDate > toDate) {
-        alert('Ã¢ÂÅ’ "From Date" cannot be after "To Date"');
+        alert('ÃƒÂ¢Ã‚ÂÃ…â€™ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -3794,7 +3285,7 @@ function clearSalesInDateRange() {
     const toDate = new Date(document.getElementById('clearToDate').value);
     
     if (!fromDate || !toDate) {
-        alert('Ã¢ÂÅ’ Please select both From and To dates');
+        alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Please select both From and To dates');
         return;
     }
     
@@ -3803,7 +3294,7 @@ function clearSalesInDateRange() {
     toDate.setHours(23, 59, 59, 999);
     
     if (fromDate > toDate) {
-        alert('Ã¢ÂÅ’ "From Date" cannot be after "To Date"');
+        alert('ÃƒÂ¢Ã‚ÂÃ…â€™ "From Date" cannot be after "To Date"');
         return;
     }
     
@@ -3814,18 +3305,18 @@ function clearSalesInDateRange() {
     });
     
     if (salesInRange.length === 0) {
-        alert('ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¹ÃƒÂ¯Ã‚Â¸Ã‚Â No sales found in the selected date range');
+        alert('ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â No sales found in the selected date range');
         return;
     }
     
     // Confirm deletion
     const fromStr = fromDate.toLocaleDateString('en-IN');
     const toStr = toDate.toLocaleDateString('en-IN');
-    const confirmMsg = `Are you sure you want to hide ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\nÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â This will hide them from display only.\nGoogle Sheets data remains unchanged.\n\nYou can restore them later by clearing browser data.`;
+    const confirmMsg = `Are you sure you want to hide ${salesInRange.length} sales records between ${fromStr} and ${toStr}?\n\nÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡ ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â This will hide them from display only.\nGoogle Sheets data remains unchanged.\n\nYou can restore them later by clearing browser data.`;
     
     if (!confirm(confirmMsg)) return;
     
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIX: Store deleted IDs persistently
+    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ FIX: Store deleted IDs persistently
     salesInRange.forEach(sale => {
         if (sale.id && !deletedSaleIds.includes(sale.id)) {
             deletedSaleIds.push(sale.id);
@@ -3835,7 +3326,7 @@ function clearSalesInDateRange() {
     // Save to localStorage for persistence across sessions and page reloads
     try {
         localStorage.setItem('deletedSaleIds', JSON.stringify(deletedSaleIds));
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Saved', deletedSaleIds.length, 'deleted sale IDs to localStorage');
+        console.log('ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒâ€šÃ‚Â¾ Saved', deletedSaleIds.length, 'deleted sale IDs to localStorage');
     } catch (e) {
         console.warn('Could not save deletedSaleIds to localStorage', e);
     }
@@ -3855,7 +3346,7 @@ function clearSalesInDateRange() {
     modal.hide();
     
     // Show success message
-    alert(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Successfully cleared ${salesInRange.length} sales records!\n\nNote: They're hidden from display only. Google Sheets data is unchanged.\n\nTo restore: Clear browser data or use developer console to run:\nlocalStorage.removeItem('deletedSaleIds')`);
+    alert(`ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Successfully cleared ${salesInRange.length} sales records!\n\nNote: They're hidden from display only. Google Sheets data is unchanged.\n\nTo restore: Clear browser data or use developer console to run:\nlocalStorage.removeItem('deletedSaleIds')`);
 }
 
 
@@ -3875,7 +3366,7 @@ function clearSalesInDateRange() {
   
   salesList.innerHTML = '';
   
-  // Ã¢Å“â€¦ FIX: Show only last 100 sales (most recent)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIX: Show only last 100 sales (most recent)
   const recentSales = cachedSales.slice(0, 100);
   
   recentSales.forEach(sale => {
@@ -3889,14 +3380,14 @@ function clearSalesInDateRange() {
         <td>${sale.productName}</td>
         <td>${sale.quantity}</td>
         <td>${sale.unitType}</td>
-        <td class="text-success fw-bold">â‚¹${parseFloat(sale.totalAmount).toFixed(2)}</td>
+        <td class="text-success fw-bold">Ã¢â€šÂ¹${parseFloat(sale.totalAmount).toFixed(2)}</td>
       </tr>
     `;
     
     salesList.innerHTML += row;
   });
   
-  // Ã¢Å“â€¦ FIX: Show count if more than 100 sales exist
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIX: Show count if more than 100 sales exist
   if (cachedSales.length > 100) {
     salesList.innerHTML += `
       <tr>
@@ -3910,7 +3401,7 @@ function clearSalesInDateRange() {
 
 /**
  * ==========================================
- * ✅ PHOTO PRODUCT FUNCTIONALITY
+ * âœ… PHOTO PRODUCT FUNCTIONALITY
  * ==========================================
  */
 
@@ -4073,7 +3564,7 @@ async function uploadPhotoToBackend(productData, photoBase64) {
       await saveProductToSheet(productData);
       
       renderProducts();
-      showSuccessToast('✅ Photo uploaded successfully!');
+      showSuccessToast('âœ… Photo uploaded successfully!');
       
     } else {
       throw new Error(photoResult.error || 'Photo upload failed');
@@ -4145,7 +3636,7 @@ function showPhotoProducts() {
       `<span class="badge bg-success">Stock: ${product.stock}</span>` : 
       `<span class="badge bg-danger">Out of Stock</span>`;
     
-    const priceDisplay = product.price > 0 ? `₹${product.price.toFixed(2)}` : 'Price not set';
+    const priceDisplay = product.price > 0 ? `â‚¹${product.price.toFixed(2)}` : 'Price not set';
     
     const card = `
       <div class="col">
@@ -4166,11 +3657,11 @@ function showPhotoProducts() {
             </p>
           </div>
           <div class="card-footer bg-white border-0 d-flex gap-2">
-            <!-- ✅ FIXED: Call editProduct which opens the correct modal -->
+            <!-- âœ… FIXED: Call editProduct which opens the correct modal -->
             <button class="btn btn-sm btn-primary flex-fill" onclick="editProduct('${product.id}')">
               <i class="bi bi-pencil"></i> Edit
             </button>
-            <!-- ✅ FIXED: Call deleteProduct with proper confirmation -->
+            <!-- âœ… FIXED: Call deleteProduct with proper confirmation -->
             <button class="btn btn-sm btn-danger flex-fill" onclick="deleteProduct('${product.id}')">
               <i class="bi bi-trash"></i> Delete
             </button>
@@ -4206,7 +3697,7 @@ function viewPhotoProduct(productId) {
         <tr><th>Brand</th><td>${product.brand || 'N/A'}</td></tr>
         <tr><th>Size</th><td>${product.size || 'N/A'}</td></tr>
         <tr><th>Stock</th><td>${product.stock || 0} ${product.unitType || 'Pieces'}</td></tr>
-        <tr><th>Price</th><td>₹${formatCurrency(product.price || 0)}</td></tr>
+        <tr><th>Price</th><td>â‚¹${formatCurrency(product.price || 0)}</td></tr>
         <tr><th>Minimum Stock Alert</th><td>${product.minStock || 0}</td></tr>
       </table>
     </div>
@@ -4271,14 +3762,14 @@ function generateInvoice() {
   });
   
   if (items.length === 0) {
-    alert('⚠️ No products in the sale! Add products before generating invoice.');
+    alert('âš ï¸ No products in the sale! Add products before generating invoice.');
     return;
   }
   
   // Store items temporarily
   window.tempInvoiceItems = items;
   
-  // ✅ FIX: Close Sales Modal BEFORE opening Invoice Modal
+  // âœ… FIX: Close Sales Modal BEFORE opening Invoice Modal
   const salesModal = bootstrap.Modal.getInstance(document.getElementById('salesModal'));
   if (salesModal) {
     salesModal.hide();
@@ -4396,7 +3887,7 @@ function createInvoiceRow(item, index) {
                oninput="updateInvoiceRowTotal(${index})">
       </td>
       <td class="text-end fw-bold invoice-row-total">
-        â‚¹${(item.quantity * item.rate).toFixed(2)}
+        Ã¢â€šÂ¹${(item.quantity * item.rate).toFixed(2)}
       </td>
       <td class="text-center">
         <button type="button" class="btn btn-sm btn-link text-danger" 
@@ -4488,7 +3979,7 @@ function loadDefaultTerms() {
   const defaultTerms = `1. Payment due within 14 days of invoice date
 2. Late payments subject to 2% monthly interest charge
 3. Goods once sold cannot be returned or exchanged
-4. Delivery charges may apply for orders under â‚¹10,000
+4. Delivery charges may apply for orders under Ã¢â€šÂ¹10,000
 5. Company not responsible for damages during transit`;
   
   document.getElementById('invoiceTerms').value = defaultTerms;
@@ -4500,7 +3991,7 @@ async function saveInvoice() {
   const customerName = document.getElementById('invoiceCustomerName').value.trim();
   
   if (!customerName) {
-    alert('Ã¢ÂÅ’ Please enter customer name');
+    alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Please enter customer name');
     return;
   }
   
@@ -4512,7 +4003,7 @@ async function saveInvoice() {
   invoices.push(invoiceData);
   localStorage.setItem('invoices', JSON.stringify(invoices));
   
-  alert('Ã¢Å“â€¦ Invoice saved successfully!\n\nInvoice Number: ' + invoiceData.invoiceNumber);
+  alert('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Invoice saved successfully!\n\nInvoice Number: ' + invoiceData.invoiceNumber);
   
   // Close modal
   const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
@@ -4537,10 +4028,10 @@ function collectInvoiceData() {
     }
   });
   
-  const subtotal = parseFloat(document.getElementById('invoiceSubtotal').textContent.replace(/[â‚¹,]/g, ''));
-  const discount = parseFloat(document.getElementById('invoiceDiscountAmount').textContent.replace(/[â‚¹,-]/g, ''));
-  const tax = parseFloat(document.getElementById('invoiceTaxAmount').textContent.replace(/[â‚¹,]/g, ''));
-  const total = parseFloat(document.getElementById('invoiceGrandTotal').textContent.replace(/[â‚¹,]/g, ''));
+  const subtotal = parseFloat(document.getElementById('invoiceSubtotal').textContent.replace(/[Ã¢â€šÂ¹,]/g, ''));
+  const discount = parseFloat(document.getElementById('invoiceDiscountAmount').textContent.replace(/[Ã¢â€šÂ¹,-]/g, ''));
+  const tax = parseFloat(document.getElementById('invoiceTaxAmount').textContent.replace(/[Ã¢â€šÂ¹,]/g, ''));
+  const total = parseFloat(document.getElementById('invoiceGrandTotal').textContent.replace(/[Ã¢â€šÂ¹,]/g, ''));
   
   return {
     invoiceNumber: document.getElementById('invoiceNumber').value,
@@ -4563,7 +4054,7 @@ function previewInvoice() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('Ã¢ÂÅ’ Please enter customer name');
+    alert('ÃƒÂ¢Ã‚ÂÃ…â€™ Please enter customer name');
     return;
   }
   
@@ -4585,8 +4076,8 @@ function generateInvoiceHTML(data) {
         <td style="text-align: center">${index + 1}</td>
         <td>${escapeHtml(item.name)}</td>
         <td style="text-align: center">${item.quantity}</td>
-        <td style="text-align: right">â‚¹${item.rate.toFixed(2)}</td>
-        <td style="text-align: right">â‚¹${item.amount.toFixed(2)}</td>
+        <td style="text-align: right">Ã¢â€šÂ¹${item.rate.toFixed(2)}</td>
+        <td style="text-align: right">Ã¢â€šÂ¹${item.amount.toFixed(2)}</td>
       </tr>
     `;
   });
@@ -4644,19 +4135,19 @@ function generateInvoiceHTML(data) {
       <table style="width: 400px; margin-left: auto">
         <tr>
           <td>Sub Total:</td>
-          <td class="text-right">â‚¹${data.subtotal.toFixed(2)}</td>
+          <td class="text-right">Ã¢â€šÂ¹${data.subtotal.toFixed(2)}</td>
         </tr>
         <tr>
           <td>Discount:</td>
-          <td class="text-right">-â‚¹${data.discount.toFixed(2)}</td>
+          <td class="text-right">-Ã¢â€šÂ¹${data.discount.toFixed(2)}</td>
         </tr>
         <tr>
           <td>Tax:</td>
-          <td class="text-right">â‚¹${data.tax.toFixed(2)}</td>
+          <td class="text-right">Ã¢â€šÂ¹${data.tax.toFixed(2)}</td>
         </tr>
         <tr class="total-row">
           <td>Grand Total:</td>
-          <td class="text-right">â‚¹${data.total.toFixed(2)}</td>
+          <td class="text-right">Ã¢â€šÂ¹${data.total.toFixed(2)}</td>
         </tr>
       </table>
       
@@ -4675,20 +4166,6 @@ function generateInvoiceHTML(data) {
           Print Invoice
         </button>
       </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
      </body>
     </html>
@@ -4740,7 +4217,7 @@ function viewSavedInvoices() {
           <td>${escapeHtml(inv.customerName)}</td>
           <td>${new Date(inv.invoiceDate).toLocaleDateString('en-IN')}</td>
           <td>${new Date(inv.dueDate).toLocaleDateString('en-IN')}</td>
-          <td class="text-end"><strong>â‚¹${inv.total.toFixed(2)}</strong></td>
+          <td class="text-end"><strong>Ã¢â€šÂ¹${inv.total.toFixed(2)}</strong></td>
           <td><small>${escapeHtml(itemsSummary)}${moreItems}</small></td>
           <td class="text-center">
             <button class="btn btn-sm btn-info" onclick="previewSavedInvoice(${index})" title="Preview">
@@ -4797,7 +4274,7 @@ function deleteSavedInvoice(index) {
   invoices.splice(index, 1);
   localStorage.setItem('invoices', JSON.stringify(invoices));
   
-  alert(`Ã¢Å“â€¦ Invoice ${deletedInvoice.invoiceNumber} deleted successfully`);
+  alert(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Invoice ${deletedInvoice.invoiceNumber} deleted successfully`);
   
   // Refresh the list
   viewSavedInvoices();
@@ -4812,7 +4289,7 @@ async function shareInvoiceAsImage() {
   // Validate customer name
   const customerName = document.getElementById('invoiceCustomerName').value.trim();
   if (!customerName) {
-    alert('❌ Please enter customer name before sharing');
+    alert('âŒ Please enter customer name before sharing');
     return;
   }
   
@@ -4855,10 +4332,10 @@ async function shareInvoiceAsImage() {
         try {
           await navigator.share({
             title: `Invoice ${invoiceData.invoiceNumber}`,
-            text: `Invoice for ${invoiceData.customerName} - ₹${invoiceData.total.toFixed(2)}`,
+            text: `Invoice for ${invoiceData.customerName} - â‚¹${invoiceData.total.toFixed(2)}`,
             files: [file]
           });
-          console.log('✅ Invoice shared successfully');
+          console.log('âœ… Invoice shared successfully');
         } catch (err) {
           if (err.name !== 'AbortError') {
             console.error('Share failed:', err);
@@ -4874,13 +4351,13 @@ async function shareInvoiceAsImage() {
   } catch (error) {
     hideLoading();
     console.error('Error generating image:', error);
-    alert('❌ Error generating invoice image. Please try again.');
+    alert('âŒ Error generating invoice image. Please try again.');
   }
 }
 
 /**
  * ==========================================
- * ✅ NEW: Share Invoice Image on WhatsApp Number
+ * âœ… NEW: Share Invoice Image on WhatsApp Number
  * ==========================================
  */
 
@@ -4889,7 +4366,7 @@ function shareImageToWhatsAppNumber() {
   // Validate customer name first
   const customerName = document.getElementById('invoiceCustomerName').value.trim();
   if (!customerName) {
-    alert('❌ Please enter customer name before sharing');
+    alert('âŒ Please enter customer name before sharing');
     return;
   }
   
@@ -4910,20 +4387,20 @@ function shareImageToWhatsAppNumber() {
   }, 500);
 }
 
-// Send invoice image to specific WhatsApp number (FINAL FIX - NO STRING ESCAPING ISSUES)
+// Send invoice image to specific WhatsApp number (iOS + Android COMPATIBLE)
 async function sendInvoiceToWhatsApp() {
   const numberInput = document.getElementById('whatsappNumberInput');
   const phoneNumber = numberInput.value.trim();
   
   // Validation
   if (!phoneNumber) {
-    alert('❌ Please enter WhatsApp number');
+    alert('âŒ Please enter WhatsApp number');
     numberInput.focus();
     return;
   }
   
   if (!/^[0-9]{10}$/.test(phoneNumber)) {
-    alert('❌ Please enter a valid 10-digit mobile number');
+    alert('âŒ Please enter a valid 10-digit mobile number');
     numberInput.focus();
     return;
   }
@@ -4943,7 +4420,7 @@ async function sendInvoiceToWhatsApp() {
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   
   // Show loading
-  showLoading('Preparing invoice for WhatsApp...');
+  showLoading('Preparing invoice...');
   
   try {
     // Get invoice data
@@ -4975,106 +4452,67 @@ async function sendInvoiceToWhatsApp() {
     
     // Convert canvas to blob
     canvas.toBlob(async (blob) => {
-      const fileName = 'Invoice_' + invoiceData.invoiceNumber + '_' + invoiceData.customerName.replace(/\s+/g, '_') + '.png';
+      const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.customerName.replace(/\s+/g, '_')}.png`;
       
-      // iOS FIX: Different handling for iPhone
+      // âœ… STEP 1: Download/Save image
       if (isIOS) {
-        // Step 1: Show the image in a new window for user to save manually
-        const imageUrl = canvas.toDataURL('image/png');
-        const newWindow = window.open('', '_blank');
+        // iOS: Open image in new tab
+        const url = URL.createObjectURL(blob);
+        const imageWindow = window.open();
+        imageWindow.document.write(`<img src="${url}" style="max-width:100%;">`);
         
-        if (newWindow) {
-          // ✅ FINAL FIX: Build HTML using DOM methods (no string escaping needed!)
-          const doc = newWindow.document;
-          doc.open();
-          doc.write('<!DOCTYPE html><html><head>');
-          doc.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
-          doc.write('<title>Invoice Image</title>');
-          
-          // Add styles
-          const style = doc.createElement('style');
-          style.textContent = 
-            'body { margin: 0; padding: 20px; text-align: center; background: #f0f0f0; font-family: Arial, sans-serif; }' +
-            'img { max-width: 100%; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-top: 20px; }' +
-            '.instructions { background: white; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 90%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }' +
-            'button { background: #25D366; color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; margin: 10px; cursor: pointer; }' +
-            'ol { text-align: left; line-height: 1.8; }';
-          doc.head.appendChild(style);
-          doc.write('</head><body>');
-          
-          // Add instructions
-          doc.write('<div class="instructions">');
-          doc.write('<h2 style="color: #25D366;">📱 Save & Share Invoice</h2>');
-          doc.write('<ol>');
-          doc.write('<li><strong>Tap and hold</strong> on the invoice image below</li>');
-          doc.write('<li>Select <strong>"Add to Photos"</strong> or <strong>"Save Image"</strong></li>');
-          doc.write('<li>Click the <strong>"Open WhatsApp"</strong> button below</li>');
-          doc.write('<li>In WhatsApp, tap <strong>📎</strong> → <strong>Gallery</strong> → Select invoice → Send</li>');
-          doc.write('</ol>');
-          doc.write('<button id="waBtn">📱 Open WhatsApp Chat</button>');
-          doc.write('</div>');
-          
-          // Add image
-          doc.write('<img src="' + imageUrl + '" alt="Invoice">');
-          
-          doc.write('</body></html>');
-          doc.close();
-          
-          // Add WhatsApp button click handler
-          const waBtn = doc.getElementById('waBtn');
-          if (waBtn) {
-            waBtn.onclick = function() {
-              const waUrl = 'whatsapp://send?phone=' + fullNumber + '&text=' + 
-                encodeURIComponent('Invoice ' + invoiceData.invoiceNumber + ' - ₹' + invoiceData.total.toFixed(2));
-              newWindow.location.href = waUrl;
-            };
-          }
-          
-        } else {
-          // Popup blocked - fallback to download
-          const link = document.createElement('a');
-          link.download = fileName;
-          link.href = imageUrl;
-          link.click();
-          
-          // Open WhatsApp after short delay
-          setTimeout(function() {
-            window.location.href = 'whatsapp://send?phone=' + fullNumber + '&text=' + 
-              encodeURIComponent('Invoice ' + invoiceData.invoiceNumber);
-          }, 500);
-        }
+        setTimeout(() => {
+          alert('ðŸ“¸ Tap and hold the image, then select "Add to Photos".\n\n After saving, tap "Done" to return here.');
+          URL.revokeObjectURL(url);
+        }, 1000);
         
       } else {
-        // Android/Desktop: Standard download method
+        // Android/Desktop: Standard download
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/png');
         link.click();
         
-        // Show notification
-        alert('✅ Invoice downloaded: ' + fileName + '\n\n📱 WhatsApp will open now. Attach the downloaded invoice from Gallery.');
-        
-        // Open WhatsApp
-        setTimeout(function() {
-          const message = encodeURIComponent(
-            '📄 Invoice ' + invoiceData.invoiceNumber + '\n' +
-            'Customer: ' + invoiceData.customerName + '\n' +
-            'Amount: ₹' + invoiceData.total.toFixed(2)
-          );
-          window.location.href = 'whatsapp://send?phone=' + fullNumber + '&text=' + message;
-        }, 1000);
+        showDownloadNotification(fileName);
       }
+      
+      // âœ… STEP 2: Open WhatsApp after delay
+      setTimeout(() => {
+        const message = encodeURIComponent(
+          `ðŸ“„ Invoice ${invoiceData.invoiceNumber}\n` +
+          `Customer: ${invoiceData.customerName}\n` +
+          `Amount: â‚¹${invoiceData.total.toFixed(2)}`
+        );
+        
+        const whatsappUrl = `whatsapp://send?phone=${fullNumber}&text=${message}`;
+        
+        if (isIOS) {
+          // âœ… iOS FIX: Use window.open() instead of location.href
+          const wa = window.open(whatsappUrl, '_self');
+          if (!wa) {
+            // If blocked, try alternative
+            window.location.href = whatsappUrl;
+          }
+        } else {
+          // Android: location.href works fine
+          window.location.href = whatsappUrl;
+        }
+        
+        // Show instructions
+        setTimeout(() => {
+          showWhatsAppInstructions(invoiceData);
+        }, isIOS ? 500 : 1500);
+        
+      }, isIOS ? 3000 : 1000); // iOS needs more time to save image
       
     }, 'image/png', 0.95);
     
   } catch (error) {
     hideLoading();
     console.error('Error generating invoice image:', error);
-    alert('❌ Error generating invoice image. Please try again.');
+    alert('âŒ Error generating invoice image. Please try again.');
   }
 }
-
-
 
 
 // Helper: Detect mobile device
@@ -5097,9 +4535,9 @@ function fallbackWhatsAppShare(phoneNumber, invoiceData, canvas, fileName) {
   
   // Prepare WhatsApp message
   const message = encodeURIComponent(
-    `📄 Invoice ${invoiceData.invoiceNumber}\n` +
+    `ðŸ“„ Invoice ${invoiceData.invoiceNumber}\n` +
     `Customer: ${invoiceData.customerName}\n` +
-    `Amount: ₹${invoiceData.total.toFixed(2)}`
+    `Amount: â‚¹${invoiceData.total.toFixed(2)}`
   );
   
   // Open WhatsApp with the specific number
@@ -5112,12 +4550,12 @@ function fallbackWhatsAppShare(phoneNumber, invoiceData, canvas, fileName) {
     window.location.href = whatsappUrl;
     
     setTimeout(() => {
-      alert('📱 Steps to send invoice:\n\n1. Tap attach button (📎)\n2. Select "Gallery" or "Photos"\n3. Choose the downloaded invoice\n4. Tap Send ✓\n\nThe invoice image is saved in your downloads/gallery.');
+      alert('ðŸ“± Steps to send invoice:\n\n1. Tap attach button (ðŸ“Ž)\n2. Select "Gallery" or "Photos"\n3. Choose the downloaded invoice\n4. Tap Send âœ“\n\nThe invoice image is saved in your downloads/gallery.');
     }, 1000);
   } else {
     // Desktop: Open WhatsApp Web
     window.open(whatsappUrl, '_blank');
-    alert('✅ Invoice image downloaded!\n📱 WhatsApp Web opened - please attach the downloaded image and send.');
+    alert('âœ… Invoice image downloaded!\nðŸ“± WhatsApp Web opened - please attach the downloaded image and send.');
   }
 }
 
@@ -5132,16 +4570,16 @@ function fallbackWhatsAppShare(phoneNumber, invoiceData, canvas, fileName) {
   
   // Open WhatsApp Web with pre-filled message
   const message = encodeURIComponent(
-    `📄 Invoice ${invoiceData.invoiceNumber}\n` +
+    `ðŸ“„ Invoice ${invoiceData.invoiceNumber}\n` +
     `Customer: ${invoiceData.customerName}\n` +
-    `Amount: ₹${invoiceData.total.toFixed(2)}\n\n` +
+    `Amount: â‚¹${invoiceData.total.toFixed(2)}\n\n` +
     `Invoice image downloaded. Please attach and send.`
   );
   
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
   window.open(whatsappUrl, '_blank');
   
-  alert('✅ Invoice image downloaded!\n📱 WhatsApp opened - please attach the downloaded image and send.');
+  alert('âœ… Invoice image downloaded!\nðŸ“± WhatsApp opened - please attach the downloaded image and send.');
 }
 
 
@@ -5154,7 +4592,7 @@ function fallbackDownloadImage(canvas, fileName) {
   link.download = fileName;
   link.href = canvas.toDataURL('image/png');
   link.click();
-  alert('✅ Invoice image downloaded! You can now share it from your downloads.');
+  alert('âœ… Invoice image downloaded! You can now share it from your downloads.');
 }
 
 // Generate clean invoice HTML for image conversion
@@ -5166,8 +4604,8 @@ function generateInvoiceHTMLForImage(data) {
         <td style="text-align:center;padding:8px;border:1px solid #ddd;">${index + 1}</td>
         <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(item.name)}</td>
         <td style="text-align:center;padding:8px;border:1px solid #ddd;">${item.quantity}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">₹${item.rate.toFixed(2)}</td>
-        <td style="text-align:right;padding:8px;border:1px solid #ddd;">₹${item.amount.toFixed(2)}</td>
+        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.rate.toFixed(2)}</td>
+        <td style="text-align:right;padding:8px;border:1px solid #ddd;">â‚¹${item.amount.toFixed(2)}</td>
       </tr>
     `;
   });
@@ -5209,19 +4647,19 @@ function generateInvoiceHTMLForImage(data) {
         <table style="margin-left:auto;width:300px;">
           <tr>
             <td style="padding:5px;"><strong>Sub Total:</strong></td>
-            <td style="padding:5px;text-align:right;">₹${data.subtotal.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;">â‚¹${data.subtotal.toFixed(2)}</td>
           </tr>
           <tr>
             <td style="padding:5px;color:#dc3545;"><strong>Discount:</strong></td>
-            <td style="padding:5px;text-align:right;color:#dc3545;">-₹${data.discount.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;color:#dc3545;">-â‚¹${data.discount.toFixed(2)}</td>
           </tr>
           <tr>
             <td style="padding:5px;"><strong>Tax:</strong></td>
-            <td style="padding:5px;text-align:right;">₹${data.tax.toFixed(2)}</td>
+            <td style="padding:5px;text-align:right;">â‚¹${data.tax.toFixed(2)}</td>
           </tr>
           <tr style="border-top:2px solid #000;">
             <td style="padding:10px;font-size:18px;"><strong>Grand Total:</strong></td>
-            <td style="padding:10px;text-align:right;font-size:18px;"><strong>₹${data.total.toFixed(2)}</strong></td>
+            <td style="padding:10px;text-align:right;font-size:18px;"><strong>â‚¹${data.total.toFixed(2)}</strong></td>
           </tr>
         </table>
       </div>
@@ -5249,7 +4687,7 @@ function generateInvoiceHTMLForImage(data) {
 
 // Share Invoice as PDF
 async function shareInvoiceAsPDF() {
-  alert('📄 PDF sharing coming soon! For now, use Preview → Print to save as PDF.');
+  alert('ðŸ“„ PDF sharing coming soon! For now, use Preview â†’ Print to save as PDF.');
   // You can implement PDF generation using jsPDF or html2pdf.js later
 }
 
@@ -5258,7 +4696,7 @@ function shareViaWhatsApp() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -5272,7 +4710,7 @@ function shareViaEmail() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -5287,7 +4725,7 @@ function shareViaSMS() {
   const invoiceData = collectInvoiceData();
   
   if (!invoiceData.customerName) {
-    alert('❌ Please enter customer name');
+    alert('âŒ Please enter customer name');
     return;
   }
   
@@ -5298,7 +4736,7 @@ function shareViaSMS() {
 
 // Generate text message for sharing
 function generateShareText(data) {
-  let text = `🧾 INVOICE\n\n`;
+  let text = `ðŸ§¾ INVOICE\n\n`;
   text += `Invoice No: ${data.invoiceNumber}\n`;
   text += `Customer: ${data.customerName}\n`;
   text += `Date: ${new Date(data.invoiceDate).toLocaleDateString('en-IN')}\n`;
@@ -5306,19 +4744,19 @@ function generateShareText(data) {
   
   text += `ITEMS:\n`;
   data.items.forEach((item, i) => {
-    text += `${i + 1}. ${item.name} x ${item.quantity} = ₹${item.amount.toFixed(2)}\n`;
+    text += `${i + 1}. ${item.name} x ${item.quantity} = â‚¹${item.amount.toFixed(2)}\n`;
   });
   
   text += `\n`;
-  text += `Sub Total: ₹${data.subtotal.toFixed(2)}\n`;
+  text += `Sub Total: â‚¹${data.subtotal.toFixed(2)}\n`;
   if (data.discount > 0) {
-    text += `Discount: -₹${data.discount.toFixed(2)}\n`;
+    text += `Discount: -â‚¹${data.discount.toFixed(2)}\n`;
   }
   if (data.tax > 0) {
-    text += `Tax: ₹${data.tax.toFixed(2)}\n`;
+    text += `Tax: â‚¹${data.tax.toFixed(2)}\n`;
   }
-  text += `━━━━━━━━━━━━━━━━\n`;
-  text += `TOTAL: ₹${data.total.toFixed(2)}\n\n`;
+  text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
+  text += `TOTAL: â‚¹${data.total.toFixed(2)}\n\n`;
   
   text += `Thank you for your business!\n`;
   text += `- Tile & Sanitaryware Inventory`;
@@ -5346,106 +4784,7 @@ function hideLoading() {
   }
 }
 
-/**
- * ==========================================
- * QUICK CREATE PLUS ICON FUNCTIONALITY
- * ==========================================
- */
 
-// Toggle Quick Create Menu
-function toggleQuickCreate() {
-  const menu = document.getElementById('quickCreateMenu');
-  const btn = document.getElementById('quickCreateBtn');
-  
-  if (menu.classList.contains('show')) {
-    menu.classList.remove('show');
-    btn.classList.remove('active');
-  } else {
-    menu.classList.add('show');
-    btn.classList.add('active');
-  }
-}
-
-// Quick Create Action (placeholder for future implementation)
-function quickCreateAction(action) {
-  console.log('Quick Create Action:', action);
-  
-  // For now, show alert that feature is coming soon
-  alert('⏳ "' + action.replace(/([A-Z])/g, ' $1').trim() + '" feature coming soon!\n\nThis will be implemented in the next phase.');
-  
-  // Close menu after action
-  toggleQuickCreate();
-}
-
-// Close menu when clicking outside
-document.addEventListener('click', function(event) {
-  const menu = document.getElementById('quickCreateMenu');
-  const btn = document.getElementById('quickCreateBtn');
-  
-  if (menu && btn) {
-    if (!menu.contains(event.target) && !btn.contains(event.target)) {
-      menu.classList.remove('show');
-      btn.classList.remove('active');
-    }
-  }
-});
-
-// Prevent menu from closing when clicking inside
-document.addEventListener('DOMContentLoaded', function() {
-  const menu = document.getElementById('quickCreateMenu');
-  if (menu) {
-    menu.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-  }
-});
-
-/**
- * ==========================================
- * SIDEBAR MENU FUNCTIONALITY
- * ==========================================
- */
-
-// Toggle Sidebar
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  if (sidebar.classList.contains('open')) {
-    closeSidebar();
-  } else {
-    sidebar.classList.add('open');
-    overlay.classList.add('show');
-  }
-}
-
-// Close Sidebar
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
-}
-
-// Go to Home (reloads main page)
-function goToHome() {
-  closeSidebar();
-  // Scroll to top of page
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  // Show all products view if in photos view
-  if (document.getElementById('btnPhotoView').classList.contains('active')) {
-    showAllProducts();
-  }
-}
-
-// Sidebar Action (placeholder)
-function sidebarAction(action) {
-  console.log('Sidebar action:', action);
-  alert('⏳ "' + action.replace(/([A-Z])/g, ' $1').trim() + '" feature coming soon!\n\nThis will be implemented in the next phase.');
-  closeSidebar();
-}
 
 
 
@@ -5462,7 +4801,7 @@ function sidebarAction(action) {
     
     </script>
 
-  <!-- âœ… NEW: Change Password Modal -->
+  <!-- Ã¢Å“â€¦ NEW: Change Password Modal -->
   <div id="changePasswordModal" class="modal fade" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -5529,7 +4868,7 @@ function sidebarAction(action) {
     </div>
   </div>
 
-<!-- ✅ NEW: WhatsApp Number Input Modal -->
+<!-- âœ… NEW: WhatsApp Number Input Modal -->
 <div class="modal fade" id="whatsappNumberModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -5579,141 +4918,6 @@ function sidebarAction(action) {
 </div>
 
 
-<!-- ==========================================
-     QUICK CREATE PLUS BUTTON 
-     ========================================== -->
-
-<!-- Floating Plus Button -->
-<button class="quick-create-btn" id="quickCreateBtn" onclick="toggleQuickCreate()">
-  <i class="bi bi-plus-lg"></i>
-</button>
-
-<!-- Quick Create Dropdown Menu -->
-<div class="quick-create-menu" id="quickCreateMenu">
-  
-  <!-- Header -->
-  <div class="quick-create-header">
-    Quick Create
-  </div>
-  
-  <!-- GENERAL Section -->
-  <div class="quick-create-section">
-    <div class="quick-create-section-title">GENERAL</div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('addUsers')">
-      <i class="bi bi-person-plus"></i>
-      <span>Add Users</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('item')">
-      <i class="bi bi-box"></i>
-      <span>Item</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('itemGroups')">
-      <i class="bi bi-collection"></i>
-      <span>Item Groups</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('inventoryAdjustments')">
-      <i class="bi bi-sliders"></i>
-      <span>Inventory Adjustments</span>
-    </div>
-  </div>
-  
-  <!-- SALES Section -->
-  <div class="quick-create-section">
-    <div class="quick-create-section-title">SALES</div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('customer')">
-      <i class="bi bi-person"></i>
-      <span>Customer</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('invoices')">
-      <i class="bi bi-receipt"></i>
-      <span>Invoices</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('salesReceipts')">
-      <i class="bi bi-cash-stack"></i>
-      <span>Sales Receipts</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('salesOrder')">
-      <i class="bi bi-cart-check"></i>
-      <span>Sales Order</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('packages')">
-      <i class="bi bi-box-seam"></i>
-      <span>Packages</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('shipment')">
-      <i class="bi bi-truck"></i>
-      <span>Shipment</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('customerPayment')">
-      <i class="bi bi-credit-card"></i>
-      <span>Customer Payment</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('creditNotes')">
-      <i class="bi bi-file-text"></i>
-      <span>Credit Notes</span>
-    </div>
-  </div>
-  
-  <!-- PURCHASES Section -->
-  <div class="quick-create-section">
-    <div class="quick-create-section-title">PURCHASES</div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('vendor')">
-      <i class="bi bi-building"></i>
-      <span>Vendor</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('expenses')">
-      <i class="bi bi-cash-coin"></i>
-      <span>Expenses</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('bills')">
-      <i class="bi bi-file-earmark-text"></i>
-      <span>Bills</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('purchaseOrders')">
-      <i class="bi bi-bag-check"></i>
-      <span>Purchase Orders</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('purchaseReceives')">
-      <i class="bi bi-inbox"></i>
-      <span>Purchase Receives</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('vendorPayment')">
-      <i class="bi bi-wallet2"></i>
-      <span>Vendor Payment</span>
-    </div>
-    
-    <div class="quick-create-item disabled" onclick="quickCreateAction('vendorCredits')">
-      <i class="bi bi-arrow-left-circle"></i>
-      <span>Vendor Credits</span>
-    </div>
-  </div>
-  
-</div>
-
-
-
-
-
-
-    
 
     
 </body>
@@ -5721,11 +4925,6 @@ function sidebarAction(action) {
 
 </body>
 </html>
-
-
-
-
-
 
 
 
