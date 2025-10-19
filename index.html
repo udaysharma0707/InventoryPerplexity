@@ -824,57 +824,56 @@
 </div>
 
 
-  <!-- Dashboard Cards - Updated Structure -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+    <!-- Summary - Updated with 4 Boxes -->
+<div class="row mb-4">
   
   <!-- 1. Total Products -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-box" style="font-size: 3rem; color: #0d6efd;"></i>
-        <h2 class="mt-3 mb-0" id="totalProducts">0</h2>
+  <div class="col-md-3 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <i class="bi bi-box-seam text-primary" style="font-size:2rem"></i>
+        <h3 id="totalProducts" class="mt-2">0</h3>
         <p class="text-muted mb-0">Total Products</p>
       </div>
     </div>
   </div>
   
   <!-- 2. Products in Group (New - Display Only) -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-collection" style="font-size: 3rem; color: #6f42c1;"></i>
-        <h2 class="mt-3 mb-0" id="productsInGroup">0</h2>
+  <div class="col-md-3 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <i class="bi bi-collection text-info" style="font-size:2rem"></i>
+        <h3 id="productsInGroup" class="mt-2">0</h3>
         <p class="text-muted mb-0">Products in Group</p>
       </div>
     </div>
   </div>
   
   <!-- 3. Low Stock Items -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body text-center">
-        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #dc3545;"></i>
-        <h2 class="mt-3 mb-0" id="lowStock">0</h2>
+  <div class="col-md-3 mb-3">
+    <div class="card text-center shadow-sm h-100">
+      <div class="card-body">
+        <i class="bi bi-exclamation-triangle text-danger" style="font-size:2rem"></i>
+        <h3 id="lowStock" class="mt-2">0</h3>
         <p class="text-muted mb-0">Low Stock Items</p>
       </div>
     </div>
   </div>
   
   <!-- 4. Inventory Summary (New - Display Only) -->
-  <div class="col">
-    <div class="card border-0 shadow-sm h-100">
+  <div class="col-md-3 mb-3">
+    <div class="card shadow-sm h-100">
       <div class="card-body">
         <div class="text-center mb-3">
-          <i class="bi bi-layers" style="font-size: 2.5rem; color: #20c997;"></i>
-          <h6 class="mt-2 mb-0">Inventory Summary</h6>
+          <i class="bi bi-layers text-success" style="font-size:2rem"></i>
+          <p class="text-muted mb-0 mt-2"><strong>Inventory Summary</strong></p>
         </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
           <span class="text-muted small">Quantity in Hand</span>
           <span class="fw-bold" id="quantityInHand">0</span>
         </div>
-        <hr class="my-2">
         <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted small">Quantity to be Received</span>
+          <span class="text-muted small">To be Received</span>
           <span class="fw-bold" id="quantityToBeReceived">0</span>
         </div>
       </div>
@@ -1568,14 +1567,14 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">ðŸ“· Add Product by Photo</h5>
+        <h5 class="modal-title">ðŸ“• Add Product by Photo</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         
         <!-- Photo Upload Area -->
         <div class="upload-area" id="photoUploadArea" onclick="document.getElementById('photoFileInput').click()">
-          <div class="upload-icon">ðŸ“·</div>
+          <div class="upload-icon">ðŸ“•</div>
           <div class="upload-text">Click to take photo or select from gallery</div>
         </div>
         
