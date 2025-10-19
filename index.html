@@ -1031,13 +1031,14 @@
   
  <!-- REPLACE WITH THIS: -->
 
-// NEW (with safety check):
-<div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
+<!-- FIND your sidebar items and make sure they look like this: -->
+
+<div class="sidebar-item" onclick="closeSidebar(); navigateToAllProducts();">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
 
-<div class="sidebar-item" onclick="if(typeof navigateToProductGroups === 'function') navigateToProductGroups()">
+<div class="sidebar-item" onclick="closeSidebar(); navigateToProductGroups();">
   <i class="bi bi-collection"></i>
   <span>Products in Group</span>
 </div>
@@ -3239,9 +3240,6 @@ async function syncFromGoogleSheets() {
       
       // Update dashboard metrics
       updateSummaryFromCache();
-      // ✅ NEW: Sync product groups and variants
-  await syncProductGroups();
-  await syncAllVariants();
       
       showSyncIndicator('Synced!', 900);
       
@@ -7124,6 +7122,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
