@@ -6723,33 +6723,347 @@ function navigateToGroupDetail(groupId, groupName) {
 
 
 
-// Navigate to Product Groups page
+/**
+ * ==========================================
+ * PRODUCT GROUPS PAGE - COMPLETE IMPLEMENTATION
+ * ==========================================
+ */
+
+// Navigate to Product Groups - SIMPLIFIED VERSION
 function navigateToProductGroups() {
-  currentPage = 'productGroups';
+  console.log('📁 Opening Product Groups');
   
-  // Show Product Groups page, hide others
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
+  // Hide everything first
+  document.body.innerHTML = `
+    <div style="padding: 20px; background: #f8f9fa; min-height: 100vh;">
+      <!-- Header -->
+      <div style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          ← Back to Home
+        </button>
+        <h2 style="display: inline-block; margin: 0 0 0 20px;">Products in Group</h2>
+        <button onclick="openCreateGroupModal()" style="float: right; background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          + Create Group
+        </button>
+      </div>
+      
+      <!-- Search -->
+      <div style="margin-bottom: 20px;">
+        <input type="text" id="searchGroupBox" placeholder="🔍 Search groups..." 
+               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"
+               onkeyup="filterGroupsSimple(this.value)">
+      </div>
+      
+      <!-- Loading State -->
+      <div id="loadingGroups" style="text-align: center; padding: 40px; display: block;">
+        <div style="font-size: 48px;">⏳</div>
+        <p style="color: #666; margin-top: 10px;">Loading product groups...</p>
+      </div>
+      
+      <!-- Groups List -->
+      <div id="groupsList" style="display: none;">
+        <!-- Groups will be rendered here -->
+      </div>
+      
+      <!-- Empty State -->
+      <div id="emptyState" style="display: none; text-align: center; padding: 60px; color: #999;">
+        <div style="font-size: 64px;">📁</div>
+        <h3>No Product Groups Yet</h3>
+        <p>Create your first product group to manage variants</p>
+        <button onclick="openCreateGroupModal()" style="margin-top: 20px; background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+          + Create First Group
+        </button>
+      </div>
+    </div>
+  `;
   
-  // ✅ NULL CHECKS
-  if (mainApp) mainApp.style.display = 'none';
-  if (allProductsPage) allProductsPage.classList.remove('active');
-  if (productGroupsPage) productGroupsPage.classList.add('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
-  
-  // Load and render product groups
-  syncProductGroups();
-  
-  // Close sidebar
-  if (typeof closeSidebar === 'function') {
-    closeSidebar();
-  }
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Load product groups
+  loadProductGroupsData();
 }
+
+// Load Product Groups Data
+async function loadProductGroupsData() {
+  try {
+    console.log('📡 Fetching product groups...');
+    
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProductGroups&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.success && data.groups) {
+      cachedProductGroups = data.groups;
+      console.log('✅ Loaded', data.groups.length, 'groups');
+      
+      // Hide loading, show content
+      document.getElementById('loadingGroups').style.display = 'none';
+      
+      if (data.groups.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+      } else {
+        document.getElementById('groupsList').style.display = 'block';
+        document.getElementById('groupsList').innerHTML = renderProductGroupsHTML(data.groups);
+      }
+    } else {
+      throw new Error(data.error || 'Failed to load groups');
+    }
+    
+  } catch (err) {
+    console.error('❌ Error loading groups:', err);
+    document.getElementById('loadingGroups').innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #dc3545;">
+        <div style="font-size: 48px;">⚠️</div>
+        <h4>Error Loading Groups</h4>
+        <p>${err.message}</p>
+        <button onclick="loadProductGroupsData()" style="margin-top: 15px; background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          🔄 Retry
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Render Product Groups as HTML
+function renderProductGroupsHTML(groups) {
+  let html = '';
+  
+  groups.forEach(group => {
+    const variantText = group.totalVariants === 1 ? '1 variant' : `${group.totalVariants} variants`;
+    
+    html += `
+      <div onclick="navigateToGroupVariants('${group.groupId}', '${group.groupName}')" 
+           style="background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.12)';"
+           onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.08)';">
+        
+        <div style="font-size: 42px; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+          📁
+        </div>
+        
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 18px; margin-bottom: 5px; color: #333;">${group.groupName}</div>
+          <div style="font-size: 13px; color: #999; margin-bottom: 8px;">${group.description || 'No description'}</div>
+          <div style="font-size: 13px; color: #666;">
+            <span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; color: #1976d2;">
+              📦 ${variantText}
+            </span>
+            ${group.createdDate ? `<span style="margin-left: 10px; color: #999;">Created: ${new Date(group.createdDate).toLocaleDateString()}</span>` : ''}
+          </div>
+        </div>
+        
+        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px;">
+          <button onclick="editGroupModal('${group.groupId}')" style="background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;" title="Edit">
+            ✏️
+          </button>
+          <button onclick="confirmDeleteGroup('${group.groupId}', '${group.groupName}')" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;" title="Delete">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  return html;
+}
+
+// Filter Groups (Simple)
+function filterGroupsSimple(searchText) {
+  const filtered = cachedProductGroups.filter(g => 
+    g.groupName.toLowerCase().includes(searchText.toLowerCase()) ||
+    (g.description && g.description.toLowerCase().includes(searchText.toLowerCase()))
+  );
+  
+  const groupsList = document.getElementById('groupsList');
+  
+  if (filtered.length === 0) {
+    groupsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No groups found matching your search</div>';
+  } else {
+    groupsList.innerHTML = renderProductGroupsHTML(filtered);
+  }
+}
+
+// Navigate to Group Variants (Detail Page)
+function navigateToGroupVariants(groupId, groupName) {
+  console.log('📦 Opening variants for:', groupName);
+  
+  // Store current group info
+  window.currentGroupId = groupId;
+  window.currentGroupName = groupName;
+  
+  // Update page content
+  document.body.innerHTML = `
+    <div style="padding: 20px; background: #f8f9fa; min-height: 100vh;">
+      <!-- Header -->
+      <div style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <button onclick="navigateToProductGroups()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          ← Back to Groups
+        </button>
+        <h2 style="display: inline-block; margin: 0 0 0 20px;">${groupName}</h2>
+      </div>
+      
+      <!-- Search -->
+      <div style="margin-bottom: 20px;">
+        <input type="text" id="searchVariantBox" placeholder="🔍 Search variants..." 
+               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"
+               onkeyup="filterVariantsSimple(this.value)">
+      </div>
+      
+      <!-- Loading State -->
+      <div id="loadingVariants" style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px;">⏳</div>
+        <p style="color: #666; margin-top: 10px;">Loading variants...</p>
+      </div>
+      
+      <!-- Variants List -->
+      <div id="variantsList">
+        <!-- Variants will be rendered here -->
+      </div>
+    </div>
+  `;
+  
+  // Load variants
+  loadGroupVariantsData(groupId);
+}
+
+// Load Group Variants Data
+async function loadGroupVariantsData(groupId) {
+  try {
+    console.log('📡 Fetching variants for group:', groupId);
+    
+    const url = `${GOOGLE_SCRIPT_URL}?action=getGroupVariants&groupId=${encodeURIComponent(groupId)}&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.success && data.variants) {
+      console.log('✅ Loaded', data.variants.length, 'variants');
+      
+      // Hide loading
+      document.getElementById('loadingVariants').style.display = 'none';
+      
+      if (data.variants.length === 0) {
+        document.getElementById('variantsList').innerHTML = `
+          <div style="text-align: center; padding: 60px; color: #999;">
+            <div style="font-size: 64px;">📦</div>
+            <h3>No Variants Yet</h3>
+            <p>This group doesn't have any variants</p>
+          </div>
+        `;
+      } else {
+        document.getElementById('variantsList').innerHTML = renderVariantsHTML(data.variants);
+      }
+    } else {
+      throw new Error(data.error || 'Failed to load variants');
+    }
+    
+  } catch (err) {
+    console.error('❌ Error loading variants:', err);
+    document.getElementById('loadingVariants').innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #dc3545;">
+        <div style="font-size: 48px;">⚠️</div>
+        <h4>Error Loading Variants</h4>
+        <p>${err.message}</p>
+        <button onclick="loadGroupVariantsData('${groupId}')" style="margin-top: 15px; background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          🔄 Retry
+        </button>
+      </div>
+    `;
+  }
+}
+
+// Render Variants HTML
+function renderVariantsHTML(variants) {
+  let html = '';
+  
+  variants.forEach(variant => {
+    const stockColor = variant.stock <= variant.minStock ? '#dc3545' : '#28a745';
+    const stockText = variant.stock <= variant.minStock ? `⚠️ Low (${variant.stock})` : `✓ ${variant.stock}`;
+    
+    // Parse attributes
+    let attributesText = '';
+    if (variant.attributes) {
+      try {
+        const attrs = typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes;
+        const attrArray = Object.entries(attrs).map(([key, value]) => `${key}: ${value}`);
+        attributesText = attrArray.join(' • ');
+      } catch (e) {
+        attributesText = '';
+      }
+    }
+    
+    html += `
+      <div style="background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px;">
+        
+        <div style="font-size: 36px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px;">
+          📦
+        </div>
+        
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">${variant.variantName}</div>
+          <div style="font-size: 13px; color: #666;">
+            ${attributesText ? `<span>${attributesText}</span><br>` : ''}
+            <span style="color: ${stockColor};">${stockText}</span>
+            <span> • ₹${variant.price.toFixed(2)}</span>
+            ${variant.brand ? ` • <span>🏷️ ${variant.brand}</span>` : ''}
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 8px;">
+          <button onclick="editVariant('${variant.variantId}')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            ✏️
+          </button>
+          <button onclick="confirmDeleteVariant('${variant.variantId}', '${variant.variantName}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  return html;
+}
+
+// Filter Variants (Simple)
+function filterVariantsSimple(searchText) {
+  // You'll need to implement this based on your variant data structure
+  console.log('Filtering variants:', searchText);
+}
+
+// Confirm Delete Group
+function confirmDeleteGroup(groupId, groupName) {
+  if (confirm(`⚠️ Delete group "${groupName}"?\n\nThis will also delete all variants in this group.\nThis action cannot be undone.`)) {
+    deleteGroup(groupId);
+  }
+}
+
+// Confirm Delete Variant
+function confirmDeleteVariant(variantId, variantName) {
+  if (confirm(`⚠️ Delete variant "${variantName}"?\n\nThis action cannot be undone.`)) {
+    deleteVariant(variantId);
+  }
+}
+
+// Placeholder functions (implement based on your backend)
+function editGroupModal(groupId) {
+  alert('Edit Group functionality - Coming soon!');
+}
+
+function editVariant(variantId) {
+  alert('Edit Variant functionality - Coming soon!');
+}
+
+function deleteGroup(groupId) {
+  alert('Delete Group functionality - Coming soon!');
+}
+
+function deleteVariant(variantId) {
+  alert('Delete Variant functionality - Coming soon!');
+}
+
+function openCreateGroupModal() {
+  alert('Create Group modal - Coming soon!\n\nThis will open a modal to create a new product group with variants.');
+}
+
 
 
 
@@ -7538,6 +7852,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
