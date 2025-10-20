@@ -3381,7 +3381,11 @@ let cachedGroupVariants = [];
 let currentPage = 'home'; // home, allProducts, productGroups, groupDetail
 let currentGroupId = null; // For group detail view
 
-    
+    // Product Groups Variables
+
+var currentGroupName = null;
+var attributeRowCounter = 0;
+
     
 // ==========================================
 // BACKGROUND SAVE QUEUE
@@ -8012,13 +8016,6 @@ function navigateToProductGroups() {
  * PRODUCT GROUPS - JAVASCRIPT FUNCTIONS
  * ==========================================
  */
-// Check if cachedProductGroups exists, if not create it
-
-// Declare new variables only (cachedProductGroups already exists elsewhere)
-var cachedGroupVariants = [];
-var currentGroupId = null;
-var currentGroupName = null;
-var attributeRowCounter = 0;
 
 
 
@@ -9879,6 +9876,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
