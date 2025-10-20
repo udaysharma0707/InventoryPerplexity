@@ -3904,41 +3904,47 @@ function handleCreateGroup(event) {
   
   try {
     // Get basic info
-    const groupName = document.getElementById('groupName').value.trim();
+    const groupName = document.getElementById('groupName')?.value.trim() || '';
     
     if (!groupName) {
       alert('Error: Group name is required');
       return;
     }
     
-    // Get attributes
+    // Get attributes from ALL attribute rows
     const attributeRows = document.querySelectorAll('.attribute-row');
     const attributes = [];
     
-    if (attributeRows.length === 0) {
-      alert('Error: Please add at least one attribute');
-      return;
-    }
+    console.log('🔍 Found', attributeRows.length, 'attribute rows');
     
-    // Collect attributes
     for (const row of attributeRows) {
-      const nameInput = row.querySelector('.attr-name');
+      // Try multiple selectors to find inputs
+      const nameInput = row.querySelector('.attr-name, input[type="text"]');
       const optionsInput = row.querySelector('.attr-options');
       
-      if (!nameInput || !optionsInput) continue;
+      if (!nameInput || !optionsInput) {
+        console.warn('⚠️ Could not find inputs in row:', row);
+        continue;
+      }
       
       const attrName = nameInput.value.trim();
-      const attrOptions = optionsInput.value.trim();
+      const attrOptionsRaw = optionsInput.value.trim();
       
-      if (!attrName || !attrOptions) {
+      console.log('📋 Attribute:', attrName, '- Options:', attrOptionsRaw);
+      
+      if (!attrName || !attrOptionsRaw) {
         alert('Error: All attributes must have a name and options');
         return;
       }
       
-      const options = attrOptions.split(',').map(o => o.trim()).filter(o => o);
+      // Clean up options: split by comma, trim, remove empties
+      const options = attrOptionsRaw
+        .split(',')
+        .map(o => o.trim())
+        .filter(o => o.length > 0);
       
       if (options.length === 0) {
-        alert('Error: Each attribute must have at least one option');
+        alert(`Error: Attribute "${attrName}" must have at least one option`);
         return;
       }
       
@@ -3946,6 +3952,11 @@ function handleCreateGroup(event) {
         name: attrName,
         options: options
       });
+    }
+    
+    if (attributes.length === 0) {
+      alert('Error: Please add at least one attribute with options');
+      return;
     }
     
     // Get other info
@@ -3959,20 +3970,12 @@ function handleCreateGroup(event) {
       description: description,
       manufacturer: manufacturer,
       category: category,
-      attributes: attributes,
-      timestamp: new Date().toISOString()
+      attributes: attributes
     };
     
-    console.log('📤 Sending data:', groupData);
+    console.log('📤 Sending data:', JSON.stringify(groupData, null, 2));
     
-    // Show loading state
-    const submitBtn = document.getElementById('btnSaveGroup');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '⏳ Creating...';
-    }
-    
-    // Call backend to save
+    // Call backend
     createProductGroup(groupData);
     
   } catch (error) {
@@ -3980,6 +3983,7 @@ function handleCreateGroup(event) {
     alert('Error: ' + error.message);
   }
 }
+
 
 
 
@@ -10028,6 +10032,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
