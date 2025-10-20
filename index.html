@@ -7637,9 +7637,172 @@ function showError(message) {
     
 </body>
 </html>
+/*
+  Non-destructive Sidebar Auto-close (works with your existing functions)
+  Paste this before </body>
+*/
 
+(function(){
+  // Helper: call your existing closeSidebar if available, else fallback safe remover
+  function tryCloseSidebar() {
+    try {
+      if (typeof closeSidebar === 'function') {
+        closeSidebar();
+        return;
+      }
+    } catch(e) { console.warn('closeSidebar call failed', e); }
+
+    // fallback (best-effort)
+    try {
+      var sb = document.getElementById('sidebarMenu') || document.querySelector('.sidebar') || document.querySelector('#sidebar');
+      var ov = document.getElementById('sidebarOverlay') || document.querySelector('.sidebar-overlay') || document.querySelector('.overlay');
+      if (sb && sb.classList.contains('open')) sb.classList.remove('open');
+      if (ov && ov.classList.contains('show')) ov.classList.remove('show');
+      // remove common body classes too
+      ['sidebar-open','menu-open','nav-open','sidenav-open','drawer-open'].forEach(function(c){ document.body.classList.remove(c); });
+    } catch(e) { console.warn('fallback close failed', e); }
+  }
+
+  // Helper: open a page using your existing functions if present, else fallback
+  function openPageById(pageId) {
+    try {
+      // Prefer using existing showPageView if available (non-destructive)
+      if (typeof showPageView === 'function') {
+        showPageView(pageId);
+        return;
+      }
+      // Otherwise, try any navigateTo... functions (best-effort)
+      if (typeof navigateToAllProducts === 'function' && pageId === 'allProductsPage') {
+        navigateToAllProducts(pageId);
+        return;
+      }
+    } catch(e) { console.warn('existing nav call failed', e); }
+
+    // Fallback: activate .page-view with given ID (non-destructive)
+    var target = document.getElementById(pageId);
+    if (!target) return;
+    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+    target.classList.add('active');
+    document.body.classList.add('page-open');
+  }
+
+  // When Home link clicked: prefer existing navigateToHome() or your goToHome()
+  function handleHomeClick(ev, anchor) {
+    try {
+      ev && ev.preventDefault();
+      if (typeof goToHome === 'function') {
+        goToHome();
+        return;
+      }
+      if (typeof navigateToHome === 'function') {
+        // keep your current behavior
+        navigateToHome();
+        tryCloseSidebar();
+        return;
+      }
+    } catch(e) { console.warn('home nav failed', e); }
+
+    // fallback: remove active page overlays
+    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+    document.body.classList.remove('page-open');
+    tryCloseSidebar();
+  }
+
+  // Attach click handlers to sidebar anchors
+  function installSidebarHandlers() {
+    var sidebar = document.getElementById('sidebarMenu') || document.querySelector('.sidebar') || document.querySelector('#sidebar');
+    if (!sidebar) return;
+    if (sidebar.__handlersInstalled) return;
+    sidebar.__handlersInstalled = true;
+
+    var anchors = sidebar.querySelectorAll('a');
+    anchors.forEach(function(a){
+      a.addEventListener('click', function(ev){
+        // skip external links or new-tab links
+        var href = a.getAttribute('href') || '';
+        if (/^https?:\/\//i.test(href) || a.target === '_blank') {
+          return;
+        }
+
+        // Determine if this is Home
+        var txt = (a.textContent || '').trim().toLowerCase();
+        var isHome = txt === 'home' || a.classList.contains('home') || (a.dataset.page && a.dataset.page.toLowerCase() === 'home');
+
+        // If anchor has explicit data-page or href="#id", prefer that
+        var pageId = a.dataset.page || a.dataset.target || (href && href.startsWith('#') ? href.slice(1) : null);
+
+        if (isHome) {
+          // Prevent default navigation and call your home helper
+          ev.preventDefault();
+          handleHomeClick(ev, a);
+          return;
+        }
+
+        // For SPA-style sidebar links, intercept, open page, then close sidebar
+        var isInternal = !!pageId || a.classList.contains('nav-link') || a.dataset.page;
+        if (isInternal) {
+          ev.preventDefault();
+          if (pageId) openPageById(pageId);
+          // small delay to let other handlers run then close sidebar
+          setTimeout(tryCloseSidebar, 50);
+          return;
+        }
+
+        // otherwise allow default behavior, but still try to close sidebar after small delay
+        setTimeout(tryCloseSidebar, 120);
+      }, { passive: false });
+    });
+  }
+
+  // Observe DOM mutations: if any .page-view becomes .active (other code opened a page), close sidebar
+  function installMutationObserver() {
+    var root = document.body || document.documentElement;
+    if (!root) return;
+
+    var observer = new MutationObserver(function(mutations) {
+      try {
+        if (document.querySelector('.page-view.active')) {
+          tryCloseSidebar();
+          // ensure a CSS class for page-open (optional)
+          document.body.classList.add('page-open');
+        }
+      } catch(e) { /* ignore */ }
+    });
+    observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+
+    // initial check
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      if (document.querySelector('.page-view.active')) {
+        tryCloseSidebar();
+        document.body.classList.add('page-open');
+      }
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (document.querySelector('.page-view.active')) {
+          tryCloseSidebar();
+          document.body.classList.add('page-open');
+        }
+      });
+    }
+  }
+
+  // Init
+  function init() {
+    installSidebarHandlers();
+    installMutationObserver();
+    // Expose debug helpers
+    window.__tryCloseSidebar = tryCloseSidebar;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </body>
 </html>
+
 
 
 
