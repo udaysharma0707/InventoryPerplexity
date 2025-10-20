@@ -4402,6 +4402,66 @@ function navigateToHome() {
 
 console.log('✅ Product Groups module loaded successfully');
 
+// Create Product Group - Send to Backend
+async function createProductGroup(groupData) {
+  console.log('📤 Creating product group:', groupData);
+  
+  try {
+    // Show loading
+    showLoadingOverlay('Creating product group...');
+    
+    // Call your Google Apps Script backend
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'createProductGroup',
+        data: groupData
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    hideLoadingOverlay();
+    
+    if (result.status === 'success') {
+      console.log('✅ Product group created successfully:', result);
+      
+      // Show success message
+      showSuccessMessage(`Group "${groupData.groupName}" created with ${result.variantsCreated || 0} variants!`);
+      
+      // Close modal
+      closeCreateGroupModal();
+      
+      // Refresh the groups list
+      setTimeout(() => {
+        loadProductGroups();
+      }, 1000);
+      
+    } else {
+      throw new Error(result.message || 'Failed to create product group');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error creating product group:', error);
+    hideLoadingOverlay();
+    alert('Error creating product group: ' + error.message);
+    
+    // Re-enable button
+    const submitBtn = document.getElementById('btnSaveGroup');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '💾 Save & Generate';
+    }
+  }
+}
 
 // Generate variant combinations
 function generateVariantCombinations(attributes) {
@@ -9963,6 +10023,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
