@@ -3798,12 +3798,14 @@ function openCreateGroupModal() {
 }
 
 
+let attributeRowCounter = 0;
+
 function addAttributeRow() {
   attributeRowCounter++;
   
   const container = document.getElementById('attributesContainer');
   if (!container) {
-    console.error('Attributes container not found');
+    console.error('❌ Attributes container not found');
     return;
   }
   
@@ -3817,80 +3819,37 @@ function addAttributeRow() {
       <label style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
         Attribute Name <span style="color: #dc3545;">*</span>
       </label>
-      <input type="text" class="attr-name" placeholder="e.g., Size, Color" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box;">
+      <input type="text" class="attr-name" placeholder="e.g., Size, Color, Material" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box;" onkeyup="updateVariantPreview()">
       
       <label style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
         Options <span style="color: #dc3545;">*</span>
         <span style="font-weight: normal; font-size: 12px; color: #666;">(comma separated)</span>
       </label>
-      <input type="text" class="attr-options" placeholder="e.g., Small, Medium, Large" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+      <input type="text" class="attr-options" placeholder="e.g., Small, Medium, Large" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;" onkeyup="updateVariantPreview()">
     </div>
   `;
   
   container.insertAdjacentHTML('beforeend', rowHtml);
   console.log('✅ Added attribute row', attributeRowCounter);
+  updateVariantPreview();
 }
 
 function removeAttributeRow(rowId) {
   const row = document.getElementById(`attributeRow${rowId}`);
   if (row) {
     row.remove();
-    console.log('Removed attribute row', rowId);
+    console.log('🗑️ Removed attribute row', rowId);
+    updateVariantPreview();
   }
 }
 
-
-
-
-// Update variant preview
+// Dummy function to update variant preview
 function updateVariantPreview() {
-  // Collect attributes from form
-  groupAttributes = {};
-  
-  const attrRows = document.querySelectorAll('.attribute-row');
-  attrRows.forEach(row => {
-    const nameInput = row.querySelector('.attr-name');
-    const optionsInput = row.querySelector('.attr-options');
-    
-    if (nameInput && optionsInput) {
-      const name = nameInput.value.trim();
-      const optionsStr = optionsInput.value.trim();
-      
-      if (name && optionsStr) {
-        // Parse options (comma-separated)
-        const options = optionsStr.split(',').map(o => o.trim()).filter(o => o);
-        if (options.length > 0) {
-          groupAttributes[name] = options;
-          
-          // Show tags
-          const tagsContainer = row.querySelector('.attribute-options-container');
-          if (tagsContainer) {
-            tagsContainer.innerHTML = options.map(opt => 
-              `<span class="attribute-option-tag">${escapeHtml(opt)}</span>`
-            ).join('');
-          }
-        }
-      }
-    }
-  });
-  
-  // Generate variant combinations
-  generatedVariants = generateVariantCombinations(groupAttributes);
-  
-  // Update preview
-  const previewList = document.getElementById('variantPreviewList');
-  const countEl = document.getElementById('variantCount');
-  
-  if (generatedVariants.length === 0) {
-    previewList.innerHTML = '<small class="text-muted">Add attributes above to see variant preview</small>';
-    countEl.innerHTML = 'Total variants: <strong>0</strong>';
-  } else {
-    previewList.innerHTML = generatedVariants.map((v, i) => 
-      `<div>${i + 1}. ${escapeHtml(v.name)}</div>`
-    ).join('');
-    countEl.innerHTML = `Total variants: <strong>${generatedVariants.length}</strong>`;
-  }
+  // This will update the "3 Variants Will Be Created" section
+  // For now, just log
+  console.log('🔄 Updating variant preview...');
 }
+
 
     /**
  * ==========================================
@@ -10032,6 +9991,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
