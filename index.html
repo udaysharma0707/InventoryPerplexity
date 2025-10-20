@@ -3693,99 +3693,88 @@ try {
 let groupAttributes = {}; // { "Size": ["Small", "Medium", "Large"], "Color": ["Red", "Blue"] }
 let generatedVariants = []; // Array of variant objects
 
-// Open Create Group Modal - Creates modal if not exists
 function openCreateGroupModal() {
   console.log('📝 Opening Create Group Modal');
   
-  // Check if modal already exists
-  let modal = document.getElementById('createGroupModal');
+  // Remove existing modal if any
+  const existingModal = document.getElementById('createGroupModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
   
-  // If not, create it
-  if (!modal) {
-    console.log('Creating modal HTML...');
+  // Create modal HTML with forced visibility
+  const modalHTML = `
+<div class="fullscreen-modal active" id="createGroupModal" style="display: block !important; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #ffffff; z-index: 999999; overflow-y: auto;">
+  
+  <div class="modal-header-mobile" style="position: sticky; top: 0; background: #ffffff; padding: 12px 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; z-index: 100;">
+    <button class="btn-cancel-modal" onclick="closeCreateGroupModal()" style="background: transparent; color: #dc3545; border: none; padding: 8px 12px; font-size: 14px; font-weight: 600; cursor: pointer;">✕ Cancel</button>
+    <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">New Item Group</h3>
+    <div style="width: 80px;"></div>
+  </div>
+  
+  <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)" style="padding: 16px; padding-bottom: 100px;">
     
-    const modalHTML = `
-      <div class="fullscreen-modal" id="createGroupModal">
-        <div class="modal-header-mobile">
-          <button class="btn-cancel-modal" onclick="closeCreateGroupModal()">✕ Cancel</button>
-          <h3>New Item Group</h3>
-          <div style="width: 80px;"></div>
-        </div>
-        
-        <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)">
-          <div class="form-section">
-            <div class="section-title">Basic Information</div>
-            <label class="form-label">Item Group Name <span class="required">*</span></label>
-            <input type="text" id="groupName" name="groupName" placeholder="e.g., T-Shirts" required autocomplete="off">
-            <label class="form-label">Description</label>
-            <textarea id="groupDescription" name="groupDescription" placeholder="Optional" rows="3"></textarea>
-            <label class="form-label">Manufacturer/Brand</label>
-            <input type="text" id="groupManufacturer" name="groupManufacturer" placeholder="e.g., Nike" autocomplete="off">
-            <label class="form-label">Category</label>
-            <select id="groupCategory" name="groupCategory">
-              <option value="">Select Category</option>
-              <option value="Tiles">Tiles</option>
-              <option value="Sanitaryware">Sanitaryware</option>
-              <option value="Accessories">Accessories</option>
-              <option value="Apparel">Apparel</option>
-              <option value="Custom">Custom</option>
-            </select>
-          </div>
-          
-          <div class="form-section">
-            <div class="section-title">Create Attributes</div>
-            <div class="section-description">Add attributes like Size, Color, Material</div>
-            <div id="attributesContainer"></div>
-            <button type="button" class="btn-add-more" onclick="addAttributeRow()">➕ Add Attribute</button>
-          </div>
-          
-          <div class="form-section">
-            <div class="variant-preview-section">
-              <div class="variant-count-badge"><span id="variantCount">0</span> Variants Will Be Created</div>
-              <div class="variant-preview-list" id="variantPreviewContainer">
-                <div class="variant-preview-item">Add attributes to see preview...</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="form-actions-bottom">
-            <button type="button" class="btn-secondary-bottom" onclick="closeCreateGroupModal()">Cancel</button>
-            <button type="submit" class="btn-primary-bottom" id="btnSaveGroup">💾 Save & Generate</button>
-          </div>
-        </form>
+    <div class="form-section" style="margin-bottom: 24px; background: #f8f9fa; padding: 16px; border-radius: 12px;">
+      <div class="section-title" style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px;">Basic Information</div>
+      
+      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
+        Item Group Name <span class="required" style="color: #dc3545;">*</span>
+      </label>
+      <input type="text" id="groupName" name="groupName" placeholder="e.g., T-Shirts, Tiles" required autocomplete="off" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
+      
+      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Description</label>
+      <textarea id="groupDescription" name="groupDescription" placeholder="Optional description" rows="3" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; box-sizing: border-box; resize: vertical;"></textarea>
+      
+      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Manufacturer/Brand</label>
+      <input type="text" id="groupManufacturer" name="groupManufacturer" placeholder="e.g., Nike, Somany" autocomplete="off" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
+      
+      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Category</label>
+      <select id="groupCategory" name="groupCategory" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
+        <option value="">Select Category</option>
+        <option value="Tiles">Tiles</option>
+        <option value="Sanitaryware">Sanitaryware</option>
+        <option value="Accessories">Accessories</option>
+        <option value="Apparel">Apparel</option>
+        <option value="Custom">Custom</option>
+      </select>
+    </div>
+    
+    <div class="form-section" style="margin-bottom: 24px; background: #f8f9fa; padding: 16px; border-radius: 12px;">
+      <div class="section-title" style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">Create Attributes</div>
+      <div class="section-description" style="font-size: 13px; color: #666; margin-bottom: 16px;">Add attributes like Size, Color, Material</div>
+      <div id="attributesContainer"></div>
+      <button type="button" class="btn-add-more" onclick="addAttributeRow()" style="width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px; margin-top: 12px;">➕ Add Attribute</button>
+    </div>
+    
+    <div class="form-section" style="margin-bottom: 24px; background: white; padding: 16px; border-radius: 12px; border: 2px solid #e3f2fd;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
+        <span id="variantCount">0</span> Variants Will Be Created
       </div>
-    `;
+      <div id="variantPreviewContainer" style="max-height: 250px; overflow-y: auto;">
+        <div style="padding: 10px 12px; background: #e3f2fd; border-radius: 8px; font-size: 14px; color: #1976d2;">Add attributes to see preview...</div>
+      </div>
+    </div>
     
-    // Insert modal into body
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    modal = document.getElementById('createGroupModal');
-  }
+    <div class="form-actions-bottom" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 16px; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); display: flex; gap: 12px; z-index: 1000;">
+      <button type="button" class="btn-secondary-bottom" onclick="closeCreateGroupModal()" style="flex: 1; padding: 14px; background: #6c757d; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px;">Cancel</button>
+      <button type="submit" class="btn-primary-bottom" id="btnSaveGroup" style="flex: 2; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px;">💾 Save & Generate</button>
+    </div>
+    
+  </form>
+</div>
+  `;
   
-  if (!modal) {
-    console.error('❌ Failed to create modal');
-    alert('Error: Could not open modal. Please refresh the page.');
-    return;
-  }
-  
-  // Reset form
-  const form = document.getElementById('createGroupForm');
-  if (form) form.reset();
-  
-  const container = document.getElementById('attributesContainer');
-  if (container) container.innerHTML = '';
-  
-  attributeRowCounter = 0;
-  
-  // Add first attribute row
-  addAttributeRow();
-  
-  // Show modal
-  modal.classList.add('active');
+  // Insert into body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
   
   // Prevent body scroll
   document.body.style.overflow = 'hidden';
   
-  console.log('✅ Modal opened successfully');
+  // Reset form state
+  attributeRowCounter = 0;
+  addAttributeRow();
+  
+  console.log('✅ Modal created and opened');
 }
 
 
@@ -9958,6 +9947,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
