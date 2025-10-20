@@ -8423,18 +8423,32 @@ function openCreateGroupModal() {
 }
 
 
-// Close Create Group Modal
-function closeCreateGroupModal() {
-  const modal = document.getElementById('createGroupModal');
-  if (modal) {
-    modal.remove(); // Remove it completely
+// Close Create Group Modal - FIXED VERSION
+window.closeCreateGroupModal = function() {
+  console.log('🔄 Closing Create Group Modal...');
+  
+  try {
+    const modal = document.getElementById('createGroupModal');
+    
+    if (!modal) {
+      console.warn('⚠️ Modal element not found, but restoring scroll anyway');
+      document.body.style.overflow = '';
+      return;
+    }
+    
+    // Simply remove the dynamically created modal
+    modal.remove();
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    console.log('✅ Modal closed successfully');
+  } catch (error) {
+    console.error('❌ Error closing modal:', error);
+    // Emergency scroll restore
+    document.body.style.overflow = '';
   }
-  
-  // Restore body scroll
-  document.body.style.overflow = '';
-  
-  console.log('✅ Modal closed');
-}
+};
 
 
 
@@ -9706,34 +9720,7 @@ if (typeof openSalesModal === 'undefined') {
   }
 }
 
-    // Close Create Group Modal (robust)
-window.closeCreateGroupModal = function() {
-  try {
-    const modal = document.getElementById('createGroupModal');
-    if (!modal) {
-      console.warn('closeCreateGroupModal: modal not found');
-      // Always restore scroll even if modal missing
-      document.body.style.overflow = '';
-      return;
-    }
-
-    // If created dynamically, remove it from DOM completely
-    if (!modal.classList.contains('keep-in-dom')) {
-      modal.remove();
-    } else {
-      modal.classList.remove('active');
-      modal.style.display = 'none';
-    }
-
-    // Restore body scroll
-    document.body.style.overflow = '';
-    console.log('✅ Closed Create Group Modal');
-  } catch (err) {
-    console.error('closeCreateGroupModal error:', err);
-    // Best effort scroll restore
-    document.body.style.overflow = '';
-  }
-};
+    
 
 
     
@@ -10002,6 +9989,7 @@ window.closeCreateGroupModal = function() {
 
 </body>
 </html>
+
 
 
 
