@@ -3898,91 +3898,89 @@ function updateVariantPreview() {
  * ==========================================
  */
 
-// Handle Create Group Form Submission
-async function handleCreateGroup(event) {
+function handleCreateGroup(event) {
   event.preventDefault();
-  
-  console.log('📝 Creating product group...');
-  
-  // Disable submit button
-  const submitBtn = document.getElementById('btnSaveGroup');
-  const originalText = submitBtn.innerHTML;
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '⏳ Creating...';
+  console.log('📝 Handling Create Group form submission');
   
   try {
-    // Collect form data
+    // Get basic info
     const groupName = document.getElementById('groupName').value.trim();
-    const description = document.getElementById('groupDescription').value.trim();
-    const manufacturer = document.getElementById('groupManufacturer').value.trim();
-    const category = document.getElementById('groupCategory').value;
-    const attributes = parseAttributesFromForm();
     
-    // Validate
     if (!groupName) {
-      throw new Error('Group name is required');
+      alert('Error: Group name is required');
+      return;
     }
     
-    if (Object.keys(attributes).length === 0) {
-      throw new Error('Please add at least one attribute');
+    // Get attributes
+    const attributeRows = document.querySelectorAll('.attribute-row');
+    const attributes = [];
+    
+    if (attributeRows.length === 0) {
+      alert('Error: Please add at least one attribute');
+      return;
     }
+    
+    // Collect attributes
+    for (const row of attributeRows) {
+      const nameInput = row.querySelector('.attr-name');
+      const optionsInput = row.querySelector('.attr-options');
+      
+      if (!nameInput || !optionsInput) continue;
+      
+      const attrName = nameInput.value.trim();
+      const attrOptions = optionsInput.value.trim();
+      
+      if (!attrName || !attrOptions) {
+        alert('Error: All attributes must have a name and options');
+        return;
+      }
+      
+      const options = attrOptions.split(',').map(o => o.trim()).filter(o => o);
+      
+      if (options.length === 0) {
+        alert('Error: Each attribute must have at least one option');
+        return;
+      }
+      
+      attributes.push({
+        name: attrName,
+        options: options
+      });
+    }
+    
+    // Get other info
+    const description = document.getElementById('groupDescription')?.value.trim() || '';
+    const manufacturer = document.getElementById('groupManufacturer')?.value.trim() || '';
+    const category = document.getElementById('groupCategory')?.value || '';
     
     // Prepare data
     const groupData = {
       groupName: groupName,
       description: description,
       manufacturer: manufacturer,
-      brand: manufacturer, // Use same value for brand
       category: category,
       attributes: attributes,
-      createdBy: userEmail
+      timestamp: new Date().toISOString()
     };
     
     console.log('📤 Sending data:', groupData);
     
-    // Send to backend
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        action: 'createProductGroup',
-        email: userEmail,
-        hash: userHash,
-        data: JSON.stringify(groupData)
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log('✅ Group created:', result);
-      
-      // Show success message
-      showSuccessMessage(`Created "${groupName}" with ${result.totalVariants} variants!`);
-      
-      // Close modal
-      closeCreateGroupModal();
-      
-      // Refresh list
-      setTimeout(() => {
-        loadProductGroups();
-      }, 500);
-      
-    } else {
-      throw new Error(result.error || 'Failed to create group');
+    // Show loading state
+    const submitBtn = document.getElementById('btnSaveGroup');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ Creating...';
     }
     
-  } catch (error) {
-    console.error('❌ Error creating group:', error);
-    alert('Error: ' + error.message);
+    // Call backend to save
+    createProductGroup(groupData);
     
-    // Re-enable button
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
+  } catch (error) {
+    console.error('❌ Error in handleCreateGroup:', error);
+    alert('Error: ' + error.message);
   }
 }
+
 
 
 /**
@@ -9965,6 +9963,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
