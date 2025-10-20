@@ -4329,8 +4329,10 @@ async function createProductGroup(groupData) {
       data: JSON.stringify(groupData)                                            // [attached_file:29]
     });                                                                          // [attached_file:29]
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycby2XYfQVwAUX4kzPOBliZym7RnvqxFiZ7XjblQu86v2UYi5G1VaBQp77taT0sGeJnr0/exec';
-const response = await fetch(scriptURL, {
+    const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycby2XYfQVwAUX4kzPOBliZym7RnvqxFiZ7XjblQu86v2UYi5G1VaBQp77taT0sGeJnr0/exec';
+
+const response = await fetch(GOOGLESCRIPTURL, { method: 'POST', body });
+
      // [attached_file:29]
     const result = await response.json();                                        // [attached_file:29]
 
@@ -9910,6 +9912,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
