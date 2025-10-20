@@ -6726,7 +6726,7 @@ async function syncProductGroups() {
       renderProductGroupsList();
       
       // Update dashboard counter
-      updateDashboard();
+      updateSummaryFromCache()();
     } else {
       console.error('Failed to load product groups:', data.error);
       showError('Failed to load product groups');
@@ -6839,7 +6839,7 @@ async function deleteProductGroup(groupId) {
       
       // Re-render
       renderProductGroupsList();
-      updateDashboard();
+      updateSummaryFromCache()();
     } else {
       showError('Failed to delete group: ' + (data.error || 'Unknown error'));
     }
@@ -6887,7 +6887,7 @@ async function deleteGroupVariant(variantId) {
       }
       
       // Update dashboard
-      updateDashboard();
+      updateSummaryFromCache()();
     } else {
       showError('Failed to delete variant: ' + (data.error || 'Unknown error'));
     }
@@ -7096,6 +7096,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
