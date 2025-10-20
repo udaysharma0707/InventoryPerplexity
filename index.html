@@ -2109,6 +2109,23 @@ body:has(.fullscreen-modal.active) .navbar {
   </button>
 </div>
 
+      <div class="d-flex gap-2 mb-4">
+  <button class="btn btn-success" onclick="showAddProduct()">
+    <i class="bi bi-plus-circle"></i> Add Product
+  </button>
+  <button class="btn btn-primary" onclick="openPhotoUploadModal()">
+    <i class="bi bi-camera"></i> Product by Photo
+  </button>
+  <button class="btn btn-info" onclick="openSalesModal()">
+    <i class="bi bi-cart-plus"></i> Record Sale
+  </button>
+  <!-- TEST BUTTON FOR PRODUCT GROUPS -->
+  <button class="btn btn-warning" onclick="openCreateGroupModal()" style="background: #ff6b6b; color: white; border: none;">
+    <i class="bi bi-folder-plus"></i> TEST: Create Group
+  </button>
+</div>
+
+
 
     <!-- Summary - Updated with 4 Boxes -->
 <div class="row mb-4">
@@ -9947,6 +9964,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
