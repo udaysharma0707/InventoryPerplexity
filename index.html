@@ -3795,45 +3795,49 @@ function openCreateGroupModal() {
 }
 
 
-// Add attribute row
 function addAttributeRow() {
+  attributeRowCounter++;
+  
   const container = document.getElementById('attributesContainer');
-  const rowId = 'attr-' + Date.now();
+  if (!container) {
+    console.error('Attributes container not found');
+    return;
+  }
   
   const rowHtml = `
-    <div class="attribute-row" id="${rowId}">
-      <div style="flex:1;">
-        <label class="form-label small">Attribute Name</label>
-        <input type="text" 
-               class="form-control form-control-sm attr-name" 
-               placeholder="e.g., Size, Color, Material" 
-               onchange="updateVariantPreview()">
+    <div class="attribute-row" id="attributeRow${attributeRowCounter}" style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 12px; border: 2px solid #e0e0e0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span style="font-weight: 600; color: #333;">Attribute ${attributeRowCounter}</span>
+        ${attributeRowCounter > 1 ? `<button type="button" class="btn-remove-attr" onclick="removeAttributeRow(${attributeRowCounter})" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">🗑️ Remove</button>` : ''}
       </div>
-      <div style="flex:2;">
-        <label class="form-label small">Options (comma-separated)</label>
-        <input type="text" 
-               class="form-control form-control-sm attr-options" 
-               placeholder="e.g., Small, Medium, Large" 
-               onchange="updateVariantPreview()">
-        <div class="attribute-options-container" id="${rowId}-tags"></div>
-      </div>
-      <button class="btn-remove" onclick="removeAttributeRow('${rowId}')">
-        <i class="bi bi-trash"></i>
-      </button>
+      
+      <label style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
+        Attribute Name <span style="color: #dc3545;">*</span>
+      </label>
+      <input type="text" class="attr-name" placeholder="e.g., Size, Color" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; box-sizing: border-box;">
+      
+      <label style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
+        Options <span style="color: #dc3545;">*</span>
+        <span style="font-weight: normal; font-size: 12px; color: #666;">(comma separated)</span>
+      </label>
+      <input type="text" class="attr-options" placeholder="e.g., Small, Medium, Large" required style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
     </div>
   `;
   
   container.insertAdjacentHTML('beforeend', rowHtml);
+  console.log('✅ Added attribute row', attributeRowCounter);
 }
 
-// Remove attribute row
 function removeAttributeRow(rowId) {
-  const row = document.getElementById(rowId);
+  const row = document.getElementById(`attributeRow${rowId}`);
   if (row) {
     row.remove();
-    updateVariantPreview();
+    console.log('Removed attribute row', rowId);
   }
 }
+
+
+
 
 // Update variant preview
 function updateVariantPreview() {
@@ -9964,6 +9968,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
