@@ -6546,14 +6546,132 @@ function toggleSidebar() {
   }
 }
 
-// Close Sidebar
 function closeSidebar() {
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
+  try {
+    // 1) If using Bootstrap Offcanvas (Bootstrap 5+)
+    try {
+      var off = document.querySelector('.offcanvas.show');
+      if (off && typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
+        var inst = bootstrap.Offcanvas.getInstance(off) || new bootstrap.Offcanvas(off);
+        inst.hide();
+        return;
+      }
+      // If there is an offcanvas element but no bootstrap instance, try removing show/backdrop
+      if (off) {
+        off.classList.remove('show');
+        // remove backdrop if present
+        document.querySelectorAll('.offcanvas-backdrop, .modal-backdrop').forEach(function(b){ b.parentNode && b.parentNode.removeChild(b); });
+        document.body.classList.remove('offcanvas-open');
+        return;
+      }
+    } catch(e) {
+      // ignore and continue to other attempts
+    }
+
+    // 2) If sidebar toggled by a common body class like 'sidebar-open' or 'menu-open'
+    ['sidebar-open','menu-open','nav-open','sidenav-open','drawer-open'].forEach(function(c){
+      if (document.body.classList.contains(c)) document.body.classList.remove(c);
+    });
+
+    // 3) If your sidebar element has common selectors, remove active/show/open classes
+    var sidebarSelectors = ['#sidebar','.sidebar','.left-sidebar','.app-sidebar','.sidenav'];
+    sidebarSelectors.forEach(function(sel){
+      var el = document.querySelector(sel);
+      if (!el) return;
+      ['open','active','visible','show'].forEach(function(cls){
+        if (el.classList.contains(cls)) el.classList.remove(cls);
+      });
+      // also hide inline transforms (best-effort)
+      try { el.style.transform = ''; el.style.left = ''; el.style.right = ''; } catch(_) {}
+    });
+
+    // 4) If there's a close button, trigger it (common button selectors)
+    var closeBtn = document.querySelector('.sidebar-close, .close-sidebar, .menu-close, .sidenav-close, .offcanvas-close, .offcanvas-header button');
+    if (closeBtn) { closeBtn.click(); return; }
+
+    // 5) Hide overlays/backdrops that may keep the sidebar open visually
+    document.querySelectorAll('.sidebar-overlay, .overlay, .offcanvas-backdrop, .modal-backdrop').forEach(function(o){
+      try { o.parentNode && o.parentNode.removeChild(o); } catch(e) {}
+    });
+
+  } catch(err) {
+    // silent fail: don't break app if unknown structure
+    console.warn('closeSidebar error:', err);
+  }
 }
+
+/* ---------- Integrate with your page navigation ---------- */
+
+// If you already have showPageView(), patch it to call closeSidebar().
+// This tries to augment existing function if present, otherwise defines it.
+(function(){
+  var origShow = window.showPageView;
+
+  function patchedShowPageView(pageId) {
+    // call original if exists
+    try {
+      if (typeof origShow === 'function') origShow(pageId);
+    } catch(e) { console.warn('orig showPageView error', e); }
+
+    // ensure body/page class toggles as in previous suggestions
+    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+    var page = document.getElementById(pageId);
+    if (page) { page.classList.add('active'); document.body.classList.add('page-open'); }
+    else { document.body.classList.remove('page-open'); }
+
+    // Close sidebar now that we navigated away from home
+    closeSidebar();
+  }
+
+  // Replace / define global showPageView
+  window.showPageView = patchedShowPageView;
+
+  // If you have specialized wrappers (navigateToAllProducts etc) we override them to call showPageView
+  ['navigateToAllProducts','navigateToProductGroups','navigateToGroupDetail','navigateToHome'].forEach(function(name){
+    if (window[name] && typeof window[name] === 'function') {
+      var orig = window[name];
+      window[name] = function(){
+        // let original do its thing (if needed)
+        try { var r = orig.apply(this, arguments); } catch(e) { console.warn(name + ' original error', e); }
+        // map navigateToHome to remove body class (keep sidebar as-is for Home)
+        if (name === 'navigateToHome') {
+          document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+          document.body.classList.remove('page-open');
+          // do NOT force-close sidebar for home (user asked "except home")
+        } else {
+          // open the requested page id from arguments if available, else attempt default
+          var pageId = arguments && arguments[0] ? arguments[0] : (name === 'navigateToAllProducts' ? 'allProductsPage' : null);
+          if (pageId) window.showPageView(pageId); else closeSidebar();
+        }
+        return r;
+      };
+    }
+  });
+
+  // If original showPageView didn't exist, ensure our showPageView is available
+  if (!origShow) window.showPageView = patchedShowPageView;
+
+})();
+
+/* ---------- Close sidebar when any sidebar link is clicked ---------- */
+document.addEventListener('DOMContentLoaded', function(){
+  // Common sidebar container selectors
+  var sidebar = document.querySelector('#sidebar') || document.querySelector('.sidebar') || document.querySelector('.left-sidebar');
+  if (!sidebar) return;
+
+  // Attach click listeners to anchor links inside sidebar
+  sidebar.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(e){
+      // If the link navigates within SPA (has data-page or href="#..." or class nav-link), close sidebar
+      var isInternal = (a.getAttribute('href') && a.getAttribute('href').startsWith('#')) ||
+                       a.classList.contains('nav-link') || a.dataset.page || a.dataset.target;
+      if (isInternal) {
+        // short delay to allow any SPA navigation to start, then close
+        setTimeout(closeSidebar, 60);
+      }
+    });
+  });
+});
 
 // ✅ UPDATE: Go to Home function
 function goToHome() {
@@ -7522,6 +7640,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
