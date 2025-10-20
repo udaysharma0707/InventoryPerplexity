@@ -40,6 +40,14 @@
   .modal-body { max-height: calc(100vh - 200px); overflow-y:auto; -webkit-overflow-scrolling: touch; }
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
+
+    /* fallback approach: hide nav when body has .page-open */
+body.page-open .navbar,
+body.page-open .sidebar-toggle-btn,
+body.page-open .sync-indicator,
+body.page-open #backgroundSyncStatus {
+  display: none !important;
+}
 /* Hide top bar (header) on full-screen pages */
 .page-view.active ~ header,
 .page-view.active ~ .top-bar {
@@ -7323,7 +7331,44 @@ function showError(message) {
 }
 
 
-    
+   
+  // show a page-view by id and mark body as "page-open"
+  function showPageView(pageId) {
+    // deactivate all
+    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+    // show requested page if exists
+    var page = document.getElementById(pageId);
+    if (page) {
+      page.classList.add('active');
+      document.body.classList.add('page-open');
+      // scroll to top of overlay
+      page.scrollTop = 0;
+    } else {
+      // fallback: if page not found, remove page-open
+      document.body.classList.remove('page-open');
+    }
+  }
+
+  // navigate back to home (hide page overlay and show navbar)
+  function navigateToHome() {
+    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
+    document.body.classList.remove('page-open');
+    // optionally re-render home or refresh lists
+  }
+
+  // convenience wrappers — your HTML already calls these onclicks
+  function navigateToAllProducts(){ showPageView('allProductsPage'); }
+  function navigateToProductGroups(){ showPageView('productGroupsPage'); }
+  function navigateToGroupDetail(){ showPageView('groupDetailPage'); }
+
+  // If you already have functions with same names, these will override them.
+  // If you prefer not to override, remove/rename these wrappers and call showPageView() from your existing navigation code.
+  document.addEventListener('DOMContentLoaded', function(){
+    // If a page-view already has 'active' on load, ensure class applied
+    if (document.querySelector('.page-view.active')) document.body.classList.add('page-open');
+  });
+
+
 
     
   </script>
@@ -7477,6 +7522,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
