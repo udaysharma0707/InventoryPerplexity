@@ -3712,86 +3712,89 @@ let generatedVariants = []; // Array of variant objects
 
 function openCreateGroupModal() {
   console.log('📝 Opening Create Group Modal');
-  
-  // Remove existing modal if any
-  const existingModal = document.getElementById('createGroupModal');
-  if (existingModal) {
-    existingModal.remove();
-  }
-  
-  // Create modal HTML with forced visibility
-  const modalHTML = `
-<div class="fullscreen-modal active" id="createGroupModal" style="display: block !important; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #ffffff; z-index: 999999; overflow-y: auto;">
-  
-  <div class="modal-header-mobile" style="position: sticky; top: 0; background: #ffffff; padding: 12px 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; z-index: 100;">
-    <button class="btn-cancel-modal" onclick="closeCreateGroupModal()" style="background: transparent; color: #dc3545; border: none; padding: 8px 12px; font-size: 14px; font-weight: 600; cursor: pointer;">✕ Cancel</button>
-    <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">New Item Group</h3>
-    <div style="width: 80px;"></div>
-  </div>
-  
-  <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)" style="padding: 16px; padding-bottom: 100px;">
-    
-    <div class="form-section" style="margin-bottom: 24px; background: #f8f9fa; padding: 16px; border-radius: 12px;">
-      <div class="section-title" style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px;">Basic Information</div>
-      
-      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
-        Item Group Name <span class="required" style="color: #dc3545;">*</span>
-      </label>
-      <input type="text" id="groupName" name="groupName" placeholder="e.g., T-Shirts, Tiles" required autocomplete="off" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
-      
-      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Description</label>
-      <textarea id="groupDescription" name="groupDescription" placeholder="Optional description" rows="3" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; box-sizing: border-box; resize: vertical;"></textarea>
-      
-      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Manufacturer/Brand</label>
-      <input type="text" id="groupManufacturer" name="groupManufacturer" placeholder="e.g., Nike, Somany" autocomplete="off" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
-      
-      <label class="form-label" style="display: block; font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px 0;">Category</label>
-      <select id="groupCategory" name="groupCategory" style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 48px; box-sizing: border-box;">
-        <option value="">Select Category</option>
-        <option value="Tiles">Tiles</option>
-        <option value="Sanitaryware">Sanitaryware</option>
-        <option value="Accessories">Accessories</option>
-        <option value="Apparel">Apparel</option>
-        <option value="Custom">Custom</option>
-      </select>
-    </div>
-    
-    <div class="form-section" style="margin-bottom: 24px; background: #f8f9fa; padding: 16px; border-radius: 12px;">
-      <div class="section-title" style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">Create Attributes</div>
-      <div class="section-description" style="font-size: 13px; color: #666; margin-bottom: 16px;">Add attributes like Size, Color, Material</div>
-      <div id="attributesContainer"></div>
-      <button type="button" class="btn-add-more" onclick="addAttributeRow()" style="width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px; margin-top: 12px;">➕ Add Attribute</button>
-    </div>
-    
-    <div class="form-section" style="margin-bottom: 24px; background: white; padding: 16px; border-radius: 12px; border: 2px solid #e3f2fd;">
-      <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
-        <span id="variantCount">0</span> Variants Will Be Created
+
+  // Remove any existing injected modal to avoid duplicates
+  const existing = document.getElementById('createGroupModal');
+  if (existing) existing.remove();
+
+  const html = `
+    <div id="createGroupModal" class="fullscreen-modal active keep-in-dom-remove"
+         style="display:block!important;position:fixed;top:0;left:0;width:100%;height:100vh;background:#fff;z-index:9999999;overflow-y:auto">
+      <div class="modal-header-mobile" style="position:sticky;top:0;background:#fff;padding:12px 16px;border-bottom:1px solid #e0e0e0;z-index:100;display:flex;justify-content:space-between;align-items:center">
+        <button class="btn-cancel-modal" onclick="closeCreateGroupModal()" style="background:#dc3545;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer">✕ Cancel</button>
+        <h3 style="margin:0;font-size:18px;font-weight:600">New Item Group</h3>
+        <div style="width:80px"></div>
       </div>
-      <div id="variantPreviewContainer" style="max-height: 250px; overflow-y: auto;">
-        <div style="padding: 10px 12px; background: #e3f2fd; border-radius: 8px; font-size: 14px; color: #1976d2;">Add attributes to see preview...</div>
-      </div>
+
+      <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)" style="padding:16px;padding-bottom:100px">
+        <div class="form-section" style="margin-bottom:24px;background:#f8f9fa;padding:16px;border-radius:12px">
+          <div class="section-title" style="font-size:16px;font-weight:600;margin-bottom:12px">Basic Information</div>
+          <label style="display:block;font-weight:600;margin-bottom:6px">Item Group Name <span style="color:#dc3545">*</span></label>
+          <input id="groupName" required placeholder="e.g., T-Shirts, Tiles" style="width:100%;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px">
+
+          <label style="display:block;font-weight:600;margin:16px 0 6px">Description</label>
+          <textarea id="groupDescription" rows="3" placeholder="Optional" style="width:100%;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px"></textarea>
+
+          <label style="display:block;font-weight:600;margin:16px 0 6px">Manufacturer/Brand</label>
+          <input id="groupManufacturer" placeholder="e.g., Somany" style="width:100%;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px">
+
+          <label style="display:block;font-weight:600;margin:16px 0 6px">Category</label>
+          <select id="groupCategory" style="width:100%;padding:12px;font-size:16px;border:1px solid #ddd;border-radius:8px">
+            <option value="">Select Category</option>
+            <option value="Tiles">Tiles</option>
+            <option value="Sanitaryware">Sanitaryware</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Apparel">Apparel</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="form-section" style="margin-bottom:24px;background:#f8f9fa;padding:16px;border-radius:12px">
+          <div class="section-title" style="font-size:16px;font-weight:600;margin-bottom:8px">Create Attributes</div>
+          <div class="section-description" style="font-size:13px;color:#666;margin-bottom:12px">Add attributes like Size, Color, Material</div>
+          <div id="attributesContainer"></div>
+          <button type="button" onclick="addAttributeRow()" style="width:100%;padding:12px;background:#007bff;color:#fff;border:none;border-radius:8px;font-weight:600;margin-top:8px">➕ Add Attribute</button>
+        </div>
+
+        <div class="form-section" style="background:#fff;padding:16px;border-radius:12px;border:2px solid #e3f2fd">
+          <div style="display:inline-block;background:#667eea;color:#fff;padding:6px 12px;border-radius:16px;font-weight:600">
+            <span id="variantCount">0</span> Variants Will Be Created
+          </div>
+          <div id="variantPreviewContainer" style="max-height:240px;overflow-y:auto;margin-top:10px">
+            <div style="padding:10px 12px;background:#e3f2fd;border-radius:8px;color:#1976d2">Add attributes to see preview...</div>
+          </div>
+        </div>
+
+        <div style="position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 16px;box-shadow:0 -2px 8px rgba(0,0,0,.1);display:flex;gap:12px;z-index:1000">
+          <button type="button" onclick="closeCreateGroupModal()" style="flex:1;padding:12px;background:#6c757d;color:#fff;border:none;border-radius:8px;font-weight:600">Cancel</button>
+          <button type="submit" id="btnSaveGroup" style="flex:2;padding:12px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:600">💾 Save & Generate</button>
+        </div>
+      </form>
     </div>
-    
-    <div class="form-actions-bottom" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 16px; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); display: flex; gap: 12px; z-index: 1000;">
-      <button type="button" class="btn-secondary-bottom" onclick="closeCreateGroupModal()" style="flex: 1; padding: 14px; background: #6c757d; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px;">Cancel</button>
-      <button type="submit" class="btn-primary-bottom" id="btnSaveGroup" style="flex: 2; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px;">💾 Save & Generate</button>
-    </div>
-    
-  </form>
-</div>
   `;
-  
-  // Insert into body
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
+
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  // mark as removable
+  const modal = document.getElementById('createGroupModal');
+  if (modal) modal.classList.add('keep-in-dom');
+
   // Prevent body scroll
   document.body.style.overflow = 'hidden';
-  
-  // Reset form state
-  attributeRowCounter = 0;
-  addAttributeRow();
-  
-  console.log('✅ Modal created and opened');
+
+  // Reset attributes and add first row (guarded)
+  if (typeof attributeRowCounter === 'undefined') window.attributeRowCounter = 0;
+  const container = document.getElementById('attributesContainer');
+  if (container) {
+    container.innerHTML = '';
+    if (typeof addAttributeRow === 'function') {
+      addAttributeRow();
+    } else {
+      console.warn('addAttributeRow is not defined yet');
+    }
+  }
+
+  console.log('✅ Create Group Modal injected and opened');
 }
 
 
@@ -9703,7 +9706,35 @@ if (typeof openSalesModal === 'undefined') {
   }
 }
 
-    
+    // Close Create Group Modal (robust)
+window.closeCreateGroupModal = function() {
+  try {
+    const modal = document.getElementById('createGroupModal');
+    if (!modal) {
+      console.warn('closeCreateGroupModal: modal not found');
+      // Always restore scroll even if modal missing
+      document.body.style.overflow = '';
+      return;
+    }
+
+    // If created dynamically, remove it from DOM completely
+    if (!modal.classList.contains('keep-in-dom')) {
+      modal.remove();
+    } else {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+    }
+
+    // Restore body scroll
+    document.body.style.overflow = '';
+    console.log('✅ Closed Create Group Modal');
+  } catch (err) {
+    console.error('closeCreateGroupModal error:', err);
+    // Best effort scroll restore
+    document.body.style.overflow = '';
+  }
+};
+
 
     
   </script>
@@ -9971,6 +10002,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
