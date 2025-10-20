@@ -1029,12 +1029,6 @@
     <span>Add Users</span>
   </div>
   
-// ✅ UPDATE: Sidebar menu items (in HTML)
-// FIND these in your sidebar menu HTML and UPDATE the onclick:
-
-// OLD:
-<div class="sidebar-item" onclick="navigateToAllProducts()">
-
 // NEW (with safety check):
 <div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
   <i class="bi bi-box"></i>
@@ -1045,7 +1039,6 @@
   <i class="bi bi-collection"></i>
   <span>Products in Group</span>
 </div>
-
   
   <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
     <i class="bi bi-sliders"></i>
@@ -7145,6 +7138,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
