@@ -8397,30 +8397,6 @@ function filterGroupVariants(searchText) {
  * ==========================================
  */
 
-// Open Create Group Modal
-function openCreateGroupModal() {
-  console.log('📝 Opening Create Group Modal');
-  
-  const modal = document.getElementById('createGroupModal');
-  if (!modal) {
-    console.error('❌ Create Group Modal not found');
-    return;
-  }
-  
-  // Reset form
-  document.getElementById('createGroupForm').reset();
-  document.getElementById('attributesContainer').innerHTML = '';
-  attributeRowCounter = 0;
-  
-  // Add first attribute row
-  addAttributeRow();
-  
-  // Show modal
-  modal.classList.add('active');
-  
-  // Prevent body scroll
-  document.body.style.overflow = 'hidden';
-}
 
 
 // Close Create Group Modal - FIXED VERSION
@@ -9989,6 +9965,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
