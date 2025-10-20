@@ -3119,7 +3119,7 @@ async function saveProductGroup() {
     }
     
     // Update dashboard
-    updateSummaryFromCache();
+       updateDashboard();
     
   } catch (error) {
     hideLoading();
@@ -6374,54 +6374,80 @@ function sidebarAction(action) {
 function navigateToHome() {
   currentPage = 'home';
   
-  // Hide all page views
-  document.getElementById('mainApp').style.display = 'block';
-  document.getElementById('allProductsPage').classList.remove('active');
-  document.getElementById('productGroupsPage').classList.remove('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  // Show home, hide all page views
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
   
-  // Close sidebar if open
-  closeSidebar();
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'block';
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  
+  // Close sidebar if exists
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 // Navigate to All Products page
 function navigateToAllProducts() {
   currentPage = 'allProducts';
   
   // Show All Products page, hide others
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('allProductsPage').classList.add('active');
-  document.getElementById('productGroupsPage').classList.remove('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'none';
+  if (allProductsPage) allProductsPage.classList.add('active');
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
   
   // Render products
   renderAllProductsList();
   
   // Close sidebar
-  closeSidebar();
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 // Navigate to Product Groups page
 function navigateToProductGroups() {
   currentPage = 'productGroups';
   
   // Show Product Groups page, hide others
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('allProductsPage').classList.remove('active');
-  document.getElementById('productGroupsPage').classList.add('active');
-  document.getElementById('groupDetailPage').classList.remove('active');
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // ✅ NULL CHECKS
+  if (mainApp) mainApp.style.display = 'none';
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (productGroupsPage) productGroupsPage.classList.add('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
   
   // Load and render product groups
   syncProductGroups();
   
   // Close sidebar
-  closeSidebar();
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6839,7 +6865,7 @@ async function deleteProductGroup(groupId) {
       
       // Re-render
       renderProductGroupsList();
-      updateSummaryFromCache()();
+      updateDashboard();
     } else {
       showError('Failed to delete group: ' + (data.error || 'Unknown error'));
     }
@@ -6887,7 +6913,7 @@ async function deleteGroupVariant(variantId) {
       }
       
       // Update dashboard
-      updateSummaryFromCache()();
+      updateDashboard();
     } else {
       showError('Failed to delete variant: ' + (data.error || 'Unknown error'));
     }
@@ -7096,6 +7122,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
