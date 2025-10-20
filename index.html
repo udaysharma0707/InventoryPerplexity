@@ -143,6 +143,7 @@
     }
 }
 
+    
 /* ==========================================
    SUCCESS TOAST NOTIFICATION
    ========================================== */
@@ -544,7 +545,6 @@
 .sidebar-menu::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
-
 /* ==========================================
    ALL PRODUCTS PAGE & PRODUCT GROUPS
    ========================================== */
@@ -809,6 +809,74 @@
   }
 }
 
+    /* ==========================================
+   MOBILE OPTIMIZATIONS FOR CREATE GROUP MODAL
+   ========================================== */
+
+@media (max-width: 768px) {
+  #createGroupModal .modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  #createGroupModal .modal-body {
+    padding: 15px;
+  }
+  
+  .variant-detail-card {
+    padding: 12px;
+  }
+  
+  .variant-detail-card h6 {
+    font-size: 13px;
+  }
+  
+  .attribute-row {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  #variantPreviewList {
+    font-size: 12px;
+  }
+  
+  .modal-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .modal-footer button {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+/* Scrollable variant list */
+#variantDetailsContainer {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#variantDetailsContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+#variantDetailsContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+#variantDetailsContainer::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+#variantDetailsContainer::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 /* ==========================================
    CREATE GROUP MODAL STYLES
    ========================================== */
@@ -919,76 +987,8 @@
     padding: 4px 0;
   }
 }
-    /* ==========================================
-   MOBILE OPTIMIZATIONS FOR CREATE GROUP MODAL
-   ========================================== */
-
-@media (max-width: 768px) {
-  #createGroupModal .modal-dialog {
-    margin: 10px;
-    max-width: calc(100% - 20px);
-  }
-  
-  #createGroupModal .modal-body {
-    padding: 15px;
-  }
-  
-  .variant-detail-card {
-    padding: 12px;
-  }
-  
-  .variant-detail-card h6 {
-    font-size: 13px;
-  }
-  
-  .attribute-row {
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-  }
-  
-  #variantPreviewList {
-    font-size: 12px;
-  }
-  
-  .modal-footer {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .modal-footer button {
-    flex: 1;
-    min-width: 100px;
-  }
-}
-
-/* Scrollable variant list */
-#variantDetailsContainer {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-#variantDetailsContainer::-webkit-scrollbar {
-  width: 6px;
-}
-
-#variantDetailsContainer::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-#variantDetailsContainer::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-#variantDetailsContainer::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
 
 
-    
     
   </style>
 </head>
@@ -1029,17 +1029,15 @@
     <span>Add Users</span>
   </div>
   
- <div class="sidebar-item" onclick="handleSidebarClick('allProducts')">
+ <div class="sidebar-item" onclick="navigateToAllProducts()">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
 
-<div class="sidebar-item" onclick="handleSidebarClick('productGroups')">
+<div class="sidebar-item" onclick="navigateToProductGroups()">
   <i class="bi bi-collection"></i>
   <span>Products in Group</span>
 </div>
-
-
   
   <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
     <i class="bi bi-sliders"></i>
@@ -1388,226 +1386,92 @@
     </div>
   </div>
 
-
- <!-- ==========================================
-       ✅ NEW PAGES: ALL PRODUCTS & PRODUCT GROUPS
-       ========================================== -->
-
-  <!-- ✅ NEW: All Products Page -->
-  <div class="page-view" id="allProductsPage">
-    <div class="page-header">
-      <button class="back-btn" onclick="navigateToHome()">
-        <i class="bi bi-arrow-left"></i> Back
-      </button>
-      <h3>All Products</h3>
-      <button class="btn btn-success" onclick="openAddProduct()">
-        <i class="bi bi-plus-lg"></i> Add
-      </button>
-    </div>
-
-    
-  <!-- ✅ ADD THIS CONTAINER -->
-  <div id="allProductsList">
+<!-- ✅ NEW: All Products Page -->
+<div class="page-view" id="allProductsPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToHome()">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+    <h3>All Products</h3>
+    <button class="btn btn-success" onclick="openAddProduct()">
+      <i class="bi bi-plus-lg"></i> Add
+    </button>
+  </div>
+  
+  <!-- Search Bar -->
+  <div class="mb-3">
+    <input type="text" 
+           class="form-control" 
+           id="allProductsSearch" 
+           placeholder="🔍 Search products by name, category, brand..." 
+           onkeyup="filterAllProducts()">
+  </div>
+  
+  <!-- Filter Buttons -->
+  <div class="mb-3 d-flex gap-2 flex-wrap">
+    <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('all')">All</button>
+    <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Tiles')">Tiles</button>
+    <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Sanitaryware')">Sanitaryware</button>
+    <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Accessories')">Accessories</button>
+  </div>
+  
+  <!-- Products List -->
+  <div class="product-list-compact" id="allProductsList">
     <!-- Products will be rendered here -->
   </div>
 </div>
 
-    
-    <!-- Search Bar -->
-    <div class="mb-3">
-      <input type="text" 
-             class="form-control" 
-             id="allProductsSearch" 
-             placeholder="🔍 Search products by name, category, brand..." 
-             onkeyup="filterAllProducts()">
-    </div>
-    
-    <!-- Filter Buttons -->
-    <div class="mb-3 d-flex gap-2 flex-wrap">
-      <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('all')">All</button>
-      <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Tiles')">Tiles</button>
-      <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Sanitaryware')">Sanitaryware</button>
-      <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Accessories')">Accessories</button>
-    </div>
-    
-    <!-- Products List -->
-    <div class="product-list-compact" id="allProductsList">
-      <!-- Products will be rendered here -->
-    </div>
+<!-- ✅ NEW: Product Groups Page -->
+<div class="page-view" id="productGroupsPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToHome()">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+    <h3>Products in Group</h3>
+    <button class="btn btn-success" onclick="openCreateGroupModal()">
+      <i class="bi bi-plus-lg"></i> Create
+    </button>
   </div>
-
-  <!-- ✅ NEW: Product Groups Page -->
-  <div class="page-view" id="productGroupsPage">
-    <div class="page-header">
-      <button class="back-btn" onclick="navigateToHome()">
-        <i class="bi bi-arrow-left"></i> Back
-      </button>
-      <h3>Products in Group</h3>
-      <button class="btn btn-success" onclick="openCreateGroupModal()">
-        <i class="bi bi-plus-lg"></i> Create
-      </button>
-    </div>
-    
-    <!-- Groups List -->
-    <div id="productGroupsList">
-      <!-- Groups will be rendered here -->
-    </div>
-    
-    <!-- Empty State -->
-    <div id="groupsEmptyState" style="display:none; text-align:center; padding:60px 20px;">
-      <i class="bi bi-collection" style="font-size:64px; color:#ccc;"></i>
-      <h4 style="margin-top:20px; color:#666;">No Product Groups Yet</h4>
-      <p style="color:#999;">Create your first product group to manage variants</p>
-      <button class="btn btn-primary mt-3" onclick="openCreateGroupModal()">
-        <i class="bi bi-plus-lg"></i> Create First Group
-      </button>
-    </div>
+  
+  <!-- Groups List -->
+  <div id="productGroupsList">
+    <!-- Groups will be rendered here -->
   </div>
-
-  <!-- ✅ NEW: Group Detail Page (Variants List) -->
-  <div class="page-view" id="groupDetailPage">
-    <div class="page-header">
-      <button class="back-btn" onclick="navigateToProductGroups()">
-        <i class="bi bi-arrow-left"></i> Back
-      </button>
-      <h3 id="groupDetailTitle">Group Name</h3>
-    </div>
-    
-    <!-- Search Bar -->
-    <div class="mb-3">
-      <input type="text" 
-             class="form-control" 
-             id="groupVariantsSearch" 
-             placeholder="🔍 Search variants..." 
-             onkeyup="filterGroupVariants()">
-    </div>
-    
-    <!-- Variants List -->
-    <div class="product-list-compact" id="groupVariantsList">
-      <!-- Variants will be rendered here -->
-    </div>
-  </div>
-
-
-<!-- ==========================================
-     CREATE PRODUCT GROUP MODAL
-     ========================================== -->
-
-<div class="modal fade" id="createGroupModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      
-      <!-- Modal Header -->
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">Create Product Group</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      
-      <!-- Modal Body -->
-      <div class="modal-body">
-        
-        <!-- Step 1: Group Details -->
-        <div id="groupStep1" class="group-step">
-          <h6 class="mb-3">📁 Group Information</h6>
-          
-          <div class="mb-3">
-            <label class="form-label">Group Name <span class="text-danger">*</span></label>
-            <input type="text" 
-                   class="form-control" 
-                   id="groupName" 
-                   placeholder="e.g., T-Shirts, Jeans, Ceramic Tiles" 
-                   required>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Description (Optional)</label>
-            <textarea class="form-control" 
-                      id="groupDescription" 
-                      rows="2" 
-                      placeholder="Brief description of this product group"></textarea>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Category</label>
-            <select id="groupCategory" class="form-select">
-              <option value="">Select Category</option>
-              <option value="Tiles">Tiles</option>
-              <option value="Sanitaryware">Sanitaryware</option>
-              <option value="Accessories">Accessories</option>
-              <option value="Custom">Custom</option>
-            </select>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">Brand (Optional)</label>
-            <input type="text" class="form-control" id="groupBrand" placeholder="e.g., Nike, Somany">
-          </div>
-          
-          <hr class="my-4">
-          
-          <!-- Attributes Section -->
-          <h6 class="mb-3">🏷️ Product Attributes</h6>
-          <p class="text-muted small">Add attributes like Size, Color, Material to create variants automatically</p>
-          
-          <div id="attributesContainer">
-            <!-- Attribute rows will be added here -->
-          </div>
-          
-          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAttributeRow()">
-            <i class="bi bi-plus-lg"></i> Add Attribute
-          </button>
-          
-          <hr class="my-4">
-          
-          <!-- Variant Preview -->
-          <div id="variantPreview">
-            <h6 class="mb-3">📦 Variant Preview</h6>
-            <div id="variantPreviewList" class="alert alert-info">
-              <small>Add attributes above to see variant preview</small>
-            </div>
-            <div id="variantCount" class="text-muted small">
-              Total variants: <strong>0</strong>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Step 2: Variant Details (Price/Stock) -->
-        <div id="groupStep2" class="group-step" style="display:none;">
-          <h6 class="mb-3">💰 Set Prices & Stock</h6>
-          <p class="text-muted small">Set individual prices and stock levels for each variant</p>
-          
-          <div class="mb-3">
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyPriceToAll()">
-              Copy first variant price to all
-            </button>
-          </div>
-          
-          <div id="variantDetailsContainer">
-            <!-- Variant detail forms will be added here -->
-          </div>
-        </div>
-        
-      </div>
-      
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" id="groupBackBtn" class="btn btn-secondary" onclick="goToGroupStep1()" style="display:none;">
-          <i class="bi bi-arrow-left"></i> Back
-        </button>
-        <button type="button" id="groupNextBtn" class="btn btn-primary" onclick="goToGroupStep2()">
-          Next <i class="bi bi-arrow-right"></i>
-        </button>
-        <button type="button" id="groupSaveBtn" class="btn btn-success" onclick="saveProductGroup()" style="display:none;">
-          <i class="bi bi-check-lg"></i> Create Group
-        </button>
-      </div>
-      
-    </div>
+  
+  <!-- Empty State -->
+  <div id="groupsEmptyState" style="display:none; text-align:center; padding:60px 20px;">
+    <i class="bi bi-collection" style="font-size:64px; color:#ccc;"></i>
+    <h4 style="margin-top:20px; color:#666;">No Product Groups Yet</h4>
+    <p style="color:#999;">Create your first product group to manage variants</p>
+    <button class="btn btn-primary mt-3" onclick="openCreateGroupModal()">
+      <i class="bi bi-plus-lg"></i> Create First Group
+    </button>
   </div>
 </div>
 
-
+<!-- ✅ NEW: Group Detail Page (Variants List) -->
+<div class="page-view" id="groupDetailPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToProductGroups()">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+    <h3 id="groupDetailTitle">Group Name</h3>
+  </div>
+  
+  <!-- Search Bar -->
+  <div class="mb-3">
+    <input type="text" 
+           class="form-control" 
+           id="groupVariantsSearch" 
+           placeholder="🔍 Search variants..." 
+           onkeyup="filterGroupVariants()">
+  </div>
+  
+  <!-- Variants List -->
+  <div class="product-list-compact" id="groupVariantsList">
+    <!-- Variants will be rendered here -->
+  </div>
+</div>
 
 
 
@@ -2224,6 +2088,123 @@
     </div>
   </div></div></div>
 
+<!-- ==========================================
+     CREATE PRODUCT GROUP MODAL
+     ========================================== -->
+
+<div class="modal fade" id="createGroupModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Create Product Group</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <!-- Modal Body -->
+      <div class="modal-body">
+        
+        <!-- Step 1: Group Details -->
+        <div id="groupStep1" class="group-step">
+          <h6 class="mb-3">📁 Group Information</h6>
+          
+          <div class="mb-3">
+            <label class="form-label">Group Name <span class="text-danger">*</span></label>
+            <input type="text" 
+                   class="form-control" 
+                   id="groupName" 
+                   placeholder="e.g., T-Shirts, Jeans, Ceramic Tiles" 
+                   required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Description (Optional)</label>
+            <textarea class="form-control" 
+                      id="groupDescription" 
+                      rows="2" 
+                      placeholder="Brief description of this product group"></textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select id="groupCategory" class="form-select">
+              <option value="">Select Category</option>
+              <option value="Tiles">Tiles</option>
+              <option value="Sanitaryware">Sanitaryware</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Brand (Optional)</label>
+            <input type="text" class="form-control" id="groupBrand" placeholder="e.g., Nike, Somany">
+          </div>
+          
+          <hr class="my-4">
+          
+          <!-- Attributes Section -->
+          <h6 class="mb-3">🏷️ Product Attributes</h6>
+          <p class="text-muted small">Add attributes like Size, Color, Material to create variants automatically</p>
+          
+          <div id="attributesContainer">
+            <!-- Attribute rows will be added here -->
+          </div>
+          
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAttributeRow()">
+            <i class="bi bi-plus-lg"></i> Add Attribute
+          </button>
+          
+          <hr class="my-4">
+          
+          <!-- Variant Preview -->
+          <div id="variantPreview">
+            <h6 class="mb-3">📦 Variant Preview</h6>
+            <div id="variantPreviewList" class="alert alert-info">
+              <small>Add attributes above to see variant preview</small>
+            </div>
+            <div id="variantCount" class="text-muted small">
+              Total variants: <strong>0</strong>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 2: Variant Details (Price/Stock) -->
+        <div id="groupStep2" class="group-step" style="display:none;">
+          <h6 class="mb-3">💰 Set Prices & Stock</h6>
+          <p class="text-muted small">Set individual prices and stock levels for each variant</p>
+          
+          <div class="mb-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyPriceToAll()">
+              Copy first variant price to all
+            </button>
+          </div>
+          
+          <div id="variantDetailsContainer">
+            <!-- Variant detail forms will be added here -->
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="groupBackBtn" class="btn btn-secondary" onclick="goToGroupStep1()" style="display:none;">
+          <i class="bi bi-arrow-left"></i> Back
+        </button>
+        <button type="button" id="groupNextBtn" class="btn btn-primary" onclick="goToGroupStep2()">
+          Next <i class="bi bi-arrow-right"></i>
+        </button>
+        <button type="button" id="groupSaveBtn" class="btn btn-success" onclick="saveProductGroup()" style="display:none;">
+          <i class="bi bi-check-lg"></i> Create Group
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>
 
   
 
@@ -2333,315 +2314,20 @@
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztoJXxCdcZgykPLYjFnmeSwSwAyU2rXlOCR3C0A0mjm-Q-v1O6KL_yl2_iWyfdvPkh/exec'; // <-- replace with your deployed URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztoJXxCdcZgykPLYjFnmeSwSwAyU2rXlOCR3C0A0mjm-Q-v1O6KL_yl2_iWyfdvPkh/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqKZYFkC5NTUVYV4AmJjcelyceAYMXvH5ehuehflWScWk92M8iLyaEEosMH-uNq0LO/exec'; // <-- replace with your deployed URL
   let cachedProducts = [];
   let cachedSales = [];
 
-
-    
-// Close Sidebar
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebarMenu');
-  const overlay = document.getElementById('sidebarOverlay');
-  sidebar.classList.remove('open');
-  overlay.classList.remove('show');
-}
-
-// Handle sidebar navigation clicks
-function handleSidebarClick(page) {
-  closeSidebar();
-  
-  if (page === 'allProducts') {
-    navigateToAllProducts();
-  } else if (page === 'productGroups') {
-    navigateToProductGroups();
-  }
-}
-
-
-/**
- * ==========================================
- * CREATE PRODUCT GROUP FUNCTIONS
- * ==========================================
- */
-
-// Global state for group creation
-let groupAttributes = {}; // { "Size": ["Small", "Medium", "Large"], "Color": ["Red", "Blue"] }
-let generatedVariants = []; // Array of variant objects
-
-// Open Create Group Modal
-function openCreateGroupModal() {
-  // Reset form
-  document.getElementById('groupName').value = '';
-  document.getElementById('groupDescription').value = '';
-  document.getElementById('groupCategory').value = '';
-  document.getElementById('groupBrand').value = '';
-  
-  // Reset attributes
-  groupAttributes = {};
-  generatedVariants = [];
-  document.getElementById('attributesContainer').innerHTML = '';
-  
-  // Reset steps
-  document.getElementById('groupStep1').style.display = 'block';
-  document.getElementById('groupStep2').style.display = 'none';
-  document.getElementById('groupNextBtn').style.display = 'inline-block';
-  document.getElementById('groupSaveBtn').style.display = 'none';
-  document.getElementById('groupBackBtn').style.display = 'none';
-  
-  // Add first attribute row
-  addAttributeRow();
-  
-  // Update preview
-  updateVariantPreview();
-  
-  // Show modal
-  const modal = new bootstrap.Modal(document.getElementById('createGroupModal'));
-  modal.show();
-}
-
-// Add attribute row
-function addAttributeRow() {
-  const container = document.getElementById('attributesContainer');
-  const rowId = 'attr-' + Date.now();
-  
-  const rowHtml = `
-    <div class="attribute-row" id="${rowId}">
-      <div style="flex:1;">
-        <label class="form-label small">Attribute Name</label>
-        <input type="text" 
-               class="form-control form-control-sm attr-name" 
-               placeholder="e.g., Size, Color, Material" 
-               onchange="updateVariantPreview()">
-      </div>
-      <div style="flex:2;">
-        <label class="form-label small">Options (comma-separated)</label>
-        <input type="text" 
-               class="form-control form-control-sm attr-options" 
-               placeholder="e.g., Small, Medium, Large" 
-               onchange="updateVariantPreview()">
-        <div class="attribute-options-container" id="${rowId}-tags"></div>
-      </div>
-      <button class="btn-remove" onclick="removeAttributeRow('${rowId}')">
-        <i class="bi bi-trash"></i>
-      </button>
-    </div>
-  `;
-  
-  container.insertAdjacentHTML('beforeend', rowHtml);
-}
-
-// Remove attribute row
-function removeAttributeRow(rowId) {
-  const row = document.getElementById(rowId);
-  if (row) {
-    row.remove();
-    updateVariantPreview();
-  }
-}
-
-// Update variant preview
-function updateVariantPreview() {
-  // Collect attributes from form
-  groupAttributes = {};
-  
-  const attrRows = document.querySelectorAll('.attribute-row');
-  attrRows.forEach(row => {
-    const nameInput = row.querySelector('.attr-name');
-    const optionsInput = row.querySelector('.attr-options');
-    
-    if (nameInput && optionsInput) {
-      const name = nameInput.value.trim();
-      const optionsStr = optionsInput.value.trim();
-      
-      if (name && optionsStr) {
-        // Parse options (comma-separated)
-        const options = optionsStr.split(',').map(o => o.trim()).filter(o => o);
-        if (options.length > 0) {
-          groupAttributes[name] = options;
-          
-          // Show tags
-          const tagsContainer = row.querySelector('.attribute-options-container');
-          if (tagsContainer) {
-            tagsContainer.innerHTML = options.map(opt => 
-              `<span class="attribute-option-tag">${escapeHtml(opt)}</span>`
-            ).join('');
-          }
-        }
-      }
-    }
-  });
-  
-  // Generate variant combinations
-  generatedVariants = generateVariantCombinations(groupAttributes);
-  
-  // Update preview
-  const previewList = document.getElementById('variantPreviewList');
-  const countEl = document.getElementById('variantCount');
-  
-  if (generatedVariants.length === 0) {
-    previewList.innerHTML = '<small class="text-muted">Add attributes above to see variant preview</small>';
-    countEl.innerHTML = 'Total variants: <strong>0</strong>';
-  } else {
-    previewList.innerHTML = generatedVariants.map((v, i) => 
-      `<div>${i + 1}. ${escapeHtml(v.name)}</div>`
-    ).join('');
-    countEl.innerHTML = `Total variants: <strong>${generatedVariants.length}</strong>`;
-  }
-}
-
-// Generate variant combinations
-function generateVariantCombinations(attributes) {
-  const attrNames = Object.keys(attributes);
-  
-  if (attrNames.length === 0) {
-    return [];
-  }
-  
-  // Get base name from group name input
-  const groupName = document.getElementById('groupName').value.trim() || 'Product';
-  
-  // Generate all combinations
-  function combine(index, current, currentAttrs) {
-    if (index === attrNames.length) {
-      results.push({
-        name: current,
-        attributes: { ...currentAttrs }
-      });
-      return;
-    }
-    
-    const attrName = attrNames[index];
-    const options = attributes[attrName];
-    
-    options.forEach(option => {
-      const newCurrent = current ? `${current}-${option}` : `${groupName}-${option}`;
-      const newAttrs = { ...currentAttrs, [attrName]: option };
-      combine(index + 1, newCurrent, newAttrs);
-    });
-  }
-  
-  const results = [];
-  combine(0, '', {});
-  return results;
-}
-
-// Go to Step 2 (Variant Details)
-function goToGroupStep2() {
-  // Validate Step 1
-  const groupName = document.getElementById('groupName').value.trim();
-  
-  if (!groupName) {
-    alert('❌ Please enter a group name');
-    return;
-  }
-  
-  if (Object.keys(groupAttributes).length === 0) {
-    alert('❌ Please add at least one attribute with options');
-    return;
-  }
-  
-  if (generatedVariants.length === 0) {
-    alert('❌ No variants generated. Please check your attributes.');
-    return;
-  }
-  
-  // Generate variant detail forms
-  renderVariantDetailForms();
-  
-  // Show Step 2
-  document.getElementById('groupStep1').style.display = 'none';
-  document.getElementById('groupStep2').style.display = 'block';
-  document.getElementById('groupNextBtn').style.display = 'none';
-  document.getElementById('groupSaveBtn').style.display = 'inline-block';
-  document.getElementById('groupBackBtn').style.display = 'inline-block';
-}
-
-// Go back to Step 1
-function goToGroupStep1() {
-  document.getElementById('groupStep1').style.display = 'block';
-  document.getElementById('groupStep2').style.display = 'none';
-  document.getElementById('groupNextBtn').style.display = 'inline-block';
-  document.getElementById('groupSaveBtn').style.display = 'none';
-  document.getElementById('groupBackBtn').style.display = 'none';
-}
-
-    
-
-// Render variant detail forms (Step 2)
-function renderVariantDetailForms() {
-  const container = document.getElementById('variantDetailsContainer');
-  
-  let html = '';
-  
-  generatedVariants.forEach((variant, index) => {
-    html += `
-      <div class="variant-detail-card">
-        <h6>${escapeHtml(variant.name)}</h6>
-        <div class="row g-2">
-          <div class="col-md-4">
-            <label class="form-label small">Price (₹)</label>
-            <input type="number" 
-                   class="form-control form-control-sm variant-price" 
-                   data-index="${index}"
-                   placeholder="0.00" 
-                   step="0.01"
-                   min="0">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Stock</label>
-            <input type="number" 
-                   class="form-control form-control-sm variant-stock" 
-                   data-index="${index}"
-                   placeholder="0" 
-                   min="0">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Min Stock</label>
-            <input type="number" 
-                   class="form-control form-control-sm variant-minstock" 
-                   data-index="${index}"
-                   placeholder="5" 
-                   value="5"
-                   min="0">
-          </div>
-        </div>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
-}
-
-// Copy first variant price to all
-function copyPriceToAll() {
-  const firstPriceInput = document.querySelector('.variant-price[data-index="0"]');
-  if (!firstPriceInput || !firstPriceInput.value) {
-    alert('❌ Please enter price for the first variant first');
-    return;
-  }
-  
-  const price = firstPriceInput.value;
-  const allPriceInputs = document.querySelectorAll('.variant-price');
-  
-  allPriceInputs.forEach(input => {
-    input.value = price;
-  });
-  
-  alert('✅ Price copied to all variants');
-}
-
-
-
-    
-    // ✅ NEW: Product Groups cache
+ // ✅ NEW: Product Groups cache
 let cachedProductGroups = [];
 let cachedGroupVariants = [];
 
 // ✅ NEW: Page state management
 let currentPage = 'home'; // home, allProducts, productGroups, groupDetail
 let currentGroupId = null; // For group detail view
+
+    
+    
 // ==========================================
 // BACKGROUND SAVE QUEUE
 // ==========================================
@@ -2669,144 +2355,6 @@ function simpleHash(text) {
   }
   return Math.abs(hash).toString(36);
 }
-
-
-    // Save Product Group
-async function saveProductGroup() {
-  try {
-    // Collect group data
-    const groupName = document.getElementById('groupName').value.trim();
-    const groupDescription = document.getElementById('groupDescription').value.trim();
-    const groupCategory = document.getElementById('groupCategory').value;
-    const groupBrand = document.getElementById('groupBrand').value.trim();
-    
-    if (!groupName) {
-      alert('❌ Please enter a group name');
-      return;
-    }
-    
-    if (generatedVariants.length === 0) {
-      alert('❌ No variants to save');
-      return;
-    }
-    
-    // Collect variant details from Step 2
-    const variantDetails = [];
-    let hasError = false;
-    
-    generatedVariants.forEach((variant, index) => {
-      const priceInput = document.querySelector(`.variant-price[data-index="${index}"]`);
-      const stockInput = document.querySelector(`.variant-stock[data-index="${index}"]`);
-      const minStockInput = document.querySelector(`.variant-minstock[data-index="${index}"]`);
-      
-      const price = parseFloat(priceInput.value) || 0;
-      const stock = parseInt(stockInput.value) || 0;
-      const minStock = parseInt(minStockInput.value) || 5;
-      
-      if (price <= 0) {
-        alert(`❌ Please enter a valid price for: ${variant.name}`);
-        hasError = true;
-        return;
-      }
-      
-      variantDetails.push({
-        variantName: variant.name,
-        attributes: variant.attributes,
-        price: price,
-        stock: stock,
-        minStock: minStock,
-        brand: groupBrand,
-        category: groupCategory
-      });
-    });
-    
-    if (hasError) return;
-    
-    showLoading('Creating product group...');
-    
-    // Step 1: Create the group
-    const groupData = {
-      groupName: groupName,
-      description: groupDescription,
-      attributes: groupAttributes
-    };
-    
-    const groupResponse = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'createProductGroup',
-        email: localStorage.getItem('userEmail') || '',
-        hash: localStorage.getItem('userHash') || '',
-        data: JSON.stringify(groupData)
-      })
-    });
-    
-    const groupResult = await groupResponse.json();
-    
-    if (!groupResult.ok || !groupResult.groupId) {
-      hideLoading();
-      showError('Failed to create group: ' + (groupResult.error || 'Unknown error'));
-      return;
-    }
-    
-    const groupId = groupResult.groupId;
-    
-    // Step 2: Create all variants
-    const variantsData = {
-      groupId: groupId,
-      groupName: groupName,
-      variants: variantDetails
-    };
-    
-    const variantsResponse = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'createGroupVariants',
-        email: localStorage.getItem('userEmail') || '',
-        hash: localStorage.getItem('userHash') || '',
-        data: JSON.stringify(variantsData)
-      })
-    });
-    
-    const variantsResult = await variantsResponse.json();
-    
-    hideLoading();
-    
-    if (!variantsResult.ok) {
-      showError('Group created but failed to create variants: ' + (variantsResult.error || 'Unknown error'));
-      return;
-    }
-    
-    // Success!
-    showSuccess(`✅ Product group "${groupName}" created with ${variantDetails.length} variants!`);
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('createGroupModal'));
-    if (modal) {
-      modal.hide();
-    }
-    
-    // Refresh product groups
-    await syncProductGroups();
-    await syncAllVariants();
-    
-    // If on product groups page, refresh the view
-    if (currentPage === 'productGroups') {
-      renderProductGroupsList();
-    }
-    
-    // Update dashboard
-    updateSummaryFromCache();
-    
-  } catch (error) {
-    hideLoading();
-    console.error('Error saving product group:', error);
-    showError('Error creating product group: ' + error.message);
-  }
-}
-
 
 // Toggle password visibility
 function togglePasswordVisibility() {
@@ -3173,7 +2721,411 @@ try {
   // Keep custom products added into the current sale (persist across grid re-builds)
   let customProductsInSale = []; // { id, name, size, unitType, price, quantity, isPersistedToInventory:false/true, tempProductId }
 
+/**
+ * ==========================================
+ * CREATE PRODUCT GROUP FUNCTIONS
+ * ==========================================
+ */
 
+// Global state for group creation
+let groupAttributes = {}; // { "Size": ["Small", "Medium", "Large"], "Color": ["Red", "Blue"] }
+let generatedVariants = []; // Array of variant objects
+
+// Open Create Group Modal
+function openCreateGroupModal() {
+  // Reset form
+  document.getElementById('groupName').value = '';
+  document.getElementById('groupDescription').value = '';
+  document.getElementById('groupCategory').value = '';
+  document.getElementById('groupBrand').value = '';
+  
+  // Reset attributes
+  groupAttributes = {};
+  generatedVariants = [];
+  document.getElementById('attributesContainer').innerHTML = '';
+  
+  // Reset steps
+  document.getElementById('groupStep1').style.display = 'block';
+  document.getElementById('groupStep2').style.display = 'none';
+  document.getElementById('groupNextBtn').style.display = 'inline-block';
+  document.getElementById('groupSaveBtn').style.display = 'none';
+  document.getElementById('groupBackBtn').style.display = 'none';
+  
+  // Add first attribute row
+  addAttributeRow();
+  
+  // Update preview
+  updateVariantPreview();
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('createGroupModal'));
+  modal.show();
+}
+
+// Add attribute row
+function addAttributeRow() {
+  const container = document.getElementById('attributesContainer');
+  const rowId = 'attr-' + Date.now();
+  
+  const rowHtml = `
+    <div class="attribute-row" id="${rowId}">
+      <div style="flex:1;">
+        <label class="form-label small">Attribute Name</label>
+        <input type="text" 
+               class="form-control form-control-sm attr-name" 
+               placeholder="e.g., Size, Color, Material" 
+               onchange="updateVariantPreview()">
+      </div>
+      <div style="flex:2;">
+        <label class="form-label small">Options (comma-separated)</label>
+        <input type="text" 
+               class="form-control form-control-sm attr-options" 
+               placeholder="e.g., Small, Medium, Large" 
+               onchange="updateVariantPreview()">
+        <div class="attribute-options-container" id="${rowId}-tags"></div>
+      </div>
+      <button class="btn-remove" onclick="removeAttributeRow('${rowId}')">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  `;
+  
+  container.insertAdjacentHTML('beforeend', rowHtml);
+}
+
+// Remove attribute row
+function removeAttributeRow(rowId) {
+  const row = document.getElementById(rowId);
+  if (row) {
+    row.remove();
+    updateVariantPreview();
+  }
+}
+
+// Update variant preview
+function updateVariantPreview() {
+  // Collect attributes from form
+  groupAttributes = {};
+  
+  const attrRows = document.querySelectorAll('.attribute-row');
+  attrRows.forEach(row => {
+    const nameInput = row.querySelector('.attr-name');
+    const optionsInput = row.querySelector('.attr-options');
+    
+    if (nameInput && optionsInput) {
+      const name = nameInput.value.trim();
+      const optionsStr = optionsInput.value.trim();
+      
+      if (name && optionsStr) {
+        // Parse options (comma-separated)
+        const options = optionsStr.split(',').map(o => o.trim()).filter(o => o);
+        if (options.length > 0) {
+          groupAttributes[name] = options;
+          
+          // Show tags
+          const tagsContainer = row.querySelector('.attribute-options-container');
+          if (tagsContainer) {
+            tagsContainer.innerHTML = options.map(opt => 
+              `<span class="attribute-option-tag">${escapeHtml(opt)}</span>`
+            ).join('');
+          }
+        }
+      }
+    }
+  });
+  
+  // Generate variant combinations
+  generatedVariants = generateVariantCombinations(groupAttributes);
+  
+  // Update preview
+  const previewList = document.getElementById('variantPreviewList');
+  const countEl = document.getElementById('variantCount');
+  
+  if (generatedVariants.length === 0) {
+    previewList.innerHTML = '<small class="text-muted">Add attributes above to see variant preview</small>';
+    countEl.innerHTML = 'Total variants: <strong>0</strong>';
+  } else {
+    previewList.innerHTML = generatedVariants.map((v, i) => 
+      `<div>${i + 1}. ${escapeHtml(v.name)}</div>`
+    ).join('');
+    countEl.innerHTML = `Total variants: <strong>${generatedVariants.length}</strong>`;
+  }
+}
+
+// Generate variant combinations
+function generateVariantCombinations(attributes) {
+  const attrNames = Object.keys(attributes);
+  
+  if (attrNames.length === 0) {
+    return [];
+  }
+  
+  // Get base name from group name input
+  const groupName = document.getElementById('groupName').value.trim() || 'Product';
+  
+  // Generate all combinations
+  function combine(index, current, currentAttrs) {
+    if (index === attrNames.length) {
+      results.push({
+        name: current,
+        attributes: { ...currentAttrs }
+      });
+      return;
+    }
+    
+    const attrName = attrNames[index];
+    const options = attributes[attrName];
+    
+    options.forEach(option => {
+      const newCurrent = current ? `${current}-${option}` : `${groupName}-${option}`;
+      const newAttrs = { ...currentAttrs, [attrName]: option };
+      combine(index + 1, newCurrent, newAttrs);
+    });
+  }
+  
+  const results = [];
+  combine(0, '', {});
+  return results;
+}
+
+// Go to Step 2 (Variant Details)
+function goToGroupStep2() {
+  // Validate Step 1
+  const groupName = document.getElementById('groupName').value.trim();
+  
+  if (!groupName) {
+    alert('❌ Please enter a group name');
+    return;
+  }
+  
+  if (Object.keys(groupAttributes).length === 0) {
+    alert('❌ Please add at least one attribute with options');
+    return;
+  }
+  
+  if (generatedVariants.length === 0) {
+    alert('❌ No variants generated. Please check your attributes.');
+    return;
+  }
+  
+  // Generate variant detail forms
+  renderVariantDetailForms();
+  
+  // Show Step 2
+  document.getElementById('groupStep1').style.display = 'none';
+  document.getElementById('groupStep2').style.display = 'block';
+  document.getElementById('groupNextBtn').style.display = 'none';
+  document.getElementById('groupSaveBtn').style.display = 'inline-block';
+  document.getElementById('groupBackBtn').style.display = 'inline-block';
+}
+
+// Go back to Step 1
+function goToGroupStep1() {
+  document.getElementById('groupStep1').style.display = 'block';
+  document.getElementById('groupStep2').style.display = 'none';
+  document.getElementById('groupNextBtn').style.display = 'inline-block';
+  document.getElementById('groupSaveBtn').style.display = 'none';
+  document.getElementById('groupBackBtn').style.display = 'none';
+}
+
+// Render variant detail forms (Step 2)
+function renderVariantDetailForms() {
+  const container = document.getElementById('variantDetailsContainer');
+  
+  let html = '';
+  
+  generatedVariants.forEach((variant, index) => {
+    html += `
+      <div class="variant-detail-card">
+        <h6>${escapeHtml(variant.name)}</h6>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <label class="form-label small">Price (₹)</label>
+            <input type="number" 
+                   class="form-control form-control-sm variant-price" 
+                   data-index="${index}"
+                   placeholder="0.00" 
+                   step="0.01"
+                   min="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Stock</label>
+            <input type="number" 
+                   class="form-control form-control-sm variant-stock" 
+                   data-index="${index}"
+                   placeholder="0" 
+                   min="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Min Stock</label>
+            <input type="number" 
+                   class="form-control form-control-sm variant-minstock" 
+                   data-index="${index}"
+                   placeholder="5" 
+                   value="5"
+                   min="0">
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+// Copy first variant price to all
+function copyPriceToAll() {
+  const firstPriceInput = document.querySelector('.variant-price[data-index="0"]');
+  if (!firstPriceInput || !firstPriceInput.value) {
+    alert('❌ Please enter price for the first variant first');
+    return;
+  }
+  
+  const price = firstPriceInput.value;
+  const allPriceInputs = document.querySelectorAll('.variant-price');
+  
+  allPriceInputs.forEach(input => {
+    input.value = price;
+  });
+  
+  alert('✅ Price copied to all variants');
+}
+
+// Save Product Group
+async function saveProductGroup() {
+  try {
+    // Collect group data
+    const groupName = document.getElementById('groupName').value.trim();
+    const groupDescription = document.getElementById('groupDescription').value.trim();
+    const groupCategory = document.getElementById('groupCategory').value;
+    const groupBrand = document.getElementById('groupBrand').value.trim();
+    
+    if (!groupName) {
+      alert('❌ Please enter a group name');
+      return;
+    }
+    
+    if (generatedVariants.length === 0) {
+      alert('❌ No variants to save');
+      return;
+    }
+    
+    // Collect variant details from Step 2
+    const variantDetails = [];
+    let hasError = false;
+    
+    generatedVariants.forEach((variant, index) => {
+      const priceInput = document.querySelector(`.variant-price[data-index="${index}"]`);
+      const stockInput = document.querySelector(`.variant-stock[data-index="${index}"]`);
+      const minStockInput = document.querySelector(`.variant-minstock[data-index="${index}"]`);
+      
+      const price = parseFloat(priceInput.value) || 0;
+      const stock = parseInt(stockInput.value) || 0;
+      const minStock = parseInt(minStockInput.value) || 5;
+      
+      if (price <= 0) {
+        alert(`❌ Please enter a valid price for: ${variant.name}`);
+        hasError = true;
+        return;
+      }
+      
+      variantDetails.push({
+        variantName: variant.name,
+        attributes: variant.attributes,
+        price: price,
+        stock: stock,
+        minStock: minStock,
+        brand: groupBrand,
+        category: groupCategory
+      });
+    });
+    
+    if (hasError) return;
+    
+    showLoading('Creating product group...');
+    
+    // Step 1: Create the group
+    const groupData = {
+      groupName: groupName,
+      description: groupDescription,
+      attributes: groupAttributes
+    };
+    
+    const groupResponse = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'createProductGroup',
+        email: localStorage.getItem('userEmail') || '',
+        hash: localStorage.getItem('userHash') || '',
+        data: JSON.stringify(groupData)
+      })
+    });
+    
+    const groupResult = await groupResponse.json();
+    
+    if (!groupResult.ok || !groupResult.groupId) {
+      hideLoading();
+      showError('Failed to create group: ' + (groupResult.error || 'Unknown error'));
+      return;
+    }
+    
+    const groupId = groupResult.groupId;
+    
+    // Step 2: Create all variants
+    const variantsData = {
+      groupId: groupId,
+      groupName: groupName,
+      variants: variantDetails
+    };
+    
+    const variantsResponse = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'createGroupVariants',
+        email: localStorage.getItem('userEmail') || '',
+        hash: localStorage.getItem('userHash') || '',
+        data: JSON.stringify(variantsData)
+      })
+    });
+    
+    const variantsResult = await variantsResponse.json();
+    
+    hideLoading();
+    
+    if (!variantsResult.ok) {
+      showError('Group created but failed to create variants: ' + (variantsResult.error || 'Unknown error'));
+      return;
+    }
+    
+    // Success!
+    showSuccess(`✅ Product group "${groupName}" created with ${variantDetails.length} variants!`);
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createGroupModal'));
+    if (modal) {
+      modal.hide();
+    }
+    
+    // Refresh product groups
+    await syncProductGroups();
+    await syncAllVariants();
+    
+    // If on product groups page, refresh the view
+    if (currentPage === 'productGroups') {
+      renderProductGroupsList();
+    }
+    
+    // Update dashboard
+    updateSummaryFromCache();
+    
+  } catch (error) {
+    hideLoading();
+    console.error('Error saving product group:', error);
+    showError('Error creating product group: ' + error.message);
+  }
+}
 
 
 
@@ -3269,7 +3221,9 @@ async function syncFromGoogleSheets() {
       
       // Update dashboard metrics
       updateSummaryFromCache();
-      
+        // ✅ NEW: Sync product groups and variants
+  await syncProductGroups();
+  await syncAllVariants();
       showSyncIndicator('Synced!', 900);
       
     } else {
@@ -5183,15 +5137,52 @@ function viewPhotoProduct(productId) {
 }
 
 
-  /***********************
-   * Init
-   ***********************/
-  document.addEventListener('DOMContentLoaded', ()=>{
-    // initial placeholders
-    renderProducts();
-    renderSales();
-    syncFromGoogleSheets();
-  });
+ /**
+ * ==========================================
+ * INITIALIZATION ON PAGE LOAD
+ * ==========================================
+ */
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Initializing Inventory App...');
+  
+  // Set initial page to home
+  currentPage = 'home';
+  
+  // Make sure all page views start hidden
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  if (allProductsPage) {
+    allProductsPage.classList.remove('active');
+    console.log('✅ All Products page hidden');
+  }
+  if (productGroupsPage) {
+    productGroupsPage.classList.remove('active');
+    console.log('✅ Product Groups page hidden');
+  }
+  if (groupDetailPage) {
+    groupDetailPage.classList.remove('active');
+    console.log('✅ Group Detail page hidden');
+  }
+  
+  // Initialize main dashboard display
+  const mainApp = document.getElementById('mainApp');
+  if (mainApp) {
+    mainApp.style.display = 'block';
+    console.log('✅ Main dashboard visible');
+  }
+  
+  // Initialize data (existing code)
+  renderProducts();
+  renderSales();
+  syncFromGoogleSheets();
+  
+  console.log('✅ Page navigation initialized');
+});
+
 
 
     /***********************
@@ -6327,7 +6318,6 @@ function hideLoading() {
 }
 
 
-
 /**
  * ==========================================
  * SIDEBAR MENU FUNCTIONALITY
@@ -6347,7 +6337,14 @@ function toggleSidebar() {
   }
 }
 
-
+// Close Sidebar
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
 
 // ✅ UPDATE: Go to Home function
 function goToHome() {
@@ -6376,22 +6373,14 @@ function sidebarAction(action) {
 function navigateToHome() {
   currentPage = 'home';
   
-  // Show home, hide all page views
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
+  // Hide all page views
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('allProductsPage').classList.remove('active');
+  document.getElementById('productGroupsPage').classList.remove('active');
+  document.getElementById('groupDetailPage').classList.remove('active');
   
-  // ✅ NULL CHECKS
-  if (mainApp) mainApp.style.display = 'block';
-  if (allProductsPage) allProductsPage.classList.remove('active');
-  if (productGroupsPage) productGroupsPage.classList.remove('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
-  
-  // Close sidebar if exists
-  if (typeof closeSidebar === 'function') {
-    closeSidebar();
-  }
+  // Close sidebar if open
+  closeSidebar();
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6399,60 +6388,39 @@ function navigateToHome() {
 
 // Navigate to All Products page
 function navigateToAllProducts() {
-  console.log('📦 Navigating to All Products');
-  
   currentPage = 'allProducts';
   
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
+  // Show All Products page, hide others
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('allProductsPage').classList.add('active');
+  document.getElementById('productGroupsPage').classList.remove('active');
+  document.getElementById('groupDetailPage').classList.remove('active');
   
-  console.log('Elements found:', {
-    mainApp: !!mainApp,
-    allProductsPage: !!allProductsPage,
-    productGroupsPage: !!productGroupsPage,
-    groupDetailPage: !!groupDetailPage
-  });
-  
-  if (mainApp) mainApp.style.display = 'none';
-  if (allProductsPage) {
-    allProductsPage.classList.add('active');
-    console.log('✅ All Products page activated');
-  }
-  if (productGroupsPage) productGroupsPage.classList.remove('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
-  
+  // Render products
   renderAllProductsList();
   
+  // Close sidebar
+  closeSidebar();
+  
+  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-
 
 // Navigate to Product Groups page
 function navigateToProductGroups() {
   currentPage = 'productGroups';
   
   // Show Product Groups page, hide others
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
-  
-  // ✅ NULL CHECKS
-  if (mainApp) mainApp.style.display = 'none';
-  if (allProductsPage) allProductsPage.classList.remove('active');
-  if (productGroupsPage) productGroupsPage.classList.add('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('allProductsPage').classList.remove('active');
+  document.getElementById('productGroupsPage').classList.add('active');
+  document.getElementById('groupDetailPage').classList.remove('active');
   
   // Load and render product groups
   syncProductGroups();
   
   // Close sidebar
-  if (typeof closeSidebar === 'function') {
-    closeSidebar();
-  }
+  closeSidebar();
   
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6738,46 +6706,37 @@ function filterGroupVariants() {
 
 // Sync Product Groups from server
 async function syncProductGroups() {
-  console.log('🔄 Syncing product groups...');
-  
   try {
+    showLoading('Loading product groups...');
+    
     const params = new URLSearchParams({
       action: 'getProductGroups',
       email: localStorage.getItem('userEmail') || '',
       hash: localStorage.getItem('userHash') || ''
     });
     
-    console.log('📤 Fetching:', `${SCRIPT_URL}?${params.toString()}`);
-    
     const response = await fetch(`${SCRIPT_URL}?${params.toString()}`);
     const data = await response.json();
     
-    console.log('📥 Response:', data);
+    hideLoading();
     
     if (data.ok && data.groups) {
       cachedProductGroups = data.groups;
-      console.log('✅ Loaded', data.groups.length, 'groups');
       renderProductGroupsList();
       
       // Update dashboard counter
-      if (typeof updateSummaryFromCache === 'function') {
-        updateSummaryFromCache();
-      }
+      updateDashboard();
     } else {
-      console.warn('⚠️ No groups or error:', data);
-      cachedProductGroups = [];
-      renderProductGroupsList();
+      console.error('Failed to load product groups:', data.error);
+      showError('Failed to load product groups');
     }
     
   } catch (error) {
-    console.error('❌ Error syncing product groups:', error);
-    cachedProductGroups = [];
-    renderProductGroupsList();
+    hideLoading();
+    console.error('Error syncing product groups:', error);
+    showError('Error loading product groups');
   }
 }
-
-
-
 
 // Sync variants for specific group
 async function syncGroupVariants(groupId) {
@@ -6831,24 +6790,12 @@ async function syncAllVariants() {
       if (counter) {
         counter.textContent = totalVariants;
       }
-    } else {
-      // ✅ Set to 0 if not available
-      const counter = document.getElementById('productsInGroup');
-      if (counter) {
-        counter.textContent = '0';
-      }
     }
     
   } catch (error) {
     console.error('Error syncing all variants:', error);
-    // ✅ Set to 0 on error
-    const counter = document.getElementById('productsInGroup');
-    if (counter) {
-      counter.textContent = '0';
-    }
   }
 }
-
 /**
  * ==========================================
  * DELETE CONFIRMATION FUNCTIONS
@@ -6986,7 +6933,6 @@ function editVariant(variantId) {
 function openCreateGroupModal() {
   alert('⏳ Create Product Group feature coming soon!\n\nThis will allow you to:\n• Create groups like "T-Shirts"\n• Add attributes (Size, Color, etc.)\n• Auto-generate all variant combinations');
 }
-
 /**
  * ==========================================
  * UTILITY FUNCTIONS
@@ -7010,6 +6956,7 @@ function showSuccess(message) {
 function showError(message) {
   alert('❌ ' + message);
 }
+
 
     
 
@@ -7148,15 +7095,6 @@ function showError(message) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
 
 
