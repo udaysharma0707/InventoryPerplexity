@@ -1186,6 +1186,649 @@ body:has(.page-view.active) .action-buttons {
     padding: 4px 0;
   }
 }
+/**
+ * ==========================================
+ * PRODUCT GROUPS - MOBILE-FIRST STYLES
+ * ==========================================
+ */
+
+/* Full-screen modal for mobile */
+.fullscreen-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 99999;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fullscreen-modal.active {
+  display: block;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Mobile header with back button */
+.modal-header-mobile {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.modal-header-mobile h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  text-align: center;
+}
+
+.btn-cancel-modal {
+  background: transparent;
+  color: #dc3545;
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Mobile form styles */
+.mobile-form {
+  padding: 16px;
+  padding-bottom: 100px; /* Space for fixed bottom buttons */
+}
+
+.form-section {
+  margin-bottom: 24px;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.section-description {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 16px 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+.form-label:first-child {
+  margin-top: 0;
+}
+
+.form-label .required {
+  color: #dc3545;
+  margin-left: 2px;
+}
+
+/* Mobile-optimized inputs */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+textarea,
+select {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px; /* Prevents zoom on iOS */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  min-height: 48px;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Attribute row card */
+.attribute-row {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 2px solid #e0e0e0;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.attribute-row.highlight {
+  border-color: #007bff;
+  background: #f0f7ff;
+}
+
+.attribute-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.attribute-row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.btn-remove-attr {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}
+
+.btn-remove-attr:active {
+  background: #bd2130;
+}
+
+/* Add more button */
+.btn-add-more {
+  width: 100%;
+  padding: 14px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.btn-add-more:active {
+  background: #0056b3;
+}
+
+/* Variant preview */
+.variant-preview-section {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #e3f2fd;
+}
+
+.variant-count-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.variant-preview-list {
+  max-height: 250px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.variant-preview-item {
+  padding: 10px 12px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #1976d2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variant-preview-item:last-child {
+  margin-bottom: 0;
+}
+
+.variant-preview-item .icon {
+  font-size: 16px;
+}
+
+.variant-preview-more {
+  padding: 10px 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Fixed bottom action buttons */
+.form-actions-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 12px 16px;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.btn-secondary-bottom {
+  flex: 1;
+  padding: 14px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.btn-secondary-bottom:active {
+  background: #5a6268;
+}
+
+.btn-primary-bottom {
+  flex: 2;
+  padding: 14px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary-bottom:active {
+  background: #218838;
+}
+
+.btn-primary-bottom:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Group card in list */
+.group-card {
+  background: white;
+  margin: 0 16px 12px 16px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.group-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+.group-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.group-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-description {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.group-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.group-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-icon-small {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-icon-small:active {
+  transform: scale(0.95);
+}
+
+.btn-edit-small {
+  background: #007bff;
+  color: white;
+}
+
+.btn-delete-small {
+  background: #dc3545;
+  color: white;
+}
+
+/* Variant card */
+.variant-card {
+  background: white;
+  margin: 0 16px 12px 16px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.variant-icon {
+  width: 56px;
+  height: 56px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.variant-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.variant-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variant-attributes {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.variant-details {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.variant-stock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.variant-stock.low {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.variant-stock.good {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.variant-price {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.variant-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 24px 0;
+}
+
+/* Success message overlay */
+.success-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(40, 167, 69, 0.95);
+  color: white;
+  padding: 20px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 100000;
+  display: none;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.success-overlay.show {
+  display: block;
+  animation: successPop 0.3s ease-out;
+}
+
+@keyframes successPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .group-card {
+    margin: 0 auto 12px auto;
+    max-width: 600px;
+  }
+  
+  .variant-card {
+    margin: 0 auto 12px auto;
+    max-width: 600px;
+  }
+  
+  .mobile-form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevent zoom on focus */
+  }
+}
+
+/* Hide navbar on fullscreen modals */
+body:has(.fullscreen-modal.active) .navbar {
+  display: none !important;
+}
 
 
     
@@ -2406,7 +3049,218 @@ body:has(.page-view.active) .action-buttons {
   </div>
 </div>
 
+  <!-- ==========================================
+     PRODUCT GROUPS - CREATE GROUP MODAL (MOBILE-OPTIMIZED)
+     ========================================== -->
+
+<div class="fullscreen-modal" id="createGroupModal">
+  <div class="modal-header-mobile">
+    <button class="btn-cancel-modal" onclick="closeCreateGroupModal()">
+      ✕ Cancel
+    </button>
+    <h3>New Item Group</h3>
+    <div style="width: 80px;"></div> <!-- Spacer for centering -->
+  </div>
   
+  <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)">
+    
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <div class="section-title">Basic Information</div>
+      
+      <label class="form-label">
+        Item Group Name <span class="required">*</span>
+      </label>
+      <input 
+        type="text" 
+        id="groupName" 
+        name="groupName"
+        placeholder="e.g., T-Shirts, Tiles, Sanitaryware" 
+        required
+        autocomplete="off">
+      
+      <label class="form-label">Description</label>
+      <textarea 
+        id="groupDescription" 
+        name="groupDescription"
+        placeholder="Optional: Add a description for this group"
+        rows="3"></textarea>
+      
+      <label class="form-label">Manufacturer / Brand</label>
+      <input 
+        type="text" 
+        id="groupManufacturer" 
+        name="groupManufacturer"
+        placeholder="e.g., Nike, Somany"
+        autocomplete="off">
+      
+      <label class="form-label">Category</label>
+      <select id="groupCategory" name="groupCategory">
+        <option value="">Select Category</option>
+        <option value="Tiles">Tiles</option>
+        <option value="Sanitaryware">Sanitaryware</option>
+        <option value="Accessories">Accessories</option>
+        <option value="Apparel">Apparel</option>
+        <option value="Custom">Custom</option>
+      </select>
+    </div>
+    
+    <!-- Attributes Section -->
+    <div class="form-section">
+      <div class="section-title">Create Attributes & Options</div>
+      <div class="section-description">
+        Add attributes like Size, Color, Material, etc. Each combination will create a variant.
+      </div>
+      
+      <div id="attributesContainer">
+        <!-- Attribute rows will be added here dynamically -->
+      </div>
+      
+      <button type="button" class="btn-add-more" onclick="addAttributeRow()">
+        ➕ Add Attribute
+      </button>
+    </div>
+    
+    <!-- Variant Preview Section -->
+    <div class="form-section">
+      <div class="variant-preview-section">
+        <div class="variant-count-badge">
+          <span id="variantCount">0</span> Variants Will Be Created
+        </div>
+        <div class="variant-preview-list" id="variantPreviewContainer">
+          <div class="variant-preview-item">
+            Add attributes to see preview...
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Fixed Bottom Actions -->
+    <div class="form-actions-bottom">
+      <button type="button" class="btn-secondary-bottom" onclick="closeCreateGroupModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn-primary-bottom" id="btnSaveGroup">
+        💾 Save & Generate
+      </button>
+    </div>
+    
+  </form>
+</div>
+
+
+<!-- ==========================================
+     PRODUCT GROUPS - EDIT VARIANT MODAL (MOBILE-OPTIMIZED)
+     ========================================== -->
+
+<div class="fullscreen-modal" id="editVariantModal">
+  <div class="modal-header-mobile">
+    <button class="btn-cancel-modal" onclick="closeEditVariantModal()">
+      ✕ Cancel
+    </button>
+    <h3>Edit Variant</h3>
+    <div style="width: 80px;"></div>
+  </div>
+  
+  <form id="editVariantForm" class="mobile-form" onsubmit="handleUpdateVariant(event)">
+    <input type="hidden" id="editVariantId">
+    <input type="hidden" id="editVariantGroupId">
+    
+    <!-- Variant Info (Read-only) -->
+    <div class="form-section">
+      <div class="section-title">Variant Information</div>
+      
+      <label class="form-label">Variant Name</label>
+      <input 
+        type="text" 
+        id="editVariantName" 
+        readonly
+        style="background: #f5f5f5; color: #666;">
+      
+      <label class="form-label">Attributes</label>
+      <div id="editVariantAttributes" style="padding: 12px; background: #f5f5f5; border-radius: 8px; font-size: 14px; color: #666;">
+        <!-- Attributes will be displayed here -->
+      </div>
+    </div>
+    
+    <!-- Pricing Section -->
+    <div class="form-section">
+      <div class="section-title">Pricing</div>
+      
+      <label class="form-label">Cost Price</label>
+      <input 
+        type="number" 
+        id="editVariantCostPrice" 
+        name="costPrice"
+        placeholder="0.00"
+        step="0.01"
+        min="0">
+      
+      <label class="form-label">Selling Price <span class="required">*</span></label>
+      <input 
+        type="number" 
+        id="editVariantSellingPrice" 
+        name="sellingPrice"
+        placeholder="0.00"
+        step="0.01"
+        min="0"
+        required>
+    </div>
+    
+    <!-- Inventory Section -->
+    <div class="form-section">
+      <div class="section-title">Inventory</div>
+      
+      <label class="form-label">Stock Quantity <span class="required">*</span></label>
+      <input 
+        type="number" 
+        id="editVariantStock" 
+        name="stock"
+        placeholder="0"
+        min="0"
+        required>
+      
+      <label class="form-label">Minimum Stock Alert</label>
+      <input 
+        type="number" 
+        id="editVariantMinStock" 
+        name="minStock"
+        placeholder="0"
+        min="0">
+      
+      <label class="form-label">Unit Type</label>
+      <select id="editVariantUnitType" name="unitType">
+        <option value="Piece">Piece</option>
+        <option value="Box">Box</option>
+        <option value="SFT">SFT</option>
+        <option value="Set">Set</option>
+        <option value="Unit">Unit</option>
+      </select>
+    </div>
+    
+    <!-- Fixed Bottom Actions -->
+    <div class="form-actions-bottom">
+      <button type="button" class="btn-secondary-bottom" onclick="closeEditVariantModal()">
+        Cancel
+      </button>
+      <button type="submit" class="btn-primary-bottom">
+        💾 Save Changes
+      </button>
+    </div>
+    
+  </form>
+</div>
+
+
+<!-- ==========================================
+     SUCCESS MESSAGE OVERLAY
+     ========================================== -->
+
+<div class="success-overlay" id="successOverlay">
+  <div style="font-size: 32px; margin-bottom: 8px;">✅</div>
+  <div id="successMessage">Success!</div>
+</div>
+
 
   <!-- Hidden file input for import -->
   <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
@@ -2514,8 +3368,8 @@ body:has(.page-view.active) .action-buttons {
   /***********************
    * CONFIG
    ***********************/
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztoJXxCdcZgykPLYjFnmeSwSwAyU2rXlOCR3C0A0mjm-Q-v1O6KL_yl2_iWyfdvPkh/exec'; // <-- replace with your deployed URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztoJXxCdcZgykPLYjFnmeSwSwAyU2rXlOCR3C0A0mjm-Q-v1O6KL_yl2_iWyfdvPkh/exec'
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2XYfQVwAUX4kzPOBliZym7RnvqxFiZ7XjblQu86v2UYi5G1VaBQp77taT0sGeJnr0/exec'; // <-- replace with your deployed URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2XYfQVwAUX4kzPOBliZym7RnvqxFiZ7XjblQu86v2UYi5G1VaBQp77taT0sGeJnr0/exec'
   let cachedProducts = [];
   let cachedSales = [];
 
@@ -3052,6 +3906,519 @@ function updateVariantPreview() {
     countEl.innerHTML = `Total variants: <strong>${generatedVariants.length}</strong>`;
   }
 }
+
+    /**
+ * ==========================================
+ * FORM SUBMISSION HANDLERS
+ * ==========================================
+ */
+
+// Handle Create Group Form Submission
+async function handleCreateGroup(event) {
+  event.preventDefault();
+  
+  console.log('📝 Creating product group...');
+  
+  // Disable submit button
+  const submitBtn = document.getElementById('btnSaveGroup');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '⏳ Creating...';
+  
+  try {
+    // Collect form data
+    const groupName = document.getElementById('groupName').value.trim();
+    const description = document.getElementById('groupDescription').value.trim();
+    const manufacturer = document.getElementById('groupManufacturer').value.trim();
+    const category = document.getElementById('groupCategory').value;
+    const attributes = parseAttributesFromForm();
+    
+    // Validate
+    if (!groupName) {
+      throw new Error('Group name is required');
+    }
+    
+    if (Object.keys(attributes).length === 0) {
+      throw new Error('Please add at least one attribute');
+    }
+    
+    // Prepare data
+    const groupData = {
+      groupName: groupName,
+      description: description,
+      manufacturer: manufacturer,
+      brand: manufacturer, // Use same value for brand
+      category: category,
+      attributes: attributes,
+      createdBy: userEmail
+    };
+    
+    console.log('📤 Sending data:', groupData);
+    
+    // Send to backend
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        action: 'createProductGroup',
+        email: userEmail,
+        hash: userHash,
+        data: JSON.stringify(groupData)
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Group created:', result);
+      
+      // Show success message
+      showSuccessMessage(`Created "${groupName}" with ${result.totalVariants} variants!`);
+      
+      // Close modal
+      closeCreateGroupModal();
+      
+      // Refresh list
+      setTimeout(() => {
+        loadProductGroups();
+      }, 500);
+      
+    } else {
+      throw new Error(result.error || 'Failed to create group');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error creating group:', error);
+    alert('Error: ' + error.message);
+    
+    // Re-enable button
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
+}
+
+
+/**
+ * ==========================================
+ * EDIT VARIANT MODAL FUNCTIONS
+ * ==========================================
+ */
+
+// Open Edit Variant Modal
+function openEditVariantModal(variantId) {
+  console.log('✏️ Opening edit modal for variant:', variantId);
+  
+  // Find variant in cache
+  const variant = cachedGroupVariants.find(v => v.variantId === variantId);
+  
+  if (!variant) {
+    alert('Variant not found');
+    return;
+  }
+  
+  // Populate form
+  document.getElementById('editVariantId').value = variant.variantId;
+  document.getElementById('editVariantGroupId').value = variant.groupId;
+  document.getElementById('editVariantName').value = variant.variantName;
+  document.getElementById('editVariantCostPrice').value = variant.costPrice || 0;
+  document.getElementById('editVariantSellingPrice').value = variant.sellingPrice || 0;
+  document.getElementById('editVariantStock').value = variant.stock || 0;
+  document.getElementById('editVariantMinStock').value = variant.minStock || 0;
+  document.getElementById('editVariantUnitType').value = variant.unitType || 'Piece';
+  
+  // Display attributes (read-only)
+  const attributesContainer = document.getElementById('editVariantAttributes');
+  if (attributesContainer) {
+    try {
+      const attrs = typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes;
+      const attrHtml = Object.entries(attrs)
+        .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+        .join(' • ');
+      attributesContainer.innerHTML = attrHtml || 'No attributes';
+    } catch (e) {
+      attributesContainer.innerHTML = 'No attributes';
+    }
+  }
+  
+  // Show modal
+  const modal = document.getElementById('editVariantModal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+
+// Close Edit Variant Modal
+function closeEditVariantModal() {
+  const modal = document.getElementById('editVariantModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  document.body.style.overflow = '';
+}
+
+
+// Handle Update Variant Form Submission
+async function handleUpdateVariant(event) {
+  event.preventDefault();
+  
+  console.log('💾 Updating variant...');
+  
+  const submitBtn = event.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '⏳ Saving...';
+  
+  try {
+    // Collect form data
+    const variantId = document.getElementById('editVariantId').value;
+    const costPrice = parseFloat(document.getElementById('editVariantCostPrice').value) || 0;
+    const sellingPrice = parseFloat(document.getElementById('editVariantSellingPrice').value) || 0;
+    const stock = parseInt(document.getElementById('editVariantStock').value) || 0;
+    const minStock = parseInt(document.getElementById('editVariantMinStock').value) || 0;
+    const unitType = document.getElementById('editVariantUnitType').value;
+    
+    // Validate
+    if (sellingPrice < 0 || stock < 0 || minStock < 0) {
+      throw new Error('Values cannot be negative');
+    }
+    
+    // Prepare update data
+    const updateData = {
+      variantId: variantId,
+      costPrice: costPrice,
+      sellingPrice: sellingPrice,
+      stock: stock,
+      minStock: minStock,
+      unitType: unitType
+    };
+    
+    console.log('📤 Sending update:', updateData);
+    
+    // Send to backend
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        action: 'updateGroupVariant',
+        email: userEmail,
+        hash: userHash,
+        data: JSON.stringify(updateData)
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Variant updated');
+      
+      // Show success message
+      showSuccessMessage('Variant updated successfully!');
+      
+      // Close modal
+      closeEditVariantModal();
+      
+      // Refresh variants list
+      setTimeout(() => {
+        loadGroupVariants(currentGroupId);
+      }, 500);
+      
+    } else {
+      throw new Error(result.error || 'Failed to update variant');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error updating variant:', error);
+    alert('Error: ' + error.message);
+    
+    // Re-enable button
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
+}
+
+
+/**
+ * ==========================================
+ * DELETE FUNCTIONS
+ * ==========================================
+ */
+
+// Confirm Delete Group
+function confirmDeleteGroup(groupId, groupName) {
+  const confirmed = confirm(
+    `⚠️ Delete "${groupName}"?\n\n` +
+    `This will also delete ALL VARIANTS in this group.\n\n` +
+    `This action cannot be undone!`
+  );
+  
+  if (confirmed) {
+    deleteProductGroup(groupId, groupName);
+  }
+}
+
+
+// Delete Product Group
+async function deleteProductGroup(groupId, groupName) {
+  console.log('🗑️ Deleting group:', groupId);
+  
+  try {
+    // Show loading overlay
+    showLoadingOverlay('Deleting group...');
+    
+    // Send delete request
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        action: 'deleteProductGroup',
+        email: userEmail,
+        hash: userHash,
+        data: JSON.stringify({ groupId: groupId })
+      })
+    });
+    
+    const result = await response.json();
+    
+    hideLoadingOverlay();
+    
+    if (result.success) {
+      console.log('✅ Group deleted');
+      
+      // Show success message
+      showSuccessMessage(`Deleted "${groupName}" and all its variants`);
+      
+      // Refresh list
+      setTimeout(() => {
+        loadProductGroups();
+      }, 500);
+      
+    } else {
+      throw new Error(result.error || 'Failed to delete group');
+    }
+    
+  } catch (error) {
+    hideLoadingOverlay();
+    console.error('❌ Error deleting group:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
+
+// Confirm Delete Variant
+function confirmDeleteVariant(variantId, variantName) {
+  const confirmed = confirm(
+    `⚠️ Delete "${variantName}"?\n\n` +
+    `This action cannot be undone!`
+  );
+  
+  if (confirmed) {
+    deleteVariant(variantId, variantName);
+  }
+}
+
+
+// Delete Variant
+async function deleteVariant(variantId, variantName) {
+  console.log('🗑️ Deleting variant:', variantId);
+  
+  try {
+    // Show loading overlay
+    showLoadingOverlay('Deleting variant...');
+    
+    // Send delete request
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        action: 'deleteGroupVariant',
+        email: userEmail,
+        hash: userHash,
+        data: JSON.stringify({ variantId: variantId })
+      })
+    });
+    
+    const result = await response.json();
+    
+    hideLoadingOverlay();
+    
+    if (result.success) {
+      console.log('✅ Variant deleted');
+      
+      // Show success message
+      showSuccessMessage(`Deleted "${variantName}"`);
+      
+      // Refresh variants list
+      setTimeout(() => {
+        loadGroupVariants(currentGroupId);
+      }, 500);
+      
+    } else {
+      throw new Error(result.error || 'Failed to delete variant');
+    }
+    
+  } catch (error) {
+    hideLoadingOverlay();
+    console.error('❌ Error deleting variant:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
+
+/**
+ * ==========================================
+ * UI HELPER FUNCTIONS
+ * ==========================================
+ */
+
+// Show Success Message Overlay
+function showSuccessMessage(message) {
+  const overlay = document.getElementById('successOverlay');
+  const messageEl = document.getElementById('successMessage');
+  
+  if (overlay && messageEl) {
+    messageEl.textContent = message;
+    overlay.classList.add('show');
+    
+    // Auto-hide after 2 seconds
+    setTimeout(() => {
+      overlay.classList.remove('show');
+    }, 2000);
+  }
+}
+
+
+// Show Loading Overlay
+function showLoadingOverlay(message = 'Loading...') {
+  // Remove existing overlay if any
+  let overlay = document.getElementById('loadingOverlayCustom');
+  if (overlay) overlay.remove();
+  
+  // Create new overlay
+  overlay = document.createElement('div');
+  overlay.id = 'loadingOverlayCustom';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+  
+  overlay.innerHTML = `
+    <div style="background: white; padding: 32px; border-radius: 12px; text-align: center;">
+      <div class="spinner"></div>
+      <p style="margin-top: 16px; font-size: 16px; color: #333;">${message}</p>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+}
+
+
+// Hide Loading Overlay
+function hideLoadingOverlay() {
+  const overlay = document.getElementById('loadingOverlayCustom');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+
+/**
+ * ==========================================
+ * INITIALIZE ON PAGE LOAD
+ * ==========================================
+ */
+
+// Add event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🎨 Product Groups UI initialized');
+  
+  // Add event listener for group name input (real-time preview)
+  const groupNameInput = document.getElementById('groupName');
+  if (groupNameInput) {
+    groupNameInput.addEventListener('input', updateVariantPreview);
+  }
+  
+  // Close modals on ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const createModal = document.getElementById('createGroupModal');
+      const editModal = document.getElementById('editVariantModal');
+      
+      if (createModal && createModal.classList.contains('active')) {
+        closeCreateGroupModal();
+      }
+      
+      if (editModal && editModal.classList.contains('active')) {
+        closeEditVariantModal();
+      }
+    }
+  });
+});
+
+
+/**
+ * ==========================================
+ * UTILITY: Navigate to Home (Override if needed)
+ * ==========================================
+ */
+
+// Update navigateToHome to handle product groups page
+function navigateToHome() {
+  console.log('🏠 Navigating to Home');
+  
+  // Remove product groups pages if they exist
+  const groupsPage = document.getElementById('productGroupsPageContainer');
+  const variantsPage = document.getElementById('groupVariantsPageContainer');
+  
+  if (groupsPage) groupsPage.remove();
+  if (variantsPage) variantsPage.remove();
+  
+  // Show navbar
+  const navbar = document.querySelector('.navbar');
+  if (navbar) navbar.style.display = 'block';
+  
+  // Show main app
+  const mainApp = document.getElementById('mainApp');
+  if (mainApp) mainApp.style.display = 'block';
+  
+  // Close sidebar
+  if (typeof closeSidebar === 'function') {
+    closeSidebar();
+  }
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+console.log('✅ Product Groups module loaded successfully');
+
 
 // Generate variant combinations
 function generateVariantCombinations(attributes) {
@@ -6640,6 +8007,635 @@ function navigateToProductGroups() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+    /**
+ * ==========================================
+ * PRODUCT GROUPS - JAVASCRIPT FUNCTIONS
+ * ==========================================
+ */
+
+// Global variables for product groups
+let cachedProductGroups = [];
+let cachedGroupVariants = [];
+let currentGroupId = null;
+let currentGroupName = null;
+let attributeRowCounter = 0;
+
+
+/**
+ * ==========================================
+ * NAVIGATION - PRODUCT GROUPS
+ * ==========================================
+ */
+
+// Navigate to Product Groups List Page
+function navigateToProductGroups() {
+  console.log('📁 Navigating to Product Groups');
+  
+  // Hide navbar
+  const navbar = document.querySelector('.navbar');
+  if (navbar) navbar.style.display = 'none';
+  
+  // Hide main app
+  const mainApp = document.getElementById('mainApp');
+  if (mainApp) mainApp.style.display = 'none';
+  
+  // Build full-screen page
+  document.body.innerHTML += `
+    <div id="productGroupsPageContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #f8f9fa; z-index: 99999; overflow-y: auto;">
+      
+      <!-- Header -->
+      <div class="modal-header-mobile">
+        <button class="btn-cancel-modal" onclick="navigateToHome()">
+          ← Back
+        </button>
+        <h3>Products in Group</h3>
+        <button class="btn-primary-bottom" onclick="openCreateGroupModal()" style="padding: 8px 16px; min-height: auto; flex: none; font-size: 14px;">
+          + Create
+        </button>
+      </div>
+      
+      <!-- Search -->
+      <div style="padding: 16px;">
+        <input 
+          type="text" 
+          id="searchGroupsInput" 
+          placeholder="🔍 Search groups..."
+          style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;"
+          onkeyup="filterProductGroups(this.value)">
+      </div>
+      
+      <!-- Loading State -->
+      <div id="groupsLoadingState" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading product groups...</p>
+      </div>
+      
+      <!-- Groups List -->
+      <div id="groupsListContainer" style="display: none;">
+        <!-- Groups will be rendered here -->
+      </div>
+      
+      <!-- Empty State -->
+      <div id="groupsEmptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📁</div>
+        <h3>No Product Groups Yet</h3>
+        <p>Create your first product group to manage variants</p>
+        <button class="btn-primary-bottom" onclick="openCreateGroupModal()" style="max-width: 200px; margin: 0 auto;">
+          + Create First Group
+        </button>
+      </div>
+      
+    </div>
+  `;
+  
+  // Load data
+  loadProductGroups();
+}
+
+
+// Navigate to Group Variants (Detail Page)
+function navigateToGroupVariants(groupId, groupName) {
+  console.log('📦 Opening variants for:', groupName);
+  
+  currentGroupId = groupId;
+  currentGroupName = groupName;
+  
+  // Remove existing page if any
+  const existingPage = document.getElementById('groupVariantsPageContainer');
+  if (existingPage) existingPage.remove();
+  
+  // Build variants page
+  document.body.innerHTML += `
+    <div id="groupVariantsPageContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #f8f9fa; z-index: 99999; overflow-y: auto;">
+      
+      <!-- Header -->
+      <div class="modal-header-mobile">
+        <button class="btn-cancel-modal" onclick="closeGroupVariantsPage()">
+          ← Back
+        </button>
+        <h3>${groupName}</h3>
+        <div style="width: 80px;"></div>
+      </div>
+      
+      <!-- Search -->
+      <div style="padding: 16px;">
+        <input 
+          type="text" 
+          id="searchVariantsInput" 
+          placeholder="🔍 Search variants..."
+          style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;"
+          onkeyup="filterGroupVariants(this.value)">
+      </div>
+      
+      <!-- Loading State -->
+      <div id="variantsLoadingState" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading variants...</p>
+      </div>
+      
+      <!-- Variants List -->
+      <div id="variantsListContainer" style="display: none;">
+        <!-- Variants will be rendered here -->
+      </div>
+      
+      <!-- Empty State -->
+      <div id="variantsEmptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📦</div>
+        <h3>No Variants Yet</h3>
+        <p>This group doesn't have any variants</p>
+      </div>
+      
+    </div>
+  `;
+  
+  // Load variants
+  loadGroupVariants(groupId);
+}
+
+
+// Close Group Variants Page
+function closeGroupVariantsPage() {
+  const page = document.getElementById('groupVariantsPageContainer');
+  if (page) page.remove();
+  
+  // Refresh groups list
+  loadProductGroups();
+}
+
+
+/**
+ * ==========================================
+ * DATA LOADING FUNCTIONS
+ * ==========================================
+ */
+
+// Load Product Groups from Backend
+async function loadProductGroups() {
+  try {
+    console.log('📡 Fetching product groups...');
+    
+    const url = `${GOOGLE_SCRIPT_URL}?action=getProductGroups&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.success && data.groups) {
+      cachedProductGroups = data.groups;
+      console.log('✅ Loaded', data.groups.length, 'groups');
+      
+      // Hide loading
+      const loadingState = document.getElementById('groupsLoadingState');
+      if (loadingState) loadingState.style.display = 'none';
+      
+      // Show appropriate view
+      if (data.groups.length === 0) {
+        const emptyState = document.getElementById('groupsEmptyState');
+        if (emptyState) emptyState.style.display = 'flex';
+      } else {
+        renderProductGroups(data.groups);
+      }
+    } else {
+      throw new Error(data.error || 'Failed to load groups');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error loading groups:', error);
+    
+    const loadingState = document.getElementById('groupsLoadingState');
+    if (loadingState) {
+      loadingState.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <h3>Error Loading Groups</h3>
+          <p>${error.message}</p>
+          <button class="btn-primary-bottom" onclick="loadProductGroups()" style="max-width: 200px; margin: 16px auto 0;">
+            🔄 Retry
+          </button>
+        </div>
+      `;
+    }
+  }
+}
+
+
+// Load Group Variants from Backend
+async function loadGroupVariants(groupId) {
+  try {
+    console.log('📡 Fetching variants for group:', groupId);
+    
+    const url = `${GOOGLE_SCRIPT_URL}?action=getGroupVariants&groupId=${encodeURIComponent(groupId)}&email=${encodeURIComponent(userEmail)}&hash=${encodeURIComponent(userHash)}&t=${Date.now()}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.success && data.variants) {
+      cachedGroupVariants = data.variants;
+      console.log('✅ Loaded', data.variants.length, 'variants');
+      
+      // Hide loading
+      const loadingState = document.getElementById('variantsLoadingState');
+      if (loadingState) loadingState.style.display = 'none';
+      
+      // Show appropriate view
+      if (data.variants.length === 0) {
+        const emptyState = document.getElementById('variantsEmptyState');
+        if (emptyState) emptyState.style.display = 'flex';
+      } else {
+        renderGroupVariants(data.variants);
+      }
+    } else {
+      throw new Error(data.error || 'Failed to load variants');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error loading variants:', error);
+    
+    const loadingState = document.getElementById('variantsLoadingState');
+    if (loadingState) {
+      loadingState.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <h3>Error Loading Variants</h3>
+          <p>${error.message}</p>
+          <button class="btn-primary-bottom" onclick="loadGroupVariants('${groupId}')" style="max-width: 200px; margin: 16px auto 0;">
+            🔄 Retry
+          </button>
+        </div>
+      `;
+    }
+  }
+}
+
+
+/**
+ * ==========================================
+ * RENDERING FUNCTIONS
+ * ==========================================
+ */
+
+// Render Product Groups List
+function renderProductGroups(groups) {
+  const container = document.getElementById('groupsListContainer');
+  if (!container) return;
+  
+  let html = '';
+  
+  groups.forEach(group => {
+    const variantText = group.totalVariants === 1 ? '1 variant' : `${group.totalVariants} variants`;
+    const categoryText = group.category || 'Uncategorized';
+    
+    html += `
+      <div class="group-card" onclick="navigateToGroupVariants('${group.groupId}', '${escapeHtml(group.groupName)}')">
+        <div class="group-icon">📁</div>
+        
+        <div class="group-info">
+          <div class="group-name">${escapeHtml(group.groupName)}</div>
+          <div class="group-description">${escapeHtml(group.description || 'No description')}</div>
+          <div class="group-meta">
+            <span class="group-meta-item">📦 ${variantText}</span>
+            <span class="group-meta-item">🏷️ ${categoryText}</span>
+          </div>
+        </div>
+        
+        <div class="group-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon-small btn-delete-small" onclick="confirmDeleteGroup('${group.groupId}', '${escapeHtml(group.groupName)}')">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+
+// Render Group Variants List
+function renderGroupVariants(variants) {
+  const container = document.getElementById('variantsListContainer');
+  if (!container) return;
+  
+  let html = '';
+  
+  variants.forEach(variant => {
+    // Parse attributes
+    let attributesText = '';
+    try {
+      const attrs = typeof variant.attributes === 'string' ? JSON.parse(variant.attributes) : variant.attributes;
+      const attrArray = Object.entries(attrs).map(([key, value]) => `${key}: ${value}`);
+      attributesText = attrArray.join(' • ');
+    } catch (e) {
+      attributesText = '';
+    }
+    
+    // Stock status
+    const stockClass = variant.stock <= variant.minStock ? 'low' : 'good';
+    const stockIcon = variant.stock <= variant.minStock ? '⚠️' : '✓';
+    const stockText = `${stockIcon} ${variant.stock}`;
+    
+    // Price
+    const priceText = variant.sellingPrice > 0 ? `₹${variant.sellingPrice.toFixed(2)}` : '₹0.00';
+    
+    html += `
+      <div class="variant-card">
+        <div class="variant-icon">📦</div>
+        
+        <div class="variant-info">
+          <div class="variant-name">${escapeHtml(variant.variantName)}</div>
+          ${attributesText ? `<div class="variant-attributes">${attributesText}</div>` : ''}
+          <div class="variant-details">
+            <span class="variant-stock ${stockClass}">${stockText}</span>
+            <span class="variant-price">${priceText}</span>
+          </div>
+        </div>
+        
+        <div class="variant-actions">
+          <button class="btn-icon-small btn-edit-small" onclick="openEditVariantModal('${variant.variantId}')">
+            ✏️
+          </button>
+          <button class="btn-icon-small btn-delete-small" onclick="confirmDeleteVariant('${variant.variantId}', '${escapeHtml(variant.variantName)}')">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+
+/**
+ * ==========================================
+ * FILTER FUNCTIONS
+ * ==========================================
+ */
+
+// Filter Product Groups
+function filterProductGroups(searchText) {
+  if (!searchText || searchText.trim() === '') {
+    renderProductGroups(cachedProductGroups);
+    return;
+  }
+  
+  const filtered = cachedProductGroups.filter(group => 
+    group.groupName.toLowerCase().includes(searchText.toLowerCase()) ||
+    (group.description && group.description.toLowerCase().includes(searchText.toLowerCase())) ||
+    (group.category && group.category.toLowerCase().includes(searchText.toLowerCase()))
+  );
+  
+  renderProductGroups(filtered);
+}
+
+
+// Filter Group Variants
+function filterGroupVariants(searchText) {
+  if (!searchText || searchText.trim() === '') {
+    renderGroupVariants(cachedGroupVariants);
+    return;
+  }
+  
+  const filtered = cachedGroupVariants.filter(variant => 
+    variant.variantName.toLowerCase().includes(searchText.toLowerCase())
+  );
+  
+  renderGroupVariants(filtered);
+}
+
+
+/**
+ * ==========================================
+ * CREATE GROUP MODAL FUNCTIONS
+ * ==========================================
+ */
+
+// Open Create Group Modal
+function openCreateGroupModal() {
+  console.log('📝 Opening Create Group Modal');
+  
+  const modal = document.getElementById('createGroupModal');
+  if (!modal) {
+    console.error('❌ Create Group Modal not found');
+    return;
+  }
+  
+  // Reset form
+  document.getElementById('createGroupForm').reset();
+  document.getElementById('attributesContainer').innerHTML = '';
+  attributeRowCounter = 0;
+  
+  // Add first attribute row
+  addAttributeRow();
+  
+  // Show modal
+  modal.classList.add('active');
+  
+  // Prevent body scroll
+  document.body.style.overflow = 'hidden';
+}
+
+
+// Close Create Group Modal
+function closeCreateGroupModal() {
+  const modal = document.getElementById('createGroupModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  
+  // Restore body scroll
+  document.body.style.overflow = '';
+}
+
+
+// Add Attribute Row
+function addAttributeRow() {
+  attributeRowCounter++;
+  
+  const container = document.getElementById('attributesContainer');
+  if (!container) return;
+  
+  const rowHtml = `
+    <div class="attribute-row" id="attributeRow${attributeRowCounter}">
+      <div class="attribute-row-header">
+        <span class="attribute-row-title">Attribute ${attributeRowCounter}</span>
+        ${attributeRowCounter > 1 ? `<button type="button" class="btn-remove-attr" onclick="removeAttributeRow(${attributeRowCounter})">🗑️ Remove</button>` : ''}
+      </div>
+      
+      <label class="form-label">
+        Attribute Name <span class="required">*</span>
+      </label>
+      <input 
+        type="text" 
+        class="attr-name" 
+        placeholder="e.g., Size, Color, Material"
+        required
+        oninput="updateVariantPreview()">
+      
+      <label class="form-label">
+        Options <span class="required">*</span>
+        <span style="font-weight: normal; font-size: 12px; color: #666;">(comma separated)</span>
+      </label>
+      <input 
+        type="text" 
+        class="attr-options" 
+        placeholder="e.g., Small, Medium, Large"
+        required
+        oninput="updateVariantPreview()">
+    </div>
+  `;
+  
+  container.insertAdjacentHTML('beforeend', rowHtml);
+  
+  // Update preview
+  updateVariantPreview();
+}
+
+
+// Remove Attribute Row
+function removeAttributeRow(rowId) {
+  const row = document.getElementById(`attributeRow${rowId}`);
+  if (row) {
+    row.remove();
+    updateVariantPreview();
+  }
+}
+
+
+/**
+ * ==========================================
+ * VARIANT GENERATION & PREVIEW
+ * ==========================================
+ */
+
+// Parse Attributes from Form
+function parseAttributesFromForm() {
+  const attributes = {};
+  const rows = document.querySelectorAll('.attribute-row');
+  
+  rows.forEach((row) => {
+    const nameInput = row.querySelector('.attr-name');
+    const optionsInput = row.querySelector('.attr-options');
+    
+    if (nameInput && optionsInput) {
+      const attrName = nameInput.value.trim();
+      const attrOptions = optionsInput.value
+        .split(',')
+        .map(opt => opt.trim())
+        .filter(opt => opt.length > 0);
+      
+      if (attrName && attrOptions.length > 0) {
+        attributes[attrName] = attrOptions;
+      }
+    }
+  });
+  
+  return attributes;
+}
+
+
+// Generate Variant Combinations
+function generateVariantCombinations(attributes) {
+  const keys = Object.keys(attributes);
+  
+  if (keys.length === 0) {
+    return [];
+  }
+  
+  // Get all arrays of options
+  const optionArrays = keys.map(key => attributes[key]);
+  
+  // Generate cartesian product
+  function cartesianProduct(arrays) {
+    if (arrays.length === 0) return [[]];
+    if (arrays.length === 1) return arrays[0].map(item => [item]);
+    
+    const [first, ...rest] = arrays;
+    const restProduct = cartesianProduct(rest);
+    
+    const result = [];
+    for (let i = 0; i < first.length; i++) {
+      for (let j = 0; j < restProduct.length; j++) {
+        result.push([first[i], ...restProduct[j]]);
+      }
+    }
+    return result;
+  }
+  
+  const combinations = cartesianProduct(optionArrays);
+  
+  // Convert arrays to objects
+  return combinations.map(combo => {
+    const variant = {};
+    keys.forEach((key, index) => {
+      variant[key] = combo[index];
+    });
+    return variant;
+  });
+}
+
+
+// Generate Variant Name
+function generateVariantName(groupName, attributes) {
+  const values = Object.values(attributes);
+  if (values.length === 0) return groupName;
+  return `${groupName}-${values.join('-')}`;
+}
+
+
+// Update Variant Preview (Real-time)
+function updateVariantPreview() {
+  const groupName = document.getElementById('groupName').value.trim() || 'Product';
+  const attributes = parseAttributesFromForm();
+  const variants = generateVariantCombinations(attributes);
+  
+  // Update count
+  document.getElementById('variantCount').textContent = variants.length;
+  
+  // Update preview list
+  const container = document.getElementById('variantPreviewContainer');
+  if (!container) return;
+  
+  if (variants.length === 0) {
+    container.innerHTML = `
+      <div class="variant-preview-item">
+        Add attributes to see preview...
+      </div>
+    `;
+    return;
+  }
+  
+  // Show first 10 variants
+  const previewLimit = 10;
+  let html = '';
+  
+  variants.slice(0, previewLimit).forEach(attr => {
+    const variantName = generateVariantName(groupName, attr);
+    html += `
+      <div class="variant-preview-item">
+        <span class="icon">✓</span>
+        ${escapeHtml(variantName)}
+      </div>
+    `;
+  });
+  
+  // Show "and X more" if needed
+  if (variants.length > previewLimit) {
+    html += `
+      <div class="variant-preview-more">
+        ... and ${variants.length - previewLimit} more
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+}
+
+
+// Continue in next message...
+
+
 // Navigate back to Home - FIXED
 function navigateToHome() {
   console.log('🏠 Navigating to Home');
@@ -7852,6 +9848,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
