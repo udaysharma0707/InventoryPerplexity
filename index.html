@@ -4428,7 +4428,8 @@ async function createProductGroup(groupData) {
     console.log('📤 Sending to backend...');
     
     // Call backend
-    const response = await fetch(scriptURL, {
+    const response = await fetch(GOOGLESCRIPTURL, {
+
       method: 'POST',
       body: formData
     });
@@ -10025,6 +10026,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
