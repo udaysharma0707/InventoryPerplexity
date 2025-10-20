@@ -4697,8 +4697,8 @@ async function syncFromGoogleSheets() {
       // Update dashboard metrics
       updateSummaryFromCache();
         // ✅ NEW: Sync product groups and variants
-  await syncProductGroups();
-  await syncAllVariants();
+  // await syncProductGroups();
+ // await syncAllVariants();
       showSyncIndicator('Synced!', 900);
       
     } else {
@@ -6618,7 +6618,7 @@ function viewPhotoProduct(productId) {
  * ==========================================
  */
 
-// Init
+// Init - UPDATED TO NOT AUTO-LOAD PRODUCT GROUPS
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Initializing Inventory App...');
   
@@ -6654,6 +6654,9 @@ document.addEventListener('DOMContentLoaded', function() {
   renderProducts();
   renderSales();
   syncFromGoogleSheets();
+  
+  // ❌ DON'T auto-load product groups on page load
+  // syncProductGroups();  // <-- REMOVE OR COMMENT OUT THIS LINE
   
   console.log('✅ Page navigation initialized');
 });
@@ -9890,6 +9893,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
