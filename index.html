@@ -8012,13 +8012,16 @@ function navigateToProductGroups() {
  * PRODUCT GROUPS - JAVASCRIPT FUNCTIONS
  * ==========================================
  */
+// Check if cachedProductGroups exists, if not create it
+if (typeof cachedProductGroups === 'undefined') {
+  var cachedProductGroups = [];
+}
 
-// Global variables for product groups
-let cachedProductGroups = [];
 let cachedGroupVariants = [];
 let currentGroupId = null;
 let currentGroupName = null;
 let attributeRowCounter = 0;
+
 
 
 /**
@@ -9693,6 +9696,35 @@ function showError(message) {
   alert('❌ ' + message);
 }
 
+/**
+ * ==========================================
+ * FIX: Missing Function Handlers
+ * ==========================================
+ */
+
+// If showAddProduct doesn't exist, add a placeholder
+if (typeof showAddProduct === 'undefined') {
+  function showAddProduct() {
+    console.log('showAddProduct called');
+    // Your existing add product logic here
+    // Or redirect to your existing function
+    if (typeof openAddProductModal === 'function') {
+      openAddProductModal();
+    }
+  }
+}
+
+// If openSalesModal doesn't exist, add a placeholder
+if (typeof openSalesModal === 'undefined') {
+  function openSalesModal() {
+    console.log('openSalesModal called');
+    // Your existing sales modal logic here
+    // Or redirect to your existing function
+    if (typeof openRecordSaleModal === 'function') {
+      openRecordSaleModal();
+    }
+  }
+}
 
     
 
@@ -9848,6 +9880,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
