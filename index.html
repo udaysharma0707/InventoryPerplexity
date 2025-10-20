@@ -40,6 +40,27 @@
   .modal-body { max-height: calc(100vh - 200px); overflow-y:auto; -webkit-overflow-scrolling: touch; }
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
+/* Hide top bar (header) on full-screen pages */
+.page-view.active ~ header,
+.page-view.active ~ .top-bar {
+  display: none !important;
+}
+
+/* OR if you want to hide it within the page view itself */
+.page-view {
+  padding-top: 0 !important;
+}
+
+/* Make sure the blue box (action buttons) only shows on homepage */
+#mainApp .action-buttons {
+  /* Your existing styles */
+}
+
+/* Hide action buttons when NOT on home */
+.page-view.active ~ #mainApp .action-buttons,
+body:has(.page-view.active) .action-buttons {
+  display: none !important;
+}
 
 /* ==========================================
    FULL-SCREEN PAGE VIEW SYSTEM
@@ -216,27 +237,6 @@
 }
 
 
-/* Hide top bar (header) on full-screen pages */
-.page-view.active ~ header,
-.page-view.active ~ .top-bar {
-  display: none !important;
-}
-
-/* OR if you want to hide it within the page view itself */
-.page-view {
-  padding-top: 0 !important;
-}
-
-/* Make sure the blue box (action buttons) only shows on homepage */
-#mainApp .action-buttons {
-  /* Your existing styles */
-}
-
-/* Hide action buttons when NOT on home */
-.page-view.active ~ #mainApp .action-buttons,
-body:has(.page-view.active) .action-buttons {
-  display: none !important;
-}
 
 
     
@@ -7477,6 +7477,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
