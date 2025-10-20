@@ -4408,51 +4408,53 @@ async function createProductGroup(groupData) {
   
   try {
     // Show loading
-    showLoadingOverlay('Creating product group...');
-    
-    // Call your Google Apps Script backend
-    const response = await fetch(scriptURL, {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'createProductGroup',
-        data: groupData
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const submitBtn = document.getElementById('btnSaveGroup');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ Creating...';
     }
     
+    // Prepare form data (matching your existing backend format)
+    const formData = new URLSearchParams();
+    formData.append('action', 'createProductGroup');
+    formData.append('email', userEmail);
+    formData.append('hash', userHash);
+    formData.append('groupName', groupData.groupName);
+    formData.append('description', groupData.description || '');
+    formData.append('manufacturer', groupData.manufacturer || '');
+    formData.append('category', groupData.category || '');
+    formData.append('attributes', JSON.stringify(groupData.attributes));
+    
+    console.log('📤 Sending to backend...');
+    
+    // Call backend
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      body: formData
+    });
+    
     const result = await response.json();
+    console.log('📥 Backend response:', result);
     
-    hideLoadingOverlay();
-    
-    if (result.status === 'success') {
-      console.log('✅ Product group created successfully:', result);
+    if (result.ok || result.success) {
+      console.log('✅ Product group created successfully');
       
-      // Show success message
-      showSuccessMessage(`Group "${groupData.groupName}" created with ${result.variantsCreated || 0} variants!`);
+      alert(`Success! Group "${groupData.groupName}" created with ${result.variantsCreated || 0} variants!`);
       
-      // Close modal
       closeCreateGroupModal();
       
-      // Refresh the groups list
+      // Refresh groups list
       setTimeout(() => {
         loadProductGroups();
-      }, 1000);
+      }, 500);
       
     } else {
-      throw new Error(result.message || 'Failed to create product group');
+      throw new Error(result.error || 'Failed to create product group');
     }
     
   } catch (error) {
     console.error('❌ Error creating product group:', error);
-    hideLoadingOverlay();
-    alert('Error creating product group: ' + error.message);
+    alert('Error: ' + error.message);
     
     // Re-enable button
     const submitBtn = document.getElementById('btnSaveGroup');
@@ -10023,6 +10025,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
