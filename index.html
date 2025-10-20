@@ -6564,13 +6564,7 @@ function sidebarAction(action) {
 }
 
 
-/**
- * ==========================================
- * PAGE NAVIGATION FUNCTIONS
- * ==========================================
- */
-
-// Navigate to All Products page - UPDATED
+// Navigate to All Products page - FIXED
 function navigateToAllProducts() {
   console.log('📦 Navigating to All Products');
   
@@ -6586,10 +6580,10 @@ function navigateToAllProducts() {
     mainApp.style.display = 'none';
   }
   
-  // ✅ HIDE THE TOP BLUE BOX (action buttons)
-  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
-  if (topBarButtons) {
-    topBarButtons.style.display = 'none';
+  // ✅ HIDE THE BLUE NAVBAR
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.style.display = 'none';
   }
   
   // SHOW All Products page
@@ -6600,12 +6594,53 @@ function navigateToAllProducts() {
   if (productGroupsPage) productGroupsPage.classList.remove('active');
   if (groupDetailPage) groupDetailPage.classList.remove('active');
   
-  renderAllProductsList();
+  if (typeof renderAllProductsList === 'function') {
+    renderAllProductsList();
+  }
+  
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Navigate back to Home - UPDATED
+// Navigate to Product Groups page - FIXED
+function navigateToProductGroups() {
+  console.log('📁 Navigating to Product Groups');
+  
+  currentPage = 'productGroups';
+  
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // HIDE the main dashboard
+  if (mainApp) {
+    mainApp.style.display = 'none';
+  }
+  
+  // ✅ HIDE THE BLUE NAVBAR
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.style.display = 'none';
+  }
+  
+  // SHOW Product Groups page
+  if (productGroupsPage) {
+    productGroupsPage.classList.add('active');
+  }
+  
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  
+  if (typeof syncProductGroups === 'function') {
+    syncProductGroups();
+  }
+  
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Navigate back to Home - FIXED
 function navigateToHome() {
   console.log('🏠 Navigating to Home');
   
@@ -6620,10 +6655,10 @@ function navigateToHome() {
     mainApp.style.display = 'block';
   }
   
-  // ✅ SHOW THE TOP BLUE BOX again
-  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
-  if (topBarButtons) {
-    topBarButtons.style.display = 'flex';
+  // ✅ SHOW THE BLUE NAVBAR AGAIN
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.style.display = 'block';
   }
   
   if (allProductsPage) allProductsPage.classList.remove('active');
@@ -6639,6 +6674,51 @@ function navigateToHome() {
       showAllProducts();
     }
   }
+}
+
+// Navigate to Group Detail - FIXED
+function navigateToGroupDetail(groupId, groupName) {
+  console.log('📦 Navigating to Group Detail:', groupName);
+  
+  currentPage = 'groupDetail';
+  currentGroupId = groupId;
+  
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // HIDE the main dashboard
+  if (mainApp) {
+    mainApp.style.display = 'none';
+  }
+  
+  // ✅ HIDE THE BLUE NAVBAR
+  const navbar = document.querySelector('.navbar');
+  if (navbar) {
+    navbar.style.display = 'none';
+  }
+  
+  // SHOW Group Detail page
+  if (groupDetailPage) {
+    groupDetailPage.classList.add('active');
+  }
+  
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
+  
+  // Set group title
+  const groupTitleEl = document.getElementById('groupDetailTitle');
+  if (groupTitleEl) {
+    groupTitleEl.textContent = groupName;
+  }
+  
+  // Load variants
+  if (typeof syncGroupVariants === 'function') {
+    syncGroupVariants(groupId);
+  }
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
@@ -6671,26 +6751,7 @@ function navigateToProductGroups() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Navigate to Group Detail page (show variants)
-function navigateToGroupDetail(groupId, groupName) {
-  currentPage = 'groupDetail';
-  currentGroupId = groupId;
-  
-  // Show Group Detail page, hide others
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('allProductsPage').classList.remove('active');
-  document.getElementById('productGroupsPage').classList.remove('active');
-  document.getElementById('groupDetailPage').classList.add('active');
-  
-  // Set group title
-  document.getElementById('groupDetailTitle').textContent = groupName;
-  
-  // Load and render variants
-  syncGroupVariants(groupId);
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+
 
 // Open Add Product modal (from All Products page) - FIXED
 function openAddProduct() {
@@ -7477,6 +7538,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
