@@ -65,11 +65,7 @@ body:has(.page-view.active) .page-view:not(.active) {
 }
 
 
-/* ==========================================
-   FULL-SCREEN PAGE VIEW SYSTEM
-   ========================================== */
-
-/* Hide all page views by default */
+/* Page View System - Full Screen Pages */
 .page-view {
   display: none;
   position: fixed;
@@ -78,77 +74,47 @@ body:has(.page-view.active) .page-view:not(.active) {
   width: 100%;
   height: 100vh;
   background: #f8f9fa;
-  z-index: 1000;
+  z-index: 9999;
   overflow-y: auto;
   padding: 20px;
 }
 
-/* Show active page */
 .page-view.active {
   display: block;
 }
 
-/* Page header with back button */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.page-header h3 {
-  margin: 0;
-  flex: 1;
-  text-align: center;
-}
-
-/* Back button */
-.back-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.back-btn:hover {
-  background: #0056b3;
-}
-
-/* Product list compact view */
+/* Product List Compact View */
 .product-list-compact {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .product-item-compact {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
   background: white;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-item-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
 }
 
 .product-item-icon {
-  font-size: 32px;
-  width: 50px;
-  height: 50px;
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #f0f0f0;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .product-item-info {
@@ -158,30 +124,37 @@ body:has(.page-view.active) .page-view:not(.active) {
 .product-item-name {
   font-weight: 600;
   font-size: 16px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   color: #333;
 }
 
 .product-item-details {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   font-size: 13px;
   color: #666;
 }
 
+.product-item-details span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .product-item-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-edit-compact,
 .btn-delete-compact {
-  padding: 8px 12px;
+  padding: 10px 15px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.2s;
 }
 
 .btn-edit-compact {
@@ -189,54 +162,17 @@ body:has(.page-view.active) .page-view:not(.active) {
   color: white;
 }
 
+.btn-edit-compact:hover {
+  background: #0056b3;
+}
+
 .btn-delete-compact {
   background: #dc3545;
   color: white;
 }
 
-/* Group cards */
-.group-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  margin-bottom: 15px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.group-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.group-card-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.group-card-icon {
-  font-size: 32px;
-  color: #007bff;
-}
-
-.group-card-title h4 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
-}
-
-.group-card-title p {
-  margin: 5px 0 0 0;
-  font-size: 13px;
-  color: #999;
-}
-
-.group-card-actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
+.btn-delete-compact:hover {
+  background: #bd2130;
 }
 
 
@@ -1589,15 +1525,17 @@ body:has(.page-view.active) .page-view:not(.active) {
     </div>
   </div>
 
-<!-- ✅ NEW: All Products Page -->
+<!-- ✅✅✅ ADD THESE NEW PAGE CONTAINERS HERE ✅✅✅ -->
+
+<!-- ALL PRODUCTS PAGE -->
 <div class="page-view" id="allProductsPage">
-  <div class="page-header">
-    <button class="back-btn" onclick="navigateToHome()">
+  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
+    <button class="back-btn" onclick="navigateToHome()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3>All Products</h3>
-    <button class="btn btn-success" onclick="openAddProduct()">
-      <i class="bi bi-plus-lg"></i> Add
+    <h3 style="display: inline-block; margin: 0 0 0 20px;">All Products</h3>
+    <button class="btn btn-success" onclick="openAddProduct()" style="float: right; padding: 10px 20px;">
+      <i class="bi bi-plus-lg"></i> Add Product
     </button>
   </div>
   
@@ -1607,7 +1545,8 @@ body:has(.page-view.active) .page-view:not(.active) {
            class="form-control" 
            id="allProductsSearch" 
            placeholder="🔍 Search products by name, category, brand..." 
-           onkeyup="filterAllProducts()">
+           onkeyup="filterAllProducts()"
+           style="padding: 12px; border-radius: 8px;">
   </div>
   
   <!-- Filter Buttons -->
@@ -1618,31 +1557,31 @@ body:has(.page-view.active) .page-view:not(.active) {
     <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Accessories')">Accessories</button>
   </div>
   
-  <!-- Products List -->
+  <!-- Products List Container -->
   <div class="product-list-compact" id="allProductsList">
-    <!-- Products will be rendered here -->
+    <!-- Products will be rendered here by JavaScript -->
   </div>
 </div>
 
-<!-- ✅ NEW: Product Groups Page -->
+<!-- PRODUCT GROUPS PAGE -->
 <div class="page-view" id="productGroupsPage">
-  <div class="page-header">
-    <button class="back-btn" onclick="navigateToHome()">
+  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
+    <button class="back-btn" onclick="navigateToHome()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3>Products in Group</h3>
-    <button class="btn btn-success" onclick="openCreateGroupModal()">
-      <i class="bi bi-plus-lg"></i> Create
+    <h3 style="display: inline-block; margin: 0 0 0 20px;">Products in Group</h3>
+    <button class="btn btn-success" onclick="openCreateGroupModal()" style="float: right; padding: 10px 20px;">
+      <i class="bi bi-plus-lg"></i> Create Group
     </button>
   </div>
   
-  <!-- Groups List -->
+  <!-- Groups List Container -->
   <div id="productGroupsList">
     <!-- Groups will be rendered here -->
   </div>
   
   <!-- Empty State -->
-  <div id="groupsEmptyState" style="display:none; text-align:center; padding:60px 20px;">
+  <div id="groupsEmptyState" style="text-align:center; padding:60px 20px;">
     <i class="bi bi-collection" style="font-size:64px; color:#ccc;"></i>
     <h4 style="margin-top:20px; color:#666;">No Product Groups Yet</h4>
     <p style="color:#999;">Create your first product group to manage variants</p>
@@ -1652,13 +1591,13 @@ body:has(.page-view.active) .page-view:not(.active) {
   </div>
 </div>
 
-<!-- ✅ NEW: Group Detail Page (Variants List) -->
+<!-- GROUP DETAIL PAGE (Variants List) -->
 <div class="page-view" id="groupDetailPage">
-  <div class="page-header">
-    <button class="back-btn" onclick="navigateToProductGroups()">
+  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
+    <button class="back-btn" onclick="navigateToProductGroups()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3 id="groupDetailTitle">Group Name</h3>
+    <h3 id="groupDetailTitle" style="display: inline-block; margin: 0 0 0 20px;">Group Name</h3>
   </div>
   
   <!-- Search Bar -->
@@ -1667,10 +1606,11 @@ body:has(.page-view.active) .page-view:not(.active) {
            class="form-control" 
            id="groupVariantsSearch" 
            placeholder="🔍 Search variants..." 
-           onkeyup="filterGroupVariants()">
+           onkeyup="filterGroupVariants()"
+           style="padding: 12px; border-radius: 8px;">
   </div>
   
-  <!-- Variants List -->
+  <!-- Variants List Container -->
   <div class="product-list-compact" id="groupVariantsList">
     <!-- Variants will be rendered here -->
   </div>
@@ -7644,6 +7584,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
