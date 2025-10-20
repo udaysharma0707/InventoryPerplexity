@@ -1029,15 +1029,23 @@
     <span>Add Users</span>
   </div>
   
- <div class="sidebar-item" onclick="navigateToAllProducts()">
+// ✅ UPDATE: Sidebar menu items (in HTML)
+// FIND these in your sidebar menu HTML and UPDATE the onclick:
+
+// OLD:
+<div class="sidebar-item" onclick="navigateToAllProducts()">
+
+// NEW (with safety check):
+<div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
 
-<div class="sidebar-item" onclick="navigateToProductGroups()">
+<div class="sidebar-item" onclick="if(typeof navigateToProductGroups === 'function') navigateToProductGroups()">
   <i class="bi bi-collection"></i>
   <span>Products in Group</span>
 </div>
+
   
   <div class="sidebar-item disabled" onclick="sidebarAction('inventoryAdjustments')">
     <i class="bi bi-sliders"></i>
@@ -6733,6 +6741,16 @@ function filterGroupVariants() {
 
 // Sync Product Groups from server
 async function syncProductGroups() {
+  // ✅ Check if SCRIPT_URL is defined
+  if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) {
+    console.error('❌ SCRIPT_URL is not defined');
+    const groupsListEl = document.getElementById('productGroupsList');
+    const emptyStateEl = document.getElementById('groupsEmptyState');
+    if (groupsListEl) groupsListEl.innerHTML = '';
+    if (emptyStateEl) emptyStateEl.style.display = 'block';
+    return;
+  }
+  
   try {
     showLoading('Loading product groups...');
     
@@ -6752,18 +6770,23 @@ async function syncProductGroups() {
       renderProductGroupsList();
       
       // Update dashboard counter
-      updateSummaryFromCache()();
+      if (typeof updateSummaryFromCache === 'function') {
+        updateSummaryFromCache();
+      }
     } else {
       console.error('Failed to load product groups:', data.error);
-      showError('Failed to load product groups');
+      // Show empty state instead of error
+      renderProductGroupsList();
     }
     
   } catch (error) {
     hideLoading();
     console.error('Error syncing product groups:', error);
-    showError('Error loading product groups');
+    // Show empty state
+    renderProductGroupsList();
   }
 }
+
 
 // Sync variants for specific group
 async function syncGroupVariants(groupId) {
@@ -7122,6 +7145,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
