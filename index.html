@@ -6546,81 +6546,61 @@ function sidebarAction(action) {
  * ==========================================
  */
 
-// Navigate to Home (Dashboard)
-function navigateToHome() {
-  currentPage = 'home';
+// Navigate to All Products page - UPDATED
+function navigateToAllProducts() {
+  console.log('📦 Navigating to All Products');
   
-  // Show home, hide all page views
+  currentPage = 'allProducts';
+  
   const mainApp = document.getElementById('mainApp');
   const allProductsPage = document.getElementById('allProductsPage');
   const productGroupsPage = document.getElementById('productGroupsPage');
   const groupDetailPage = document.getElementById('groupDetailPage');
   
-  // ✅ NULL CHECKS
-  if (mainApp) mainApp.style.display = 'block';
-  if (allProductsPage) allProductsPage.classList.remove('active');
-  if (productGroupsPage) productGroupsPage.classList.remove('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
-  
-  // Close sidebar if exists
-  if (typeof closeSidebar === 'function') {
-    closeSidebar();
-  }
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Navigate to All Products page
-function navigateToAllProducts() {
-  console.log('📦 Navigating to All Products - FULL SCREEN');
-  
-  currentPage = 'allProducts';
-  
-  // HIDE the main dashboard completely
-  const mainApp = document.getElementById('mainApp');
+  // HIDE the main dashboard
   if (mainApp) {
     mainApp.style.display = 'none';
   }
   
-  // SHOW the All Products page as full screen
-  const allProductsPage = document.getElementById('allProductsPage');
-  if (allProductsPage) {
-    allProductsPage.classList.add('active');
-    console.log('✅ All Products page is now FULL SCREEN');
+  // ✅ HIDE THE TOP BLUE BOX (action buttons)
+  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
+  if (topBarButtons) {
+    topBarButtons.style.display = 'none';
   }
   
-  // HIDE other pages
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
+  // SHOW All Products page
+  if (allProductsPage) {
+    allProductsPage.classList.add('active');
+  }
+  
   if (productGroupsPage) productGroupsPage.classList.remove('active');
   if (groupDetailPage) groupDetailPage.classList.remove('active');
   
-  // Render products
   renderAllProductsList();
-  
-  // Close sidebar
   closeSidebar();
-  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Navigate back to Home
+// Navigate back to Home - UPDATED
 function navigateToHome() {
-  console.log('🏠 Back to Dashboard');
+  console.log('🏠 Navigating to Home');
   
   currentPage = 'home';
   
-  // SHOW the main dashboard
   const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
   if (mainApp) {
     mainApp.style.display = 'block';
   }
   
-  // HIDE all other pages
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
+  // ✅ SHOW THE TOP BLUE BOX again
+  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
+  if (topBarButtons) {
+    topBarButtons.style.display = 'flex';
+  }
   
   if (allProductsPage) allProductsPage.classList.remove('active');
   if (productGroupsPage) productGroupsPage.classList.remove('active');
@@ -6628,7 +6608,15 @@ function navigateToHome() {
   
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  const btnPhotoView = document.getElementById('btnPhotoView');
+  if (btnPhotoView && btnPhotoView.classList.contains('active')) {
+    if (typeof showAllProducts === 'function') {
+      showAllProducts();
+    }
+  }
 }
+
 
 
 // Navigate to Product Groups page
@@ -6680,38 +6668,56 @@ function navigateToGroupDetail(groupId, groupName) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Open Add Product modal (from All Products page)
+// Open Add Product modal (from All Products page) - FIXED
 function openAddProduct() {
-  // Reset product modal
-  document.getElementById('modalTitle').textContent = 'Add New Product';
-  document.getElementById('productForm').reset();
-  document.getElementById('productId').value = '';
-  document.getElementById('currentPhotoUrl').value = '';
-  document.getElementById('photoPreview').style.display = 'none';
+  console.log('📝 Opening Add Product modal');
   
-  // Show modal
-  const modal = new bootstrap.Modal(document.getElementById('productModal'));
-  modal.show();
+  // Reset product modal
+  const modalTitle = document.getElementById('modalTitle');
+  const productForm = document.getElementById('productForm');
+  const productId = document.getElementById('productId');
+  const currentPhotoUrl = document.getElementById('currentPhotoUrl');
+  const photoPreview = document.getElementById('photoPreview');
+  
+  if (modalTitle) modalTitle.textContent = 'Add New Product';
+  if (productForm) productForm.reset();
+  if (productId) productId.value = '';
+  if (currentPhotoUrl) currentPhotoUrl.value = '';
+  if (photoPreview) photoPreview.style.display = 'none';
+  
+  // Show modal - FIXED Bootstrap 5 syntax
+  const productModal = document.getElementById('productModal');
+  if (productModal) {
+    const modal = new bootstrap.Modal(productModal);
+    modal.show();
+    console.log('✅ Product modal opened');
+  } else {
+    console.error('❌ Product modal not found');
+    alert('Error: Product modal not found. Please refresh the page.');
+  }
 }
+
 /**
  * ==========================================
  * RENDERING FUNCTIONS
  * ==========================================
  */
 
-// Render All Products List (compact mobile view)
+// Render All Products List - UPDATED
 function renderAllProductsList() {
   const container = document.getElementById('allProductsList');
   
-  if (cachedProducts.length === 0) {
+  if (!container) {
+    console.error('❌ allProductsList container not found');
+    return;
+  }
+  
+  if (!cachedProducts || cachedProducts.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:60px 20px; color:#999;">
         <i class="bi bi-box-seam" style="font-size:64px;"></i>
         <h4 style="margin-top:20px;">No Products Yet</h4>
         <p>Add your first product to get started</p>
-        <button class="btn btn-primary mt-3" onclick="openAddProduct()">
-          <i class="bi bi-plus-lg"></i> Add Product
-        </button>
       </div>
     `;
     return;
@@ -6726,27 +6732,25 @@ function renderAllProductsList() {
     
     const productIcon = getProductIcon(product.category);
     
+    // ✅ REMOVED EYE BUTTON, MADE CARD CLICKABLE
     html += `
-      <div class="product-item-compact">
+      <div class="product-item-compact" onclick="showProductDetails('${product.id}')" style="cursor: pointer;">
         <div class="product-item-icon">${productIcon}</div>
         <div class="product-item-info">
-          <div class="product-item-name">${escapeHtml(product.name)}</div>
+          <div class="product-item-name">${product.name}</div>
           <div class="product-item-details">
-            <span><i class="bi bi-tag"></i> ${escapeHtml(product.category)}</span>
-            ${product.brand ? `<span><i class="bi bi-award"></i> ${escapeHtml(product.brand)}</span>` : ''}
-            ${product.size ? `<span><i class="bi bi-rulers"></i> ${escapeHtml(product.size)}</span>` : ''}
+            <span><i class="bi bi-tag"></i> ${product.category}</span>
+            ${product.brand ? `<span><i class="bi bi-award"></i> ${product.brand}</span>` : ''}
+            ${product.size ? `<span><i class="bi bi-rulers"></i> ${product.size}</span>` : ''}
             <span>${stockBadge}</span>
             <span><i class="bi bi-currency-rupee"></i>${product.price.toFixed(2)}</span>
           </div>
         </div>
-        <div class="product-item-actions">
-          <button class="btn-view" onclick="viewProductDetails('${product.id}')">
-            <i class="bi bi-eye"></i>
-          </button>
+        <div class="product-item-actions" onclick="event.stopPropagation()">
           <button class="btn-edit-compact" onclick="editProduct('${product.id}')">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn-delete-compact" onclick="deleteProduct('${product.id}')">
+          <button class="btn-delete-compact" onclick="confirmDeleteProduct('${product.id}')">
             <i class="bi bi-trash"></i>
           </button>
         </div>
@@ -6756,6 +6760,95 @@ function renderAllProductsList() {
   
   container.innerHTML = html;
 }
+
+// Show Product Details (when card is clicked) - NEW FUNCTION
+function showProductDetails(productId) {
+  console.log('👁️ Showing details for product:', productId);
+  
+  // Find the product
+  const product = cachedProducts.find(p => p.id === productId);
+  
+  if (!product) {
+    console.error('Product not found:', productId);
+    return;
+  }
+  
+  // Create modal content
+  const modalContent = `
+    <div style="padding: 20px;">
+      ${product.imageUrl ? `<img src="${product.imageUrl}" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:20px;" />` : ''}
+      <h3 style="margin-bottom: 20px;">${product.name}</h3>
+      <table style="width:100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Category:</td>
+          <td style="padding: 10px;">${product.category}</td>
+        </tr>
+        ${product.brand ? `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Brand:</td>
+          <td style="padding: 10px;">${product.brand}</td>
+        </tr>` : ''}
+        ${product.size ? `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Size:</td>
+          <td style="padding: 10px;">${product.size}</td>
+        </tr>` : ''}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Unit Type:</td>
+          <td style="padding: 10px;">${product.unitType || 'Piece'}</td>
+        </tr>
+        ${product.piecesPerBox ? `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Pieces/Box:</td>
+          <td style="padding: 10px;">${product.piecesPerBox}</td>
+        </tr>` : ''}
+        ${product.sftPerBox ? `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">SFT/Box:</td>
+          <td style="padding: 10px;">${product.sftPerBox}</td>
+        </tr>` : ''}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Price:</td>
+          <td style="padding: 10px; font-size: 18px; color: #007bff; font-weight: 600;">₹${product.price.toFixed(2)}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Stock:</td>
+          <td style="padding: 10px;">
+            <span style="color: ${product.stock <= product.minStock ? '#dc3545' : '#28a745'}; font-weight: 600;">
+              ${product.stock} ${product.unitType || 'pieces'}
+            </span>
+          </td>
+        </tr>
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; font-weight: 600;">Min Stock Alert:</td>
+          <td style="padding: 10px;">${product.minStock}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+  
+  // Show in a Bootstrap modal (reuse existing modal or create new one)
+  const modalEl = document.getElementById('productDetailModal');
+  if (modalEl) {
+    document.getElementById('productDetailModalBody').innerHTML = modalContent;
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  } else {
+    // Fallback: show as alert if modal doesn't exist
+    alert(`Product: ${product.name}\nPrice: ₹${product.price}\nStock: ${product.stock}\nCategory: ${product.category}`);
+  }
+}
+
+// Confirm delete with better UX
+function confirmDeleteProduct(productId) {
+  const product = cachedProducts.find(p => p.id === productId);
+  const productName = product ? product.name : 'this product';
+  
+  if (confirm(`⚠️ Delete "${productName}"?\n\nThis action cannot be undone.`)) {
+    deleteProduct(productId);
+  }
+}
+
 
 // Render Product Groups List
 function renderProductGroupsList() {
@@ -7334,6 +7427,23 @@ function showError(message) {
     </div>
   </div>
 </div>
+<!-- Product Detail Modal -->
+<div class="modal fade" id="productDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Product Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="productDetailModalBody">
+        <!-- Content will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
@@ -7343,6 +7453,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
