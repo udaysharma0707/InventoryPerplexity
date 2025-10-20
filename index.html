@@ -40,32 +40,33 @@
   .modal-body { max-height: calc(100vh - 200px); overflow-y:auto; -webkit-overflow-scrolling: touch; }
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
-
-   /* Hide the ENTIRE top blue header on page views */
-.page-view.active {
-  position: fixed;
-  top: 0 !important;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: #f8f9fa;
-  z-index: 9999;
-  overflow-y: auto;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* Hide EVERYTHING when page-view is active */
-body:has(.page-view.active) > *:not(.page-view):not(script) {
+/* Hide top bar (header) on full-screen pages */
+.page-view.active ~ header,
+.page-view.active ~ .top-bar {
   display: none !important;
 }
 
-body:has(.page-view.active) .page-view:not(.active) {
+/* OR if you want to hide it within the page view itself */
+.page-view {
+  padding-top: 0 !important;
+}
+
+/* Make sure the blue box (action buttons) only shows on homepage */
+#mainApp .action-buttons {
+  /* Your existing styles */
+}
+
+/* Hide action buttons when NOT on home */
+.page-view.active ~ #mainApp .action-buttons,
+body:has(.page-view.active) .action-buttons {
   display: none !important;
 }
 
+/* ==========================================
+   FULL-SCREEN PAGE VIEW SYSTEM
+   ========================================== */
 
-/* Page View System - Full Screen Pages */
+/* Hide all page views by default */
 .page-view {
   display: none;
   position: fixed;
@@ -74,47 +75,77 @@ body:has(.page-view.active) .page-view:not(.active) {
   width: 100%;
   height: 100vh;
   background: #f8f9fa;
-  z-index: 9999;
+  z-index: 1000;
   overflow-y: auto;
   padding: 20px;
 }
 
+/* Show active page */
 .page-view.active {
   display: block;
 }
 
-/* Product List Compact View */
+/* Page header with back button */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.page-header h3 {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+/* Back button */
+.back-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.back-btn:hover {
+  background: #0056b3;
+}
+
+/* Product list compact view */
 .product-list-compact {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .product-item-compact {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   background: white;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.product-item-compact:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .product-item-icon {
-  font-size: 36px;
-  width: 60px;
-  height: 60px;
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #f0f0f0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .product-item-info {
@@ -124,37 +155,30 @@ body:has(.page-view.active) .page-view:not(.active) {
 .product-item-name {
   font-weight: 600;
   font-size: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: #333;
 }
 
 .product-item-details {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   font-size: 13px;
   color: #666;
 }
 
-.product-item-details span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .product-item-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-edit-compact,
 .btn-delete-compact {
-  padding: 10px 15px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background 0.2s;
 }
 
 .btn-edit-compact {
@@ -162,17 +186,54 @@ body:has(.page-view.active) .page-view:not(.active) {
   color: white;
 }
 
-.btn-edit-compact:hover {
-  background: #0056b3;
-}
-
 .btn-delete-compact {
   background: #dc3545;
   color: white;
 }
 
-.btn-delete-compact:hover {
-  background: #bd2130;
+/* Group cards */
+.group-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.group-card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.group-card-icon {
+  font-size: 32px;
+  color: #007bff;
+}
+
+.group-card-title h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.group-card-title p {
+  margin: 5px 0 0 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.group-card-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
 }
 
 
@@ -1167,12 +1228,11 @@ body:has(.page-view.active) .page-view:not(.active) {
     <span>Add Users</span>
   </div>
   
-
-<div class="sidebar-item" onclick="closeSidebar(); navigateToAllProducts();">
+// NEW (with safety check):
+<div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
-
 
 <div class="sidebar-item" onclick="if(typeof navigateToProductGroups === 'function') navigateToProductGroups()">
   <i class="bi bi-collection"></i>
@@ -1526,17 +1586,15 @@ body:has(.page-view.active) .page-view:not(.active) {
     </div>
   </div>
 
-<!-- ✅✅✅ ADD THESE NEW PAGE CONTAINERS HERE ✅✅✅ -->
-
-<!-- ALL PRODUCTS PAGE -->
+<!-- ✅ NEW: All Products Page -->
 <div class="page-view" id="allProductsPage">
-  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
-    <button class="back-btn" onclick="navigateToHome()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToHome()">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3 style="display: inline-block; margin: 0 0 0 20px;">All Products</h3>
-    <button class="btn btn-success" onclick="openAddProduct()" style="float: right; padding: 10px 20px;">
-      <i class="bi bi-plus-lg"></i> Add Product
+    <h3>All Products</h3>
+    <button class="btn btn-success" onclick="openAddProduct()">
+      <i class="bi bi-plus-lg"></i> Add
     </button>
   </div>
   
@@ -1546,8 +1604,7 @@ body:has(.page-view.active) .page-view:not(.active) {
            class="form-control" 
            id="allProductsSearch" 
            placeholder="🔍 Search products by name, category, brand..." 
-           onkeyup="filterAllProducts()"
-           style="padding: 12px; border-radius: 8px;">
+           onkeyup="filterAllProducts()">
   </div>
   
   <!-- Filter Buttons -->
@@ -1558,31 +1615,31 @@ body:has(.page-view.active) .page-view:not(.active) {
     <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('Accessories')">Accessories</button>
   </div>
   
-  <!-- Products List Container -->
+  <!-- Products List -->
   <div class="product-list-compact" id="allProductsList">
-    <!-- Products will be rendered here by JavaScript -->
+    <!-- Products will be rendered here -->
   </div>
 </div>
 
-<!-- PRODUCT GROUPS PAGE -->
+<!-- ✅ NEW: Product Groups Page -->
 <div class="page-view" id="productGroupsPage">
-  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
-    <button class="back-btn" onclick="navigateToHome()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToHome()">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3 style="display: inline-block; margin: 0 0 0 20px;">Products in Group</h3>
-    <button class="btn btn-success" onclick="openCreateGroupModal()" style="float: right; padding: 10px 20px;">
-      <i class="bi bi-plus-lg"></i> Create Group
+    <h3>Products in Group</h3>
+    <button class="btn btn-success" onclick="openCreateGroupModal()">
+      <i class="bi bi-plus-lg"></i> Create
     </button>
   </div>
   
-  <!-- Groups List Container -->
+  <!-- Groups List -->
   <div id="productGroupsList">
     <!-- Groups will be rendered here -->
   </div>
   
   <!-- Empty State -->
-  <div id="groupsEmptyState" style="text-align:center; padding:60px 20px;">
+  <div id="groupsEmptyState" style="display:none; text-align:center; padding:60px 20px;">
     <i class="bi bi-collection" style="font-size:64px; color:#ccc;"></i>
     <h4 style="margin-top:20px; color:#666;">No Product Groups Yet</h4>
     <p style="color:#999;">Create your first product group to manage variants</p>
@@ -1592,13 +1649,13 @@ body:has(.page-view.active) .page-view:not(.active) {
   </div>
 </div>
 
-<!-- GROUP DETAIL PAGE (Variants List) -->
+<!-- ✅ NEW: Group Detail Page (Variants List) -->
 <div class="page-view" id="groupDetailPage">
-  <div class="page-header" style="background: white; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px;">
-    <button class="back-btn" onclick="navigateToProductGroups()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateToProductGroups()">
       <i class="bi bi-arrow-left"></i> Back
     </button>
-    <h3 id="groupDetailTitle" style="display: inline-block; margin: 0 0 0 20px;">Group Name</h3>
+    <h3 id="groupDetailTitle">Group Name</h3>
   </div>
   
   <!-- Search Bar -->
@@ -1607,11 +1664,10 @@ body:has(.page-view.active) .page-view:not(.active) {
            class="form-control" 
            id="groupVariantsSearch" 
            placeholder="🔍 Search variants..." 
-           onkeyup="filterGroupVariants()"
-           style="padding: 12px; border-radius: 8px;">
+           onkeyup="filterGroupVariants()">
   </div>
   
-  <!-- Variants List Container -->
+  <!-- Variants List -->
   <div class="product-list-compact" id="groupVariantsList">
     <!-- Variants will be rendered here -->
   </div>
@@ -3367,8 +3423,8 @@ async function syncFromGoogleSheets() {
       // Update dashboard metrics
       updateSummaryFromCache();
         // ✅ NEW: Sync product groups and variants
-  // await syncProductGroups();
- // await syncAllVariants();
+  await syncProductGroups();
+  await syncAllVariants();
       showSyncIndicator('Synced!', 900);
       
     } else {
@@ -5288,7 +5344,7 @@ function viewPhotoProduct(productId) {
  * ==========================================
  */
 
-// Init - UPDATED TO NOT AUTO-LOAD PRODUCT GROUPS
+// Init
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Initializing Inventory App...');
   
@@ -5324,9 +5380,6 @@ document.addEventListener('DOMContentLoaded', function() {
   renderProducts();
   renderSales();
   syncFromGoogleSheets();
-  
-  // ❌ DON'T auto-load product groups on page load
-  // syncProductGroups();  // <-- REMOVE OR COMMENT OUT THIS LINE
   
   console.log('✅ Page navigation initialized');
 });
@@ -6494,7 +6547,6 @@ function closeSidebar() {
   overlay.classList.remove('show');
 }
 
-
 // ✅ UPDATE: Go to Home function
 function goToHome() {
   closeSidebar();
@@ -6518,178 +6570,11 @@ function sidebarAction(action) {
  * ==========================================
  */
 
-/**
- * ==========================================
- * SIMPLIFIED PAGE NAVIGATION (WORKING VERSION)
- * ==========================================
- */
-
-// Navigate to All Products - SIMPLIFIED
+// Navigate to All Products page - UPDATED
 function navigateToAllProducts() {
-  console.log('📦 Opening All Products');
+  console.log('📦 Navigating to All Products');
   
-  // Hide everything first
-  document.body.innerHTML = `
-    <div style="padding: 20px; background: #f8f9fa; min-height: 100vh;">
-      <!-- Header -->
-      <div style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
-          ← Back to Home
-        </button>
-        <h2 style="display: inline-block; margin: 0 0 0 20px;">All Products</h2>
-        <button onclick="openAddProduct()" style="float: right; background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
-          + Add Product
-        </button>
-      </div>
-      
-      <!-- Search -->
-      <div style="margin-bottom: 20px;">
-        <input type="text" id="searchBox" placeholder="🔍 Search products..." 
-               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"
-               onkeyup="filterProductsSimple(this.value)">
-      </div>
-      
-      <!-- Products List -->
-      <div id="productsList">
-        ${renderProductsHTML()}
-      </div>
-    </div>
-  `;
-}
-
-// Render products as HTML
-function renderProductsHTML() {
-  if (!cachedProducts || cachedProducts.length === 0) {
-    return `
-      <div style="text-align: center; padding: 60px; color: #999;">
-        <div style="font-size: 64px;">📦</div>
-        <h3>No Products Yet</h3>
-        <p>Add your first product to get started</p>
-      </div>
-    `;
-  }
-  
-  let html = '';
-  
-  cachedProducts.forEach(product => {
-    const stockColor = product.stock <= product.minStock ? '#dc3545' : '#28a745';
-    const stockText = product.stock <= product.minStock ? `⚠️ Low (${product.stock})` : `✓ ${product.stock}`;
-    
-    html += `
-      <div onclick="showProductDetails('${product.id}')" 
-           style="background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px;">
-        
-        <div style="font-size: 36px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px;">
-          ${getProductIcon(product.category)}
-        </div>
-        
-        <div style="flex: 1;">
-          <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">${product.name}</div>
-          <div style="font-size: 13px; color: #666;">
-            <span>📦 ${product.category}</span>
-            ${product.brand ? ` • <span>🏷️ ${product.brand}</span>` : ''}
-            ${product.size ? ` • <span>📏 ${product.size}</span>` : ''}
-            <span style="color: ${stockColor};"> • ${stockText}</span>
-            <span> • ₹${product.price.toFixed(2)}</span>
-          </div>
-        </div>
-        
-        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px;">
-          <button onclick="editProduct('${product.id}')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
-            ✏️
-          </button>
-          <button onclick="confirmDeleteProduct('${product.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
-            🗑️
-          </button>
-        </div>
-      </div>
-    `;
-  });
-  
-  return html;
-}
-
-// Filter products (simple version)
-function filterProductsSimple(searchText) {
-  const filtered = cachedProducts.filter(p => 
-    p.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchText.toLowerCase()) ||
-    (p.brand && p.brand.toLowerCase().includes(searchText.toLowerCase()))
-  );
-  
-  document.getElementById('productsList').innerHTML = renderProductsFilteredHTML(filtered);
-}
-
-// Render filtered products
-function renderProductsFilteredHTML(products) {
-  if (products.length === 0) {
-    return '<div style="text-align: center; padding: 40px; color: #999;">No products found</div>';
-  }
-  
-  let html = '';
-  products.forEach(product => {
-    const stockColor = product.stock <= product.minStock ? '#dc3545' : '#28a745';
-    const stockText = product.stock <= product.minStock ? `⚠️ Low (${product.stock})` : `✓ ${product.stock}`;
-    
-    html += `
-      <div onclick="showProductDetails('${product.id}')" 
-           style="background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px;">
-        
-        <div style="font-size: 36px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px;">
-          ${getProductIcon(product.category)}
-        </div>
-        
-        <div style="flex: 1;">
-          <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">${product.name}</div>
-          <div style="font-size: 13px; color: #666;">
-            <span>📦 ${product.category}</span>
-            ${product.brand ? ` • <span>🏷️ ${product.brand}</span>` : ''}
-            ${product.size ? ` • <span>📏 ${product.size}</span>` : ''}
-            <span style="color: ${stockColor};"> • ${stockText}</span>
-            <span> • ₹${product.price.toFixed(2)}</span>
-          </div>
-        </div>
-        
-        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px;">
-          <button onclick="editProduct('${product.id}')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
-            ✏️
-          </button>
-          <button onclick="confirmDeleteProduct('${product.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
-            🗑️
-          </button>
-        </div>
-      </div>
-    `;
-  });
-  
-  return html;
-}
-
-// Get product icon helper
-function getProductIcon(category) {
-  const icons = {
-    'Tiles': '🔲',
-    'Sanitaryware': '🚿',
-    'Accessories': '🔧',
-    'Custom': '📦',
-    'Photo Products': '📸'
-  };
-  return icons[category] || '📦';
-}
-
-// Confirm delete
-function confirmDeleteProduct(productId) {
-  const product = cachedProducts.find(p => p.id === productId);
-  if (confirm(`Delete "${product.name}"?`)) {
-    deleteProduct(productId);
-  }
-}
-
-// Navigate to Product Groups page - UPDATED TO HIDE TOP BAR
-function navigateToProductGroups() {
-  console.log('📁 Navigating to Product Groups');
-  
-  currentPage = 'productGroups';
+  currentPage = 'allProducts';
   
   const mainApp = document.getElementById('mainApp');
   const allProductsPage = document.getElementById('allProductsPage');
@@ -6701,97 +6586,23 @@ function navigateToProductGroups() {
     mainApp.style.display = 'none';
   }
   
-  // ✅ HIDE THE BLUE TOP BAR
-  const header = document.querySelector('header');
-  const topBar = document.querySelector('.bg-primary');
-  const navBar = document.querySelector('nav');
-  
-  if (header) header.style.display = 'none';
-  if (topBar) topBar.style.display = 'none';
-  if (navBar) navBar.style.display = 'none';
-  
-  // Hide action buttons
-  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
-  if (actionButtons) actionButtons.style.display = 'none';
-  
-  // SHOW Product Groups page
-  if (productGroupsPage) {
-    productGroupsPage.classList.add('active');
-    productGroupsPage.style.position = 'fixed';
-    productGroupsPage.style.top = '0';
-    productGroupsPage.style.left = '0';
-    productGroupsPage.style.width = '100%';
-    productGroupsPage.style.height = '100vh';
-    productGroupsPage.style.zIndex = '9999';
-    productGroupsPage.style.background = '#f8f9fa';
+  // ✅ HIDE THE TOP BLUE BOX (action buttons)
+  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
+  if (topBarButtons) {
+    topBarButtons.style.display = 'none';
   }
   
-  if (allProductsPage) allProductsPage.classList.remove('active');
+  // SHOW All Products page
+  if (allProductsPage) {
+    allProductsPage.classList.add('active');
+  }
+  
+  if (productGroupsPage) productGroupsPage.classList.remove('active');
   if (groupDetailPage) groupDetailPage.classList.remove('active');
   
-  // Load product groups
-  if (typeof syncProductGroups === 'function') {
-    syncProductGroups();
-  }
-  
+  renderAllProductsList();
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Navigate back to Home - UPDATED TO SHOW TOP BAR AGAIN
-function navigateToHome() {
-  console.log('🏠 Navigating to Home');
-  
-  currentPage = 'home';
-  
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
-  
-  if (mainApp) {
-    mainApp.style.display = 'block';
-  }
-  
-  // ✅ SHOW THE BLUE TOP BAR AGAIN
-  const header = document.querySelector('header');
-  const topBar = document.querySelector('.bg-primary');
-  const navBar = document.querySelector('nav');
-  
-  if (header) header.style.display = 'block';
-  if (topBar) topBar.style.display = 'block';
-  if (navBar) navBar.style.display = 'block';
-  
-  // Show action buttons
-  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
-  if (actionButtons) actionButtons.style.display = 'flex';
-  
-  // Hide all page views
-  if (allProductsPage) {
-    allProductsPage.classList.remove('active');
-    allProductsPage.style.position = '';
-    allProductsPage.style.zIndex = '';
-  }
-  if (productGroupsPage) {
-    productGroupsPage.classList.remove('active');
-    productGroupsPage.style.position = '';
-    productGroupsPage.style.zIndex = '';
-  }
-  if (groupDetailPage) {
-    groupDetailPage.classList.remove('active');
-    groupDetailPage.style.position = '';
-    groupDetailPage.style.zIndex = '';
-  }
-  
-  closeSidebar();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  const btnPhotoView = document.getElementById('btnPhotoView');
-  if (btnPhotoView && btnPhotoView.classList.contains('active')) {
-    if (typeof showAllProducts === 'function') {
-      showAllProducts();
-    }
-  }
 }
 
 // Navigate back to Home - UPDATED
@@ -7512,44 +7323,7 @@ function showError(message) {
 }
 
 
-   
-  // show a page-view by id and mark body as "page-open"
-  function showPageView(pageId) {
-    // deactivate all
-    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-    // show requested page if exists
-    var page = document.getElementById(pageId);
-    if (page) {
-      page.classList.add('active');
-      document.body.classList.add('page-open');
-      // scroll to top of overlay
-      page.scrollTop = 0;
-    } else {
-      // fallback: if page not found, remove page-open
-      document.body.classList.remove('page-open');
-    }
-  }
-
-  // navigate back to home (hide page overlay and show navbar)
-  function navigateToHome() {
-    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-    document.body.classList.remove('page-open');
-    // optionally re-render home or refresh lists
-  }
-
-  // convenience wrappers — your HTML already calls these onclicks
-  function navigateToAllProducts(){ showPageView('allProductsPage'); }
-  function navigateToProductGroups(){ showPageView('productGroupsPage'); }
-  function navigateToGroupDetail(){ showPageView('groupDetailPage'); }
-
-  // If you already have functions with same names, these will override them.
-  // If you prefer not to override, remove/rename these wrappers and call showPageView() from your existing navigation code.
-  document.addEventListener('DOMContentLoaded', function(){
-    // If a page-view already has 'active' on load, ensure class applied
-    if (document.querySelector('.page-view.active')) document.body.classList.add('page-open');
-  });
-
-
+    
 
     
   </script>
@@ -7703,11 +7477,6 @@ function showError(message) {
 
 </body>
 </html>
-
-
-
-
-
 
 
 
