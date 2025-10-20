@@ -3693,36 +3693,101 @@ try {
 let groupAttributes = {}; // { "Size": ["Small", "Medium", "Large"], "Color": ["Red", "Blue"] }
 let generatedVariants = []; // Array of variant objects
 
-// Open Create Group Modal
+// Open Create Group Modal - Creates modal if not exists
 function openCreateGroupModal() {
+  console.log('📝 Opening Create Group Modal');
+  
+  // Check if modal already exists
+  let modal = document.getElementById('createGroupModal');
+  
+  // If not, create it
+  if (!modal) {
+    console.log('Creating modal HTML...');
+    
+    const modalHTML = `
+      <div class="fullscreen-modal" id="createGroupModal">
+        <div class="modal-header-mobile">
+          <button class="btn-cancel-modal" onclick="closeCreateGroupModal()">✕ Cancel</button>
+          <h3>New Item Group</h3>
+          <div style="width: 80px;"></div>
+        </div>
+        
+        <form id="createGroupForm" class="mobile-form" onsubmit="handleCreateGroup(event)">
+          <div class="form-section">
+            <div class="section-title">Basic Information</div>
+            <label class="form-label">Item Group Name <span class="required">*</span></label>
+            <input type="text" id="groupName" name="groupName" placeholder="e.g., T-Shirts" required autocomplete="off">
+            <label class="form-label">Description</label>
+            <textarea id="groupDescription" name="groupDescription" placeholder="Optional" rows="3"></textarea>
+            <label class="form-label">Manufacturer/Brand</label>
+            <input type="text" id="groupManufacturer" name="groupManufacturer" placeholder="e.g., Nike" autocomplete="off">
+            <label class="form-label">Category</label>
+            <select id="groupCategory" name="groupCategory">
+              <option value="">Select Category</option>
+              <option value="Tiles">Tiles</option>
+              <option value="Sanitaryware">Sanitaryware</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Apparel">Apparel</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
+          
+          <div class="form-section">
+            <div class="section-title">Create Attributes</div>
+            <div class="section-description">Add attributes like Size, Color, Material</div>
+            <div id="attributesContainer"></div>
+            <button type="button" class="btn-add-more" onclick="addAttributeRow()">➕ Add Attribute</button>
+          </div>
+          
+          <div class="form-section">
+            <div class="variant-preview-section">
+              <div class="variant-count-badge"><span id="variantCount">0</span> Variants Will Be Created</div>
+              <div class="variant-preview-list" id="variantPreviewContainer">
+                <div class="variant-preview-item">Add attributes to see preview...</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions-bottom">
+            <button type="button" class="btn-secondary-bottom" onclick="closeCreateGroupModal()">Cancel</button>
+            <button type="submit" class="btn-primary-bottom" id="btnSaveGroup">💾 Save & Generate</button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    // Insert modal into body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    modal = document.getElementById('createGroupModal');
+  }
+  
+  if (!modal) {
+    console.error('❌ Failed to create modal');
+    alert('Error: Could not open modal. Please refresh the page.');
+    return;
+  }
+  
   // Reset form
-  document.getElementById('groupName').value = '';
-  document.getElementById('groupDescription').value = '';
-  document.getElementById('groupCategory').value = '';
-  document.getElementById('groupBrand').value = '';
+  const form = document.getElementById('createGroupForm');
+  if (form) form.reset();
   
-  // Reset attributes
-  groupAttributes = {};
-  generatedVariants = [];
-  document.getElementById('attributesContainer').innerHTML = '';
+  const container = document.getElementById('attributesContainer');
+  if (container) container.innerHTML = '';
   
-  // Reset steps
-  document.getElementById('groupStep1').style.display = 'block';
-  document.getElementById('groupStep2').style.display = 'none';
-  document.getElementById('groupNextBtn').style.display = 'inline-block';
-  document.getElementById('groupSaveBtn').style.display = 'none';
-  document.getElementById('groupBackBtn').style.display = 'none';
+  attributeRowCounter = 0;
   
   // Add first attribute row
   addAttributeRow();
   
-  // Update preview
-  updateVariantPreview();
-  
   // Show modal
-  const modal = new bootstrap.Modal(document.getElementById('createGroupModal'));
-  modal.show();
+  modal.classList.add('active');
+  
+  // Prevent body scroll
+  document.body.style.overflow = 'hidden';
+  
+  console.log('✅ Modal opened successfully');
 }
+
 
 // Add attribute row
 function addAttributeRow() {
@@ -9893,6 +9958,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
