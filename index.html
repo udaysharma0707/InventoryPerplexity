@@ -215,6 +215,30 @@
   gap: 10px;
 }
 
+
+/* Hide top bar (header) on full-screen pages */
+.page-view.active ~ header,
+.page-view.active ~ .top-bar {
+  display: none !important;
+}
+
+/* OR if you want to hide it within the page view itself */
+.page-view {
+  padding-top: 0 !important;
+}
+
+/* Make sure the blue box (action buttons) only shows on homepage */
+#mainApp .action-buttons {
+  /* Your existing styles */
+}
+
+/* Hide action buttons when NOT on home */
+.page-view.active ~ #mainApp .action-buttons,
+body:has(.page-view.active) .action-buttons {
+  display: none !important;
+}
+
+
     
 /* ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Additional mobile fixes for Record Sale modal */
 @media (max-width: 768px) {
@@ -7453,6 +7477,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
