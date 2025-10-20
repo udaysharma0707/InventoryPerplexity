@@ -1168,10 +1168,11 @@ body:has(.page-view.active) .page-view:not(.active) {
   </div>
   
 
-<div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
+<div class="sidebar-item" onclick="closeSidebar(); navigateToAllProducts();">
   <i class="bi bi-box"></i>
   <span>All Products</span>
 </div>
+
 
 <div class="sidebar-item" onclick="if(typeof navigateToProductGroups === 'function') navigateToProductGroups()">
   <i class="bi bi-collection"></i>
@@ -6517,53 +6518,171 @@ function sidebarAction(action) {
  * ==========================================
  */
 
-// Navigate to All Products page - UPDATED TO HIDE TOP BAR
+/**
+ * ==========================================
+ * SIMPLIFIED PAGE NAVIGATION (WORKING VERSION)
+ * ==========================================
+ */
+
+// Navigate to All Products - SIMPLIFIED
 function navigateToAllProducts() {
-  console.log('📦 Navigating to All Products');
+  console.log('📦 Opening All Products');
   
-  currentPage = 'allProducts';
-  
-  const mainApp = document.getElementById('mainApp');
-  const allProductsPage = document.getElementById('allProductsPage');
-  const productGroupsPage = document.getElementById('productGroupsPage');
-  const groupDetailPage = document.getElementById('groupDetailPage');
-  
-  // HIDE the main dashboard
-  if (mainApp) {
-    mainApp.style.display = 'none';
+  // Hide everything first
+  document.body.innerHTML = `
+    <div style="padding: 20px; background: #f8f9fa; min-height: 100vh;">
+      <!-- Header -->
+      <div style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          ← Back to Home
+        </button>
+        <h2 style="display: inline-block; margin: 0 0 0 20px;">All Products</h2>
+        <button onclick="openAddProduct()" style="float: right; background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+          + Add Product
+        </button>
+      </div>
+      
+      <!-- Search -->
+      <div style="margin-bottom: 20px;">
+        <input type="text" id="searchBox" placeholder="🔍 Search products..." 
+               style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"
+               onkeyup="filterProductsSimple(this.value)">
+      </div>
+      
+      <!-- Products List -->
+      <div id="productsList">
+        ${renderProductsHTML()}
+      </div>
+    </div>
+  `;
+}
+
+// Render products as HTML
+function renderProductsHTML() {
+  if (!cachedProducts || cachedProducts.length === 0) {
+    return `
+      <div style="text-align: center; padding: 60px; color: #999;">
+        <div style="font-size: 64px;">📦</div>
+        <h3>No Products Yet</h3>
+        <p>Add your first product to get started</p>
+      </div>
+    `;
   }
   
-  // ✅ HIDE THE BLUE TOP BAR (header)
-  const header = document.querySelector('header');
-  const topBar = document.querySelector('.bg-primary'); // or whatever class your blue bar has
-  const navBar = document.querySelector('nav');
+  let html = '';
   
-  if (header) header.style.display = 'none';
-  if (topBar) topBar.style.display = 'none';
-  if (navBar) navBar.style.display = 'none';
+  cachedProducts.forEach(product => {
+    const stockColor = product.stock <= product.minStock ? '#dc3545' : '#28a745';
+    const stockText = product.stock <= product.minStock ? `⚠️ Low (${product.stock})` : `✓ ${product.stock}`;
+    
+    html += `
+      <div onclick="showProductDetails('${product.id}')" 
+           style="background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px;">
+        
+        <div style="font-size: 36px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px;">
+          ${getProductIcon(product.category)}
+        </div>
+        
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">${product.name}</div>
+          <div style="font-size: 13px; color: #666;">
+            <span>📦 ${product.category}</span>
+            ${product.brand ? ` • <span>🏷️ ${product.brand}</span>` : ''}
+            ${product.size ? ` • <span>📏 ${product.size}</span>` : ''}
+            <span style="color: ${stockColor};"> • ${stockText}</span>
+            <span> • ₹${product.price.toFixed(2)}</span>
+          </div>
+        </div>
+        
+        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px;">
+          <button onclick="editProduct('${product.id}')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            ✏️
+          </button>
+          <button onclick="confirmDeleteProduct('${product.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
   
-  // Hide action buttons section
-  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
-  if (actionButtons) actionButtons.style.display = 'none';
+  return html;
+}
+
+// Filter products (simple version)
+function filterProductsSimple(searchText) {
+  const filtered = cachedProducts.filter(p => 
+    p.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchText.toLowerCase()) ||
+    (p.brand && p.brand.toLowerCase().includes(searchText.toLowerCase()))
+  );
   
-  // SHOW All Products page as FULL SCREEN
-  if (allProductsPage) {
-    allProductsPage.classList.add('active');
-    allProductsPage.style.position = 'fixed';
-    allProductsPage.style.top = '0';
-    allProductsPage.style.left = '0';
-    allProductsPage.style.width = '100%';
-    allProductsPage.style.height = '100vh';
-    allProductsPage.style.zIndex = '9999';
-    allProductsPage.style.background = '#f8f9fa';
+  document.getElementById('productsList').innerHTML = renderProductsFilteredHTML(filtered);
+}
+
+// Render filtered products
+function renderProductsFilteredHTML(products) {
+  if (products.length === 0) {
+    return '<div style="text-align: center; padding: 40px; color: #999;">No products found</div>';
   }
   
-  if (productGroupsPage) productGroupsPage.classList.remove('active');
-  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  let html = '';
+  products.forEach(product => {
+    const stockColor = product.stock <= product.minStock ? '#dc3545' : '#28a745';
+    const stockText = product.stock <= product.minStock ? `⚠️ Low (${product.stock})` : `✓ ${product.stock}`;
+    
+    html += `
+      <div onclick="showProductDetails('${product.id}')" 
+           style="background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px;">
+        
+        <div style="font-size: 36px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px;">
+          ${getProductIcon(product.category)}
+        </div>
+        
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 16px; margin-bottom: 5px;">${product.name}</div>
+          <div style="font-size: 13px; color: #666;">
+            <span>📦 ${product.category}</span>
+            ${product.brand ? ` • <span>🏷️ ${product.brand}</span>` : ''}
+            ${product.size ? ` • <span>📏 ${product.size}</span>` : ''}
+            <span style="color: ${stockColor};"> • ${stockText}</span>
+            <span> • ₹${product.price.toFixed(2)}</span>
+          </div>
+        </div>
+        
+        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px;">
+          <button onclick="editProduct('${product.id}')" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            ✏️
+          </button>
+          <button onclick="confirmDeleteProduct('${product.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  });
   
-  renderAllProductsList();
-  closeSidebar();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  return html;
+}
+
+// Get product icon helper
+function getProductIcon(category) {
+  const icons = {
+    'Tiles': '🔲',
+    'Sanitaryware': '🚿',
+    'Accessories': '🔧',
+    'Custom': '📦',
+    'Photo Products': '📸'
+  };
+  return icons[category] || '📦';
+}
+
+// Confirm delete
+function confirmDeleteProduct(productId) {
+  const product = cachedProducts.find(p => p.id === productId);
+  if (confirm(`Delete "${product.name}"?`)) {
+    deleteProduct(productId);
+  }
 }
 
 // Navigate to Product Groups page - UPDATED TO HIDE TOP BAR
@@ -7584,6 +7703,7 @@ function showError(message) {
 
 </body>
 </html>
+
 
 
 
