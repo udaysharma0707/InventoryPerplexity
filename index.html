@@ -8424,12 +8424,15 @@ function openCreateGroupModal() {
 function closeCreateGroupModal() {
   const modal = document.getElementById('createGroupModal');
   if (modal) {
-    modal.classList.remove('active');
+    modal.remove(); // Remove it completely
   }
   
   // Restore body scroll
   document.body.style.overflow = '';
+  
+  console.log('✅ Modal closed');
 }
+
 
 
 // Add Attribute Row
@@ -9968,6 +9971,7 @@ if (typeof openSalesModal === 'undefined') {
 
 </body>
 </html>
+
 
 
 
