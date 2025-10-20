@@ -41,34 +41,29 @@
   .modal-footer { position: sticky; bottom:0; background: white; z-index:10; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
 }
 
-    /* fallback approach: hide nav when body has .page-open */
-body.page-open .navbar,
-body.page-open .sidebar-toggle-btn,
-body.page-open .sync-indicator,
-body.page-open #backgroundSyncStatus {
-  display: none !important;
+   /* Hide the ENTIRE top blue header on page views */
+.page-view.active {
+  position: fixed;
+  top: 0 !important;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #f8f9fa;
+  z-index: 9999;
+  overflow-y: auto;
+  padding: 0 !important;
+  margin: 0 !important;
 }
-/* Hide top bar (header) on full-screen pages */
-.page-view.active ~ header,
-.page-view.active ~ .top-bar {
+
+/* Hide EVERYTHING when page-view is active */
+body:has(.page-view.active) > *:not(.page-view):not(script) {
   display: none !important;
 }
 
-/* OR if you want to hide it within the page view itself */
-.page-view {
-  padding-top: 0 !important;
-}
-
-/* Make sure the blue box (action buttons) only shows on homepage */
-#mainApp .action-buttons {
-  /* Your existing styles */
-}
-
-/* Hide action buttons when NOT on home */
-.page-view.active ~ #mainApp .action-buttons,
-body:has(.page-view.active) .action-buttons {
+body:has(.page-view.active) .page-view:not(.active) {
   display: none !important;
 }
+
 
 /* ==========================================
    FULL-SCREEN PAGE VIEW SYSTEM
@@ -1236,7 +1231,7 @@ body:has(.page-view.active) .action-buttons {
     <span>Add Users</span>
   </div>
   
-// NEW (with safety check):
+
 <div class="sidebar-item" onclick="if(typeof navigateToAllProducts === 'function') navigateToAllProducts()">
   <i class="bi bi-box"></i>
   <span>All Products</span>
@@ -3431,8 +3426,8 @@ async function syncFromGoogleSheets() {
       // Update dashboard metrics
       updateSummaryFromCache();
         // ✅ NEW: Sync product groups and variants
-  await syncProductGroups();
-  await syncAllVariants();
+  // await syncProductGroups();
+ // await syncAllVariants();
       showSyncIndicator('Synced!', 900);
       
     } else {
@@ -5352,7 +5347,7 @@ function viewPhotoProduct(productId) {
  * ==========================================
  */
 
-// Init
+// Init - UPDATED TO NOT AUTO-LOAD PRODUCT GROUPS
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Initializing Inventory App...');
   
@@ -5388,6 +5383,9 @@ document.addEventListener('DOMContentLoaded', function() {
   renderProducts();
   renderSales();
   syncFromGoogleSheets();
+  
+  // ❌ DON'T auto-load product groups on page load
+  // syncProductGroups();  // <-- REMOVE OR COMMENT OUT THIS LINE
   
   console.log('✅ Page navigation initialized');
 });
@@ -6546,132 +6544,15 @@ function toggleSidebar() {
   }
 }
 
+// Close Sidebar
 function closeSidebar() {
-  try {
-    // 1) If using Bootstrap Offcanvas (Bootstrap 5+)
-    try {
-      var off = document.querySelector('.offcanvas.show');
-      if (off && typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
-        var inst = bootstrap.Offcanvas.getInstance(off) || new bootstrap.Offcanvas(off);
-        inst.hide();
-        return;
-      }
-      // If there is an offcanvas element but no bootstrap instance, try removing show/backdrop
-      if (off) {
-        off.classList.remove('show');
-        // remove backdrop if present
-        document.querySelectorAll('.offcanvas-backdrop, .modal-backdrop').forEach(function(b){ b.parentNode && b.parentNode.removeChild(b); });
-        document.body.classList.remove('offcanvas-open');
-        return;
-      }
-    } catch(e) {
-      // ignore and continue to other attempts
-    }
-
-    // 2) If sidebar toggled by a common body class like 'sidebar-open' or 'menu-open'
-    ['sidebar-open','menu-open','nav-open','sidenav-open','drawer-open'].forEach(function(c){
-      if (document.body.classList.contains(c)) document.body.classList.remove(c);
-    });
-
-    // 3) If your sidebar element has common selectors, remove active/show/open classes
-    var sidebarSelectors = ['#sidebar','.sidebar','.left-sidebar','.app-sidebar','.sidenav'];
-    sidebarSelectors.forEach(function(sel){
-      var el = document.querySelector(sel);
-      if (!el) return;
-      ['open','active','visible','show'].forEach(function(cls){
-        if (el.classList.contains(cls)) el.classList.remove(cls);
-      });
-      // also hide inline transforms (best-effort)
-      try { el.style.transform = ''; el.style.left = ''; el.style.right = ''; } catch(_) {}
-    });
-
-    // 4) If there's a close button, trigger it (common button selectors)
-    var closeBtn = document.querySelector('.sidebar-close, .close-sidebar, .menu-close, .sidenav-close, .offcanvas-close, .offcanvas-header button');
-    if (closeBtn) { closeBtn.click(); return; }
-
-    // 5) Hide overlays/backdrops that may keep the sidebar open visually
-    document.querySelectorAll('.sidebar-overlay, .overlay, .offcanvas-backdrop, .modal-backdrop').forEach(function(o){
-      try { o.parentNode && o.parentNode.removeChild(o); } catch(e) {}
-    });
-
-  } catch(err) {
-    // silent fail: don't break app if unknown structure
-    console.warn('closeSidebar error:', err);
-  }
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
 }
 
-/* ---------- Integrate with your page navigation ---------- */
-
-// If you already have showPageView(), patch it to call closeSidebar().
-// This tries to augment existing function if present, otherwise defines it.
-(function(){
-  var origShow = window.showPageView;
-
-  function patchedShowPageView(pageId) {
-    // call original if exists
-    try {
-      if (typeof origShow === 'function') origShow(pageId);
-    } catch(e) { console.warn('orig showPageView error', e); }
-
-    // ensure body/page class toggles as in previous suggestions
-    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-    var page = document.getElementById(pageId);
-    if (page) { page.classList.add('active'); document.body.classList.add('page-open'); }
-    else { document.body.classList.remove('page-open'); }
-
-    // Close sidebar now that we navigated away from home
-    closeSidebar();
-  }
-
-  // Replace / define global showPageView
-  window.showPageView = patchedShowPageView;
-
-  // If you have specialized wrappers (navigateToAllProducts etc) we override them to call showPageView
-  ['navigateToAllProducts','navigateToProductGroups','navigateToGroupDetail','navigateToHome'].forEach(function(name){
-    if (window[name] && typeof window[name] === 'function') {
-      var orig = window[name];
-      window[name] = function(){
-        // let original do its thing (if needed)
-        try { var r = orig.apply(this, arguments); } catch(e) { console.warn(name + ' original error', e); }
-        // map navigateToHome to remove body class (keep sidebar as-is for Home)
-        if (name === 'navigateToHome') {
-          document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-          document.body.classList.remove('page-open');
-          // do NOT force-close sidebar for home (user asked "except home")
-        } else {
-          // open the requested page id from arguments if available, else attempt default
-          var pageId = arguments && arguments[0] ? arguments[0] : (name === 'navigateToAllProducts' ? 'allProductsPage' : null);
-          if (pageId) window.showPageView(pageId); else closeSidebar();
-        }
-        return r;
-      };
-    }
-  });
-
-  // If original showPageView didn't exist, ensure our showPageView is available
-  if (!origShow) window.showPageView = patchedShowPageView;
-
-})();
-
-/* ---------- Close sidebar when any sidebar link is clicked ---------- */
-document.addEventListener('DOMContentLoaded', function(){
-  // Common sidebar container selectors
-  var sidebar = document.querySelector('#sidebar') || document.querySelector('.sidebar') || document.querySelector('.left-sidebar');
-  if (!sidebar) return;
-
-  // Attach click listeners to anchor links inside sidebar
-  sidebar.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', function(e){
-      // If the link navigates within SPA (has data-page or href="#..." or class nav-link), close sidebar
-      var isInternal = (a.getAttribute('href') && a.getAttribute('href').startsWith('#')) ||
-                       a.classList.contains('nav-link') || a.dataset.page || a.dataset.target;
-      if (isInternal) {
-        // short delay to allow any SPA navigation to start, then close
-        setTimeout(closeSidebar, 60);
-      }
-    });
-  });
-});
 
 // ✅ UPDATE: Go to Home function
 function goToHome() {
@@ -6696,7 +6577,7 @@ function sidebarAction(action) {
  * ==========================================
  */
 
-// Navigate to All Products page - UPDATED
+// Navigate to All Products page - UPDATED TO HIDE TOP BAR
 function navigateToAllProducts() {
   console.log('📦 Navigating to All Products');
   
@@ -6712,15 +6593,29 @@ function navigateToAllProducts() {
     mainApp.style.display = 'none';
   }
   
-  // ✅ HIDE THE TOP BLUE BOX (action buttons)
-  const topBarButtons = document.querySelector('.d-flex.justify-content-center.gap-3.mb-4');
-  if (topBarButtons) {
-    topBarButtons.style.display = 'none';
-  }
+  // ✅ HIDE THE BLUE TOP BAR (header)
+  const header = document.querySelector('header');
+  const topBar = document.querySelector('.bg-primary'); // or whatever class your blue bar has
+  const navBar = document.querySelector('nav');
   
-  // SHOW All Products page
+  if (header) header.style.display = 'none';
+  if (topBar) topBar.style.display = 'none';
+  if (navBar) navBar.style.display = 'none';
+  
+  // Hide action buttons section
+  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
+  if (actionButtons) actionButtons.style.display = 'none';
+  
+  // SHOW All Products page as FULL SCREEN
   if (allProductsPage) {
     allProductsPage.classList.add('active');
+    allProductsPage.style.position = 'fixed';
+    allProductsPage.style.top = '0';
+    allProductsPage.style.left = '0';
+    allProductsPage.style.width = '100%';
+    allProductsPage.style.height = '100vh';
+    allProductsPage.style.zIndex = '9999';
+    allProductsPage.style.background = '#f8f9fa';
   }
   
   if (productGroupsPage) productGroupsPage.classList.remove('active');
@@ -6729,6 +6624,115 @@ function navigateToAllProducts() {
   renderAllProductsList();
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Navigate to Product Groups page - UPDATED TO HIDE TOP BAR
+function navigateToProductGroups() {
+  console.log('📁 Navigating to Product Groups');
+  
+  currentPage = 'productGroups';
+  
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  // HIDE the main dashboard
+  if (mainApp) {
+    mainApp.style.display = 'none';
+  }
+  
+  // ✅ HIDE THE BLUE TOP BAR
+  const header = document.querySelector('header');
+  const topBar = document.querySelector('.bg-primary');
+  const navBar = document.querySelector('nav');
+  
+  if (header) header.style.display = 'none';
+  if (topBar) topBar.style.display = 'none';
+  if (navBar) navBar.style.display = 'none';
+  
+  // Hide action buttons
+  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
+  if (actionButtons) actionButtons.style.display = 'none';
+  
+  // SHOW Product Groups page
+  if (productGroupsPage) {
+    productGroupsPage.classList.add('active');
+    productGroupsPage.style.position = 'fixed';
+    productGroupsPage.style.top = '0';
+    productGroupsPage.style.left = '0';
+    productGroupsPage.style.width = '100%';
+    productGroupsPage.style.height = '100vh';
+    productGroupsPage.style.zIndex = '9999';
+    productGroupsPage.style.background = '#f8f9fa';
+  }
+  
+  if (allProductsPage) allProductsPage.classList.remove('active');
+  if (groupDetailPage) groupDetailPage.classList.remove('active');
+  
+  // Load product groups
+  if (typeof syncProductGroups === 'function') {
+    syncProductGroups();
+  }
+  
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Navigate back to Home - UPDATED TO SHOW TOP BAR AGAIN
+function navigateToHome() {
+  console.log('🏠 Navigating to Home');
+  
+  currentPage = 'home';
+  
+  const mainApp = document.getElementById('mainApp');
+  const allProductsPage = document.getElementById('allProductsPage');
+  const productGroupsPage = document.getElementById('productGroupsPage');
+  const groupDetailPage = document.getElementById('groupDetailPage');
+  
+  if (mainApp) {
+    mainApp.style.display = 'block';
+  }
+  
+  // ✅ SHOW THE BLUE TOP BAR AGAIN
+  const header = document.querySelector('header');
+  const topBar = document.querySelector('.bg-primary');
+  const navBar = document.querySelector('nav');
+  
+  if (header) header.style.display = 'block';
+  if (topBar) topBar.style.display = 'block';
+  if (navBar) navBar.style.display = 'block';
+  
+  // Show action buttons
+  const actionButtons = document.querySelector('.d-flex.justify-content-center.gap-3');
+  if (actionButtons) actionButtons.style.display = 'flex';
+  
+  // Hide all page views
+  if (allProductsPage) {
+    allProductsPage.classList.remove('active');
+    allProductsPage.style.position = '';
+    allProductsPage.style.zIndex = '';
+  }
+  if (productGroupsPage) {
+    productGroupsPage.classList.remove('active');
+    productGroupsPage.style.position = '';
+    productGroupsPage.style.zIndex = '';
+  }
+  if (groupDetailPage) {
+    groupDetailPage.classList.remove('active');
+    groupDetailPage.style.position = '';
+    groupDetailPage.style.zIndex = '';
+  }
+  
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  const btnPhotoView = document.getElementById('btnPhotoView');
+  if (btnPhotoView && btnPhotoView.classList.contains('active')) {
+    if (typeof showAllProducts === 'function') {
+      showAllProducts();
+    }
+  }
 }
 
 // Navigate back to Home - UPDATED
@@ -7637,171 +7641,10 @@ function showError(message) {
     
 </body>
 </html>
-/*
-  Non-destructive Sidebar Auto-close (works with your existing functions)
-  Paste this before </body>
-*/
 
-(function(){
-  // Helper: call your existing closeSidebar if available, else fallback safe remover
-  function tryCloseSidebar() {
-    try {
-      if (typeof closeSidebar === 'function') {
-        closeSidebar();
-        return;
-      }
-    } catch(e) { console.warn('closeSidebar call failed', e); }
-
-    // fallback (best-effort)
-    try {
-      var sb = document.getElementById('sidebarMenu') || document.querySelector('.sidebar') || document.querySelector('#sidebar');
-      var ov = document.getElementById('sidebarOverlay') || document.querySelector('.sidebar-overlay') || document.querySelector('.overlay');
-      if (sb && sb.classList.contains('open')) sb.classList.remove('open');
-      if (ov && ov.classList.contains('show')) ov.classList.remove('show');
-      // remove common body classes too
-      ['sidebar-open','menu-open','nav-open','sidenav-open','drawer-open'].forEach(function(c){ document.body.classList.remove(c); });
-    } catch(e) { console.warn('fallback close failed', e); }
-  }
-
-  // Helper: open a page using your existing functions if present, else fallback
-  function openPageById(pageId) {
-    try {
-      // Prefer using existing showPageView if available (non-destructive)
-      if (typeof showPageView === 'function') {
-        showPageView(pageId);
-        return;
-      }
-      // Otherwise, try any navigateTo... functions (best-effort)
-      if (typeof navigateToAllProducts === 'function' && pageId === 'allProductsPage') {
-        navigateToAllProducts(pageId);
-        return;
-      }
-    } catch(e) { console.warn('existing nav call failed', e); }
-
-    // Fallback: activate .page-view with given ID (non-destructive)
-    var target = document.getElementById(pageId);
-    if (!target) return;
-    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-    target.classList.add('active');
-    document.body.classList.add('page-open');
-  }
-
-  // When Home link clicked: prefer existing navigateToHome() or your goToHome()
-  function handleHomeClick(ev, anchor) {
-    try {
-      ev && ev.preventDefault();
-      if (typeof goToHome === 'function') {
-        goToHome();
-        return;
-      }
-      if (typeof navigateToHome === 'function') {
-        // keep your current behavior
-        navigateToHome();
-        tryCloseSidebar();
-        return;
-      }
-    } catch(e) { console.warn('home nav failed', e); }
-
-    // fallback: remove active page overlays
-    document.querySelectorAll('.page-view').forEach(function(p){ p.classList.remove('active'); });
-    document.body.classList.remove('page-open');
-    tryCloseSidebar();
-  }
-
-  // Attach click handlers to sidebar anchors
-  function installSidebarHandlers() {
-    var sidebar = document.getElementById('sidebarMenu') || document.querySelector('.sidebar') || document.querySelector('#sidebar');
-    if (!sidebar) return;
-    if (sidebar.__handlersInstalled) return;
-    sidebar.__handlersInstalled = true;
-
-    var anchors = sidebar.querySelectorAll('a');
-    anchors.forEach(function(a){
-      a.addEventListener('click', function(ev){
-        // skip external links or new-tab links
-        var href = a.getAttribute('href') || '';
-        if (/^https?:\/\//i.test(href) || a.target === '_blank') {
-          return;
-        }
-
-        // Determine if this is Home
-        var txt = (a.textContent || '').trim().toLowerCase();
-        var isHome = txt === 'home' || a.classList.contains('home') || (a.dataset.page && a.dataset.page.toLowerCase() === 'home');
-
-        // If anchor has explicit data-page or href="#id", prefer that
-        var pageId = a.dataset.page || a.dataset.target || (href && href.startsWith('#') ? href.slice(1) : null);
-
-        if (isHome) {
-          // Prevent default navigation and call your home helper
-          ev.preventDefault();
-          handleHomeClick(ev, a);
-          return;
-        }
-
-        // For SPA-style sidebar links, intercept, open page, then close sidebar
-        var isInternal = !!pageId || a.classList.contains('nav-link') || a.dataset.page;
-        if (isInternal) {
-          ev.preventDefault();
-          if (pageId) openPageById(pageId);
-          // small delay to let other handlers run then close sidebar
-          setTimeout(tryCloseSidebar, 50);
-          return;
-        }
-
-        // otherwise allow default behavior, but still try to close sidebar after small delay
-        setTimeout(tryCloseSidebar, 120);
-      }, { passive: false });
-    });
-  }
-
-  // Observe DOM mutations: if any .page-view becomes .active (other code opened a page), close sidebar
-  function installMutationObserver() {
-    var root = document.body || document.documentElement;
-    if (!root) return;
-
-    var observer = new MutationObserver(function(mutations) {
-      try {
-        if (document.querySelector('.page-view.active')) {
-          tryCloseSidebar();
-          // ensure a CSS class for page-open (optional)
-          document.body.classList.add('page-open');
-        }
-      } catch(e) { /* ignore */ }
-    });
-    observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
-
-    // initial check
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      if (document.querySelector('.page-view.active')) {
-        tryCloseSidebar();
-        document.body.classList.add('page-open');
-      }
-    } else {
-      document.addEventListener('DOMContentLoaded', function() {
-        if (document.querySelector('.page-view.active')) {
-          tryCloseSidebar();
-          document.body.classList.add('page-open');
-        }
-      });
-    }
-  }
-
-  // Init
-  function init() {
-    installSidebarHandlers();
-    installMutationObserver();
-    // Expose debug helpers
-    window.__tryCloseSidebar = tryCloseSidebar;
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
 </body>
 </html>
+
 
 
 
